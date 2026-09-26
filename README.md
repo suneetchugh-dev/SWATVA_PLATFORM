@@ -64,6 +64,11 @@ All API responses use a shared envelope: `success`, `data`, `error`, and UTC `ti
 | `JPA_DDL_AUTO` | `validate` | Hibernate schema policy |
 | `SERVER_PORT` | `8080` | HTTP port |
 | `APP_LOG_LEVEL` | `INFO` | Application log level |
+| `QDRANT_HOST` | `localhost` | Qdrant vector database hostname |
+| `QDRANT_PORT` | `6334` | Qdrant gRPC port |
+| `QDRANT_API_KEY` | (empty) | Qdrant API key |
+| `QDRANT_COLLECTION_NAME` | `sahayak_schemes` | Qdrant vector collection name |
+| `OPENAI_API_KEY` | `demo-key` | OpenAI API key for embeddings and LLM |
 
 When adding the first entities, introduce versioned migrations. `JPA_DDL_AUTO=update` may be used only for local, short-lived development schemas.
 
@@ -107,3 +112,16 @@ GET /api/eligibility/matches
 ```
 
 This JWT-protected endpoint evaluates active Central schemes and State schemes for the user's recorded state. It returns deterministic results from persisted structured rules, including satisfied, failed, and missing conditions. Missing profile data is reported as missing information, not as automatic ineligibility.
+ 
+## AI & RAG Layer
+
+```text
+POST /api/ai/scheme-query
+POST /api/ai/scheme/{id}/explanation
+POST /api/ai/index
+```
+
+- **Semantic Q&A (`POST /api/ai/scheme-query`)**: Publicly answers questions grounded strictly in retrieved scheme chunks (eligibility, benefits, required documents, application process, important conditions, and FAQs). If retrieved context is insufficient, explicitly states that verified information is lacking.
+- **Personalized Explanation (`POST /api/ai/scheme/{id}/explanation`)**: JWT-protected endpoint providing a plain-language explanation of why a scheme matched the user based on the deterministic eligibility engine result and retrieved scheme facts. The LLM does NOT decide eligibility.
+- **Vector Indexing (`POST /api/ai/index`)**: Indexes scheme document chunks into PostgreSQL and Qdrant with metadata (`schemeId`, `governmentLevel`, `state`, `category`, `documentType`, `sourceUrl`).
+
