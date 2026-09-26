@@ -1,0 +1,9 @@
+target/
+.mvn/repository/
+.m2/
+.idea/
+*.iml
+
+# Local environment files may contain credentials.
+.env
+.env.*
