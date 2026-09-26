@@ -41,12 +41,12 @@ public class EligibilityService {
             catalogue = Stream.concat(catalogue, schemes.findByGovernmentLevelAndStateIgnoreCase(GovernmentLevel.STATE, profile.getState().trim()).stream());
         }
         return catalogue.filter(scheme -> scheme.getStatus() == SchemeStatus.ACTIVE)
-                .map(scheme -> result(scheme, profile))
+                .map(scheme -> evaluate(scheme, profile))
                 .sorted(Comparator.comparing(EligibilityResult::scheme))
                 .toList();
     }
 
-    private EligibilityResult result(Scheme scheme, UserProfile profile) {
+    public EligibilityResult evaluate(Scheme scheme, UserProfile profile) {
         EligibilityRuleEvaluator.Evaluation evaluation = evaluator.evaluate(scheme.getEligibilityRules(), profile);
         int total = evaluation.total();
         int satisfied = evaluation.count(Outcome.SATISFIED);
