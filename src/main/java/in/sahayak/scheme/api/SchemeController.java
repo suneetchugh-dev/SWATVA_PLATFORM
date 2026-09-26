@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import in.sahayak.scheme.ChecklistService;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,9 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/schemes")
 public class SchemeController {
     private final SchemeRepository schemes;
+    private final ChecklistService checklistService;
 
-    public SchemeController(SchemeRepository schemes) {
+    public SchemeController(SchemeRepository schemes, ChecklistService checklistService) {
         this.schemes = schemes;
+        this.checklistService = checklistService;
     }
 
     @GetMapping
@@ -42,6 +46,16 @@ public class SchemeController {
     public ResponseEntity<ApiResponse<SchemeDetail>> get(@PathVariable UUID id) {
         Scheme scheme = schemes.findById(id).orElseThrow(() -> new ResourceNotFoundException("Scheme not found"));
         return ResponseEntity.ok(ApiResponse.success(SchemeDetail.from(scheme)));
+    }
+
+    @GetMapping("/{schemeId}/checklist")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<ActionChecklist>> getChecklist(
+            @PathVariable UUID schemeId,
+            Authentication authentication) {
+        String email = authentication != null ? authentication.getName() : null;
+        ActionChecklist checklist = checklistService.getChecklist(schemeId, email);
+        return ResponseEntity.ok(ApiResponse.success(checklist));
     }
 
     public record SchemeSummary(UUID id, String name, GovernmentLevel governmentLevel, String state, String category,

@@ -58,9 +58,10 @@ public class BenefitController {
             List<String> satisfiedConditions,
             List<String> failedConditions,
             List<String> missingInformation,
-            Map<String, Object> explanationData
+            Map<String, Object> explanationData,
+            ActionChecklist checklist
     ) {
-        public static BenefitRecommendation from(Scheme scheme, EligibilityResult result) {
+        public static BenefitRecommendation from(Scheme scheme, EligibilityResult result, ActionChecklist checklist) {
             return new BenefitRecommendation(
                     scheme.getId(),
                     scheme.getName(),
@@ -75,7 +76,8 @@ public class BenefitController {
                     result.satisfiedConditions(),
                     result.failedConditions(),
                     result.missingInformation(),
-                    result.explanationData()
+                    result.explanationData(),
+                    checklist
             );
         }
 

@@ -29,13 +29,16 @@ public class BenefitDiscoveryService {
     private final UserProfileRepository profiles;
     private final SchemeRepository schemes;
     private final EligibilityService eligibilityService;
+    private final ChecklistService checklistService;
 
     public BenefitDiscoveryService(UserRepository users, UserProfileRepository profiles,
-                                   SchemeRepository schemes, EligibilityService eligibilityService) {
+                                   SchemeRepository schemes, EligibilityService eligibilityService,
+                                   ChecklistService checklistService) {
         this.users = users;
         this.profiles = profiles;
         this.schemes = schemes;
         this.eligibilityService = eligibilityService;
+        this.checklistService = checklistService;
     }
 
     @Transactional(readOnly = true)
@@ -61,7 +64,8 @@ public class BenefitDiscoveryService {
                 .filter(scheme -> scheme.getStatus() == SchemeStatus.ACTIVE)
                 .map(scheme -> {
                     EligibilityResult evaluation = eligibilityService.evaluate(scheme, profile);
-                    return BenefitRecommendation.from(scheme, evaluation);
+                    var checklist = checklistService.generateChecklist(scheme, profile);
+                    return BenefitRecommendation.from(scheme, evaluation, checklist);
                 })
                 .filter(recommendation -> recommendation.status() != EligibilityStatus.NOT_ELIGIBLE)
                 .sorted(RECOMMENDATION_COMPARATOR)

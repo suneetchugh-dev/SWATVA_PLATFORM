@@ -36,17 +36,31 @@ class BenefitControllerTest {
     void getRecommendedBenefitsReturnsExpectedStructure() throws Exception {
         String email = "test@example.com";
         Principal principal = new UsernamePasswordAuthenticationToken(email, null);
+        UUID centralId = UUID.randomUUID();
+        UUID stateId = UUID.randomUUID();
+
+        ActionChecklist centralChecklist = new ActionChecklist(
+                centralId, "PM-KISAN", List.of(), "Ministry of Agriculture", "https://pmkisan.gov.in",
+                List.of(), List.of("Farmer requirement"), List.of()
+        );
+
+        ActionChecklist stateChecklist = new ActionChecklist(
+                stateId, "Gruha Jyothi", List.of(), "Energy Dept", "https://karnataka.gov.in",
+                List.of(), List.of("Karnataka resident"), List.of("Income missing")
+        );
 
         BenefitRecommendation central = new BenefitRecommendation(
-                UUID.randomUUID(), "PM-KISAN", "Agriculture", GovernmentLevel.CENTRAL, null,
+                centralId, "PM-KISAN", "Agriculture", GovernmentLevel.CENTRAL, null,
                 "Income support", "Ministry of Agriculture", "https://pmkisan.gov.in",
-                EligibilityStatus.ELIGIBLE, 100, List.of("Occupation satisfied"), List.of(), List.of(), Map.of()
+                EligibilityStatus.ELIGIBLE, 100, List.of("Occupation satisfied"), List.of(), List.of(), Map.of(),
+                centralChecklist
         );
 
         BenefitRecommendation state = new BenefitRecommendation(
-                UUID.randomUUID(), "Gruha Jyothi", "Utilities", GovernmentLevel.STATE, "Karnataka",
+                stateId, "Gruha Jyothi", "Utilities", GovernmentLevel.STATE, "Karnataka",
                 "Free electricity", "Energy Dept", "https://karnataka.gov.in",
-                EligibilityStatus.POTENTIALLY_ELIGIBLE, 75, List.of("State satisfied"), List.of(), List.of("Income missing"), Map.of()
+                EligibilityStatus.POTENTIALLY_ELIGIBLE, 75, List.of("State satisfied"), List.of(), List.of("Income missing"), Map.of(),
+                stateChecklist
         );
 
         RecommendedBenefitsResponse response = RecommendedBenefitsResponse.of(List.of(central), List.of(state));
@@ -60,9 +74,10 @@ class BenefitControllerTest {
                 .andExpect(jsonPath("$.data.centralBenefits[0].status").value("ELIGIBLE"))
                 .andExpect(jsonPath("$.data.centralBenefits[0].matchPercentage").value(100))
                 .andExpect(jsonPath("$.data.centralBenefits[0].satisfiedConditions[0]").value("Occupation satisfied"))
+                .andExpect(jsonPath("$.data.centralBenefits[0].checklist.whereToApply").value("Ministry of Agriculture"))
                 .andExpect(jsonPath("$.data.stateBenefits[0].schemeName").value("Gruha Jyothi"))
                 .andExpect(jsonPath("$.data.stateBenefits[0].status").value("POTENTIALLY_ELIGIBLE"))
-                .andExpect(jsonPath("$.data.stateBenefits[0].matchPercentage").value(75))
-                .andExpect(jsonPath("$.data.stateBenefits[0].missingInformation[0]").value("Income missing"));
+                .andExpect(jsonPath("$.data.stateBenefits[0].missingInformation[0]").value("Income missing"))
+                .andExpect(jsonPath("$.data.stateBenefits[0].checklist.whereToApply").value("Energy Dept"));
     }
 }

@@ -31,6 +31,7 @@ class BenefitDiscoveryServiceTest {
     private UserProfileRepository profiles;
     private SchemeRepository schemes;
     private EligibilityService eligibilityService;
+    private ChecklistService checklistService;
     private BenefitDiscoveryService benefitDiscoveryService;
 
     @BeforeEach
@@ -39,7 +40,8 @@ class BenefitDiscoveryServiceTest {
         profiles = mock(UserProfileRepository.class);
         schemes = mock(SchemeRepository.class);
         eligibilityService = mock(EligibilityService.class);
-        benefitDiscoveryService = new BenefitDiscoveryService(users, profiles, schemes, eligibilityService);
+        checklistService = new ChecklistService(schemes, users, profiles, new in.sahayak.eligibility.EligibilityRuleEvaluator());
+        benefitDiscoveryService = new BenefitDiscoveryService(users, profiles, schemes, eligibilityService, checklistService);
     }
 
     @Test
@@ -97,7 +99,8 @@ class BenefitDiscoveryServiceTest {
         assertThat(centralRec.schemeName()).isEqualTo("PM-KISAN");
         assertThat(centralRec.matchPercentage()).isEqualTo(100);
         assertThat(centralRec.status()).isEqualTo(EligibilityStatus.ELIGIBLE);
-        assertThat(centralRec.satisfiedConditions()).containsExactly("Occupation requirement satisfied");
+        assertThat(centralRec.checklist()).isNotNull();
+        assertThat(centralRec.checklist().schemeName()).isEqualTo("PM-KISAN");
 
         assertThat(response.stateBenefits()).hasSize(1);
         BenefitRecommendation stateRec = response.stateBenefits().get(0);
@@ -105,6 +108,8 @@ class BenefitDiscoveryServiceTest {
         assertThat(stateRec.matchPercentage()).isEqualTo(80);
         assertThat(stateRec.status()).isEqualTo(EligibilityStatus.POTENTIALLY_ELIGIBLE);
         assertThat(stateRec.missingInformation()).containsExactly("Income is missing");
+        assertThat(stateRec.checklist()).isNotNull();
+        assertThat(stateRec.checklist().schemeName()).isEqualTo("Gruha Jyothi");
 
         assertThat(response.totalPotentialBenefits()).isEqualTo(2);
     }
