@@ -23,12 +23,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 class BenefitControllerTest {
     private BenefitDiscoveryService service;
+    private in.sahayak.scheme.MissedBenefitsService missedBenefitsService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         service = mock(BenefitDiscoveryService.class);
-        BenefitController controller = new BenefitController(service);
+        missedBenefitsService = mock(in.sahayak.scheme.MissedBenefitsService.class);
+        BenefitController controller = new BenefitController(service, missedBenefitsService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
@@ -79,5 +81,40 @@ class BenefitControllerTest {
                 .andExpect(jsonPath("$.data.stateBenefits[0].status").value("POTENTIALLY_ELIGIBLE"))
                 .andExpect(jsonPath("$.data.stateBenefits[0].missingInformation[0]").value("Income missing"))
                 .andExpect(jsonPath("$.data.stateBenefits[0].checklist.whereToApply").value("Energy Dept"));
+    }
+
+    @Test
+    void getMissedBenefitsValueReturnsExpectedStructure() throws Exception {
+        String email = "citizen@example.com";
+        Principal principal = new UsernamePasswordAuthenticationToken(email, null);
+        UUID centralId = UUID.randomUUID();
+        UUID stateId = UUID.randomUUID();
+
+        SchemeBenefitValue centralVal = new SchemeBenefitValue(
+                centralId, "PM-KISAN", GovernmentLevel.CENTRAL, null, "Agriculture",
+                25000L, "ANNUAL", "Income support", "https://pmkisan.gov.in", EligibilityStatus.ELIGIBLE
+        );
+
+        SchemeBenefitValue stateVal = new SchemeBenefitValue(
+                stateId, "Gruha Lakshmi", GovernmentLevel.STATE, "Karnataka", "Women",
+                17000L, "MONTHLY", "Financial assistance", "https://karnataka.gov.in", EligibilityStatus.POTENTIALLY_ELIGIBLE
+        );
+
+        MissedBenefitsResponse response = MissedBenefitsResponse.of(25000L, 17000L, List.of(centralVal, stateVal));
+        when(missedBenefitsService.getMissedBenefits(email)).thenReturn(response);
+
+        mockMvc.perform(get("/api/benefits/missed-value").principal(principal))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalEstimatedAnnualBenefit").value(42000))
+                .andExpect(jsonPath("$.data.central").value(25000))
+                .andExpect(jsonPath("$.data.state").value(17000))
+                .andExpect(jsonPath("$.data.totalMissedBenefits").value(2))
+                .andExpect(jsonPath("$.data.headlineMessage").value("You may be missing benefits worth approximately ₹42,000/year."))
+                .andExpect(jsonPath("$.data.disclaimer").isNotEmpty())
+                .andExpect(jsonPath("$.data.breakdown[0].schemeName").value("PM-KISAN"))
+                .andExpect(jsonPath("$.data.breakdown[0].estimatedAnnualBenefit").value(25000))
+                .andExpect(jsonPath("$.data.breakdown[1].schemeName").value("Gruha Lakshmi"))
+                .andExpect(jsonPath("$.data.breakdown[1].estimatedAnnualBenefit").value(17000));
     }
 }

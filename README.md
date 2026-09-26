@@ -112,6 +112,16 @@ GET /api/eligibility/matches
 ```
 
 This JWT-protected endpoint evaluates active Central schemes and State schemes for the user's recorded state. It returns deterministic results from persisted structured rules, including satisfied, failed, and missing conditions. Missing profile data is reported as missing information, not as automatic ineligibility.
+
+## Personalized Benefits & Missed Value
+
+```text
+GET /api/benefits/recommended
+GET /api/benefits/missed-value
+```
+
+- **Recommended Benefits (`GET /api/benefits/recommended`)**: Returns personalized scheme matches separated into Central and State benefits along with an Action Checklist for each scheme.
+- **Missed Benefits Value (`GET /api/benefits/missed-value`)**: Calculates the estimated total annual monetary benefit from verified scheme data for unclaimed, potentially eligible schemes (`totalEstimatedAnnualBenefit`, `central`, `state`, per-scheme `breakdown`). Schemes with non-monetary or unknown values are excluded without inventing numbers. Clearly disclaims financial guarantees.
  
 ## AI & RAG Layer
 

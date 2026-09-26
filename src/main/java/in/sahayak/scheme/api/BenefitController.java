@@ -4,6 +4,7 @@ import in.sahayak.common.api.ApiResponse;
 import in.sahayak.eligibility.EligibilityResult;
 import in.sahayak.eligibility.EligibilityStatus;
 import in.sahayak.scheme.BenefitDiscoveryService;
+import in.sahayak.scheme.MissedBenefitsService;
 import in.sahayak.scheme.model.Scheme;
 import in.sahayak.scheme.model.enums.GovernmentLevel;
 import java.util.List;
@@ -19,14 +20,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/benefits")
 public class BenefitController {
     private final BenefitDiscoveryService benefitDiscoveryService;
+    private final MissedBenefitsService missedBenefitsService;
 
-    public BenefitController(BenefitDiscoveryService benefitDiscoveryService) {
+    public BenefitController(BenefitDiscoveryService benefitDiscoveryService,
+                             MissedBenefitsService missedBenefitsService) {
         this.benefitDiscoveryService = benefitDiscoveryService;
+        this.missedBenefitsService = missedBenefitsService;
     }
 
     @GetMapping("/recommended")
     public ResponseEntity<ApiResponse<RecommendedBenefitsResponse>> recommended(Authentication authentication) {
         RecommendedBenefitsResponse response = benefitDiscoveryService.getRecommendedBenefits(authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/missed-value")
+    public ResponseEntity<ApiResponse<MissedBenefitsResponse>> missedValue(Authentication authentication) {
+        MissedBenefitsResponse response = missedBenefitsService.getMissedBenefits(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
