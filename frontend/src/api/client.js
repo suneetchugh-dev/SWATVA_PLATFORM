@@ -128,6 +128,29 @@ export const api = {
       }
       return data;
     },
+    sendOtp: async (email) => {
+      return await request('/api/auth/send-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+    },
+    resendOtp: async (email) => {
+      return await request('/api/auth/resend-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+    },
+    verifyOtp: async (email, otp) => {
+      const data = await request('/api/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp }),
+      });
+      if (data && data.accessToken) {
+        setToken(data.accessToken);
+        setStoredUser({ email: data.email, userId: data.userId });
+      }
+      return data;
+    },
     logout: () => {
       setToken(null);
       setStoredUser(null);

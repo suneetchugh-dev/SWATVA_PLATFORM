@@ -1045,6 +1045,9 @@ export default function Landing() {
                 window.scrollTo({ top: 0, behavior: 'smooth' })
               }
             }, 320)
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('swatva-reset-particles'))
+            }, 1600)
           }}
           className="footer-scroll-top"
           aria-label="Scroll to top"
