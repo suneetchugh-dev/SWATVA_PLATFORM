@@ -52,7 +52,9 @@ public record CorsProperties(
         }
         return patterns.stream()
                 .filter(p -> p != null && !p.isBlank())
+                .flatMap(p -> java.util.Arrays.stream(p.split(",")))
                 .map(String::trim)
+                .filter(p -> !p.isBlank())
                 // Keep "http://*" and "https://*" intact; only trim a real path.
                 .map(p -> p.endsWith("/") && !p.endsWith("://") && !p.endsWith("/*")
                         ? p.substring(0, p.length() - 1)
