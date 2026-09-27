@@ -314,7 +314,7 @@ export default function DocumentsSection() {
             <span>{validationResult.message}</span>
           </div>
 
-          <div className="grid-2" style={{ fontSize: '13px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
+          <div className="grid-2" style={{ fontSize: '13px', background: '#FAFAFA', padding: '12px', borderRadius: '6px' }}>
             <div>
               <p><strong>Applicable Rule:</strong> {validationResult.ruleDescription || 'Configured validity rule'}</p>
               <p><strong>Rule Type:</strong> {validationResult.ruleType || 'STATE_DEFAULT'}</p>

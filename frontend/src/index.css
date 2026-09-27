@@ -1,18 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Legacy palette for the demo dashboard (App.jsx + App.css).
+ * Re-mapped off blue onto the Obsidian/Porcelain system: #171717 and #0A0A0A
+ * were blue and are now banned outright by the design system. Status colours
+ * are deliberately rendered achromatic too — every verdict in the product is
+ * communicated by text and a monospace badge, never by a coloured dot.
+ */
 :root {
-  --primary: #1e3a8a;
-  --primary-hover: #172554;
-  --primary-light: #eff6ff;
-  --border: #e2e8f0;
-  --bg: #f8fafc;
+  --primary: #171717;
+  --primary-hover: #000000;
+  --primary-light: #f5f5f5;
+  --border: #e5e5e5;
+  --bg: #fcfdfd;
   --card-bg: #ffffff;
-  --text: #0f172a;
-  --text-muted: #64748b;
-  --success: #16a34a;
-  --success-bg: #f0fdf4;
-  --warning: #ca8a04;
-  --warning-bg: #fefce8;
-  --danger: #dc2626;
-  --danger-bg: #fef2f2;
+  --text: #0a0a0a;
+  --text-muted: #737373;
+  --success: #404040;
+  --success-bg: #f5f5f5;
+  --warning: #b45309;
+  --warning-bg: #fffbeb;
+  --danger: #525252;
+  --danger-bg: #fafafa;
   --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
@@ -165,7 +176,7 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.15);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
 }
 
 textarea {
@@ -207,7 +218,7 @@ button {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #f1f5f9;
+  background: #F5F5F5;
 }
 
 .btn-danger {
@@ -216,7 +227,7 @@ button {
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #b91c1c;
+  background: #B45309;
 }
 
 .btn-sm {
@@ -239,11 +250,11 @@ button {
   text-transform: uppercase;
 }
 
-.badge-green { background: #dcfce7; color: #15803d; }
+.badge-green { background: #FAFAFA; color: #525252; }
 .badge-yellow { background: #fef9c3; color: #a16207; }
-.badge-red { background: #fee2e2; color: #b91c1c; }
-.badge-blue { background: #dbeafe; color: #1d4ed8; }
-.badge-gray { background: #f1f5f9; color: #475569; }
+.badge-red { background: #FEF3C7; color: #B45309; }
+.badge-blue { background: #F5F5F5; color: #171717; }
+.badge-gray { background: #F5F5F5; color: #525252; }
 
 /* Alerts */
 .alert {
@@ -255,20 +266,20 @@ button {
 
 .alert-danger {
   background: var(--danger-bg);
-  border: 1px solid #fca5a5;
-  color: #991b1b;
+  border: 1px solid #FCD34D;
+  color: #92400E;
 }
 
 .alert-success {
   background: var(--success-bg);
-  border: 1px solid #86efac;
-  color: #166534;
+  border: 1px solid #D4D4D4;
+  color: #404040;
 }
 
 .alert-info {
   background: var(--primary-light);
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
+  border: 1px solid #E5E5E5;
+  color: #404040;
 }
 
 /* Tables */
@@ -291,7 +302,7 @@ th, td {
 }
 
 th {
-  background: #f8fafc;
+  background: #FAFAFA;
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -301,7 +312,7 @@ tr:last-child td {
 }
 
 tr:hover td {
-  background: #f8fafc;
+  background: #FAFAFA;
 }
 
 /* Chat & Messages */
@@ -339,7 +350,7 @@ tr:hover td {
 
 .chat-bot {
   align-self: flex-start;
-  background: #f1f5f9;
+  background: #F5F5F5;
   color: var(--text);
   border: 1px solid var(--border);
 }
@@ -368,20 +379,251 @@ tr:hover td {
   border-radius: 50%;
   display: inline-block;
 }
-.traffic-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-.traffic-red .traffic-dot { background: #dc2626; }
+.traffic-red { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+.traffic-red .traffic-dot { background: #B45309; }
 .traffic-yellow { background: #fefce8; color: #ca8a04; border: 1px solid #fef08a; }
 .traffic-yellow .traffic-dot { background: #ca8a04; }
-.traffic-green { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-.traffic-green .traffic-dot { background: #16a34a; }
+.traffic-green { background: #FAFAFA; color: #525252; border: 1px solid #E5E5E5; }
+.traffic-green .traffic-dot { background: #525252; }
 
 /* Code / JSON block */
 pre.code-view {
-  background: #0f172a;
-  color: #f8fafc;
+  background: #0A0A0A;
+  color: #FAFAFA;
   padding: 12px;
   border-radius: 6px;
   font-size: 12px;
   overflow-x: auto;
   font-family: monospace;
+}
+
+/* ==========================================================================
+   Swatva AI — Obsidian & Porcelain Neo-Glass design system
+   Carried over from the Sahnirmaan UI_DESIGN_SYSTEM.md. One accent (amber);
+   every other surface is achromatic. Never introduce blue, green, cyan, teal
+   or slate-blue here.
+   ========================================================================== */
+
+/* The authentication card. Amber, borderless, frosted glass with a blurred
+   amber halo behind it — UI_DESIGN_SYSTEM.md section 2.1. No stroke, no
+   outline: the depth comes from the backdrop blur and the halo only. */
+.auth-glass-card {
+  position: relative;
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border-radius: 1.5rem;
+  border: none !important;
+  outline: none !important;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 16px 45px -8px rgba(0, 0, 0, 0.08);
+  transition: background 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+}
+
+.auth-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  background: radial-gradient(ellipse at 50% 25%, rgba(245, 158, 11, 0.16), rgba(217, 119, 6, 0.06), transparent 70%);
+  filter: blur(28px);
+  -webkit-filter: blur(28px);
+  border-radius: 2rem;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
+  opacity: 0.7;
+}
+
+.auth-glass-card:hover {
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.12);
+}
+
+.dark .auth-glass-card {
+  background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.12) 0%, rgba(22, 18, 14, 0.65) 65%, rgba(14, 12, 10, 0.8) 100%);
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 16px 45px -8px rgba(0, 0, 0, 0.7), 0 0 35px rgba(245, 158, 11, 0.12);
+}
+
+.dark .auth-glass-card::before {
+  background: radial-gradient(ellipse at 50% 25%, rgba(245, 158, 11, 0.22), rgba(217, 119, 6, 0.1), transparent 70%);
+  opacity: 0.75;
+}
+
+.dark .auth-glass-card:hover {
+  background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.2) 0%, rgba(28, 22, 16, 0.78) 65%, rgba(18, 14, 12, 0.9) 100%);
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.85), 0 0 50px rgba(245, 158, 11, 0.25);
+}
+
+.dark .auth-glass-card:hover::before {
+  opacity: 1;
+  transform: scale(1.03);
+  filter: blur(34px);
+  -webkit-filter: blur(34px);
+}
+
+/* Frosted glass platform card. The amber halo is a single-achromatic-surface
+   glow, applied only over pure neutral obsidian. */
+.neo-glass-card {
+  position: relative;
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-radius: 1.5rem;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease,
+    border-color 0.3s ease, transform 0.3s ease;
+}
+
+:not(.dark) .neo-glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.04);
+}
+
+:not(.dark) .neo-glass-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.14);
+  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.07);
+}
+
+.dark .neo-glass-card {
+  background: rgba(18, 18, 18, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.6), 0 0 24px 0px rgba(245, 158, 11, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.dark .neo-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: radial-gradient(ellipse at 50% 50%, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.04), transparent 70%);
+  filter: blur(18px);
+  -webkit-filter: blur(18px);
+  border-radius: 1.8rem;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease;
+  opacity: 0.72;
+}
+
+.dark .neo-glass-card:hover {
+  background: rgba(22, 22, 22, 0.68);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.75), 0 0 28px 2px rgba(245, 158, 11, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+/* The sole amber-accented panel: metric and readiness cards. */
+.dashboard-amber-card {
+  position: relative;
+  border-radius: 1.5rem;
+}
+
+:not(.dark) .dashboard-amber-card {
+  background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.06) 0%, rgba(255, 255, 255, 0.8) 65%, rgba(255, 255, 255, 0.95) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.06), 0 0 22px -4px rgba(245, 158, 11, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.dark .dashboard-amber-card {
+  background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.07) 0%, rgba(20, 17, 14, 0.6) 65%, rgba(12, 10, 8, 0.76) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.14);
+  box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.7), 0 0 22px -4px rgba(245, 158, 11, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-amber-card:hover {
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* Bottom navigation bar on small screens. A vertical fade into the canvas so
+   scrolling content dissolves behind it instead of being clipped by it. */
+.app-bottom-bar {
+  background: linear-gradient(to top, #fcfdfd 55%, rgba(252, 253, 253, 0));
+}
+
+.dark .app-bottom-bar {
+  background: linear-gradient(to top, #080808 55%, rgba(8, 8, 8, 0));
+}
+
+/* Monochrome status badge. Status is never communicated by a coloured dot. */
+.mono-badge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Section watermark. */
+.section-watermark {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 1rem;
+  font-size: 10vw;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.045;
+  color: #171717;
+}
+
+.dark .section-watermark {
+  opacity: 0.14;
+  color: #FFFFFF;
+}
+
+@layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    background-color: #fcfdfd;
+    color: #0a0a0a;
+  }
+
+  .dark body {
+    background-color: #080808;
+    color: #ffffff;
+  }
+
+  /* Tailwind seeds the ring token with a blue default on `*`. No blue class
+     exists in this project, so it is inert — but the token is inherited per
+     element, and a `*` declaration beats any inherited value. Overriding the
+     same selector later in source order neutralises it, so a stray `ring-*`
+     can never introduce a banned hue. Amber keeps focus rings visible. */
+  *,
+  ::before,
+  ::after,
+  ::backdrop {
+    --tw-ring-color: rgba(245, 158, 11, 0.45);
+  }
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .min-h-dvh {
+    min-height: 100dvh;
+  }
+}
+
+/* Motion is enhancement only. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -77,22 +77,56 @@ Use `in.swatva.<module>` for domain ownership: `auth`, `user`, `scheme`, `eligib
 
 ## Build and test
 
+Backend:
+
 ```powershell
-mvn clean verify
-mvn spring-boot:run
+./mvnw -B clean verify
+./mvnw spring-boot:run
 ```
 
-Use PostgreSQL before starting the application; startup creates/updates the local schema and runs the seed initializer. Add focused tests alongside new behavior under `src/test/java`; none currently exist.
+Prefer the wrapper over a bare `mvn` so everyone builds with the same Maven version.
+
+Frontend (see `BRANCHES.md` for the branch layout — the SPA lives in `frontend/` on `main` and `develop`, and at the repository root on the isolated `frontend` branch):
+
+```powershell
+cd frontend
+npm install
+npm run dev
+npm run build
+```
+
+Use PostgreSQL before starting the application; startup creates/updates the local schema and runs the seed initializer. Backend tests live under `src/test/java` and run as part of `verify`.
+
+## Local development
+
+`docker-compose.yml` brings up the infrastructure the backend expects:
+
+```powershell
+cp .env.example .env
+docker compose up -d
+./mvnw spring-boot:run
+```
+
+- Only PostgreSQL and Qdrant are required to boot. MinIO is behind a `storage` profile, so the app starts without it; document uploads then fail with a server error until `docker compose --profile storage up -d` is used.
+- `JwtProperties` is `@Validated` and refuses to start on a blank or too-short `JWT_SECRET`. That is deliberate — do not add a fallback default in code. `.env.example` ships a throwaway local placeholder purely so the first run works.
+- Keep `QDRANT_INITIALIZE_SCHEMA=false` unless `OPENAI_EMBEDDING_MODEL` points at a real embeddings model. When it is `true`, Spring AI calls the embeddings API during context startup to discover the vector dimension, so a chat-only provider aborts the whole application rather than just the AI feature. Groq serves no embeddings endpoint at all.
+- `.env` is gitignored and must never be committed. Only `.env.example` is tracked.
 
 ## Important files
 
 - `pom.xml` — Java version and dependencies
+- `mvnw` / `mvnw.cmd` / `.mvn/` — pinned Maven wrapper
+- `docker-compose.yml` — PostgreSQL, Qdrant, and the optional MinIO profile
+- `.env.example` — the only tracked environment file
 - `src/main/resources/application.yml` — datasource, JPA, server, logging configuration
 - `src/main/java/in/swatva/auth/config/SecurityConfig.java` — route security and auth error responses
 - `src/main/java/in/swatva/common/api/ApiResponse.java` and `ApiError.java` — response contract
 - `src/main/java/in/swatva/common/exception/GlobalExceptionHandler.java` — error mapping
 - `src/main/java/in/swatva/common/persistence/BaseEntity.java` — UUID/audit convention
 - `src/main/java/in/swatva/scheme/seed/SchemeDataInitializer.java` — catalogue seed data
+- `frontend/src/api/client.js` — the frontend's view of the API contract
+- `frontend/src/locales/{en,hi}.json` — UI copy; keep the two catalogues at parity
+- `frontend/tailwind.config.js` — the design-system token source; it deliberately removes the blue/green/teal/slate families so banned classes fail to compile
 
 ## Changing or adding functionality
 

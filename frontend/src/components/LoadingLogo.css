@@ -1,0 +1,65 @@
+.logo-svg {
+  overflow: visible;
+}
+
+.logo-text {
+  font-family: 'Playfair Display', 'Georgia', 'Didot', 'Times New Roman', serif;
+  font-weight: 400;
+  stroke-width: 2.5px;
+  stroke: #171717;
+  fill: transparent;
+  stroke-dasharray: 250;
+  stroke-dashoffset: 250;
+  animation: draw-and-fill 3.5s ease-in-out infinite;
+}
+
+.dark .logo-text {
+  stroke: #FFFFFF;
+  animation: draw-and-fill-dark 3.5s ease-in-out infinite;
+}
+
+@keyframes draw-and-fill {
+  0% {
+    stroke-dashoffset: 250;
+    fill: transparent;
+  }
+  30% {
+    stroke-dashoffset: 0;
+    fill: transparent;
+  }
+  45% {
+    stroke-dashoffset: 0;
+    fill: #171717; 
+  }
+  85% {
+    stroke-dashoffset: 0;
+    fill: #171717; 
+  }
+  100% {
+    stroke-dashoffset: 250;
+    fill: transparent;
+  }
+}
+
+@keyframes draw-and-fill-dark {
+  0% {
+    stroke-dashoffset: 250;
+    fill: transparent;
+  }
+  30% {
+    stroke-dashoffset: 0;
+    fill: transparent;
+  }
+  45% {
+    stroke-dashoffset: 0;
+    fill: #FFFFFF; 
+  }
+  85% {
+    stroke-dashoffset: 0;
+    fill: #FFFFFF; 
+  }
+  100% {
+    stroke-dashoffset: 250;
+    fill: transparent;
+  }
+}
