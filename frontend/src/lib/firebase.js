@@ -25,13 +25,21 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase only once
-export const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const isValidConfig = Boolean(
+  firebaseConfig.apiKey &&
+  firebaseConfig.apiKey !== 'undefined' &&
+  firebaseConfig.apiKey.length > 5
+);
+
+// Initialize Firebase only once if config is valid
+export const app = isValidConfig
+  ? (!getApps().length ? initializeApp(firebaseConfig) : getApp())
+  : null;
 
 // Firebase Services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
+export const storage = app ? getStorage(app) : null;
 
 // Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
@@ -39,6 +47,13 @@ googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 // Sign in with Google Popup
 export async function signInWithGoogle() {
+  if (!auth) {
+    return {
+      user: null,
+      token: null,
+      error: 'Firebase Auth is not configured. Please set VITE_FIREBASE_API_KEY environment variable.',
+    };
+  }
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const token = await result.user.getIdToken();
@@ -59,6 +74,9 @@ export async function signInWithGoogle() {
 
 // Sign in with Email & Password
 export async function signInWithFirebaseEmail(email, password) {
+  if (!auth) {
+    return { user: null, token: null, error: 'Firebase Auth is not configured.' };
+  }
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
     const token = await result.user.getIdToken();
@@ -79,6 +97,9 @@ export async function signInWithFirebaseEmail(email, password) {
 
 // Register with Email & Password
 export async function registerWithFirebaseEmail(name, email, password) {
+  if (!auth) {
+    return { user: null, token: null, error: 'Firebase Auth is not configured.' };
+  }
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     if (name && result.user) {
@@ -102,6 +123,7 @@ export async function registerWithFirebaseEmail(name, email, password) {
 
 // Sign Out
 export async function firebaseSignOut() {
+  if (!auth) return { success: true, error: null };
   try {
     await signOut(auth);
     return { success: true, error: null };
