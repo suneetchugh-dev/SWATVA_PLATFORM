@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertCircle, ArrowUpRight, Check, Scale, Sparkles, X } from 'lucide-react'
+import { AlertCircle, ArrowUpRight, Check, Scale, X } from 'lucide-react'
 import { api } from '../api/client'
 import {
   Badge,
@@ -14,6 +14,9 @@ import {
   StatusPill,
   cx,
 } from '../components/ui'
+import { useSlidingPill, PILL_TRANSITION } from '../lib/useSlidingPill'
+import { playClick } from '../utils/soundFx'
+import AIOrbFace from '../components/AIOrbFace'
 
 // Filter ids double as translation keys under matches.filters.*, except ALL.
 const FILTER_IDS = ['ELIGIBLE', 'NEEDS_INFORMATION', 'NOT_ELIGIBLE', 'ALL']
@@ -31,6 +34,13 @@ export default function Matches() {
   const [error, setError] = useState(null)
   const [filter, setFilter] = useState('ELIGIBLE')
   const [openId, setOpenId] = useState(null)
+
+  const filterIndex = Math.max(0, FILTER_IDS.indexOf(filter))
+  const { trackRef: filterTrackRef, pill: filterPill } = useSlidingPill(
+    FILTER_IDS.length,
+    filterIndex,
+    `${i18n.resolvedLanguage}_${loading}_${results?.length}`,
+  )
 
   const load = () => {
     setLoading(true)
@@ -71,7 +81,7 @@ export default function Matches() {
         title={t('matches.title')}
         desc={t('matches.desc')}
         actions={
-          <Button variant="secondary" onClick={load}>
+          <Button variant="secondary" onClick={() => { playClick(); load(); }}>
             {t('matches.recheck')}
           </Button>
         }
@@ -101,63 +111,60 @@ export default function Matches() {
         />
       ) : (
         <>
-          {/* Verdict tally. Amber on the eligible count only — the design system
-              does not allow a row of coloured status chips. */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            {[
-              { key: 'ELIGIBLE', value: counts.ELIGIBLE, accent: true },
-              { key: 'NEEDS_INFORMATION', value: counts.NEEDS_INFORMATION, accent: false },
-              { key: 'NOT_ELIGIBLE', value: counts.NOT_ELIGIBLE, accent: false },
-            ].map(({ key, value, accent }) => (
-              <Card key={key} accent={accent} className="p-4">
+          {/* Filter Pills with smooth sliding background pill */}
+          <div className="p-1 rounded-full neo-glass-card inline-flex items-center mb-6 max-w-full overflow-x-auto">
+            <div ref={filterTrackRef} className="relative flex items-center gap-1" role="tablist" aria-label="Filter matches">
+              {filterPill ? (
                 <span
-                  className={cx(
-                    'mono-badge',
-                    accent
-                      ? 'text-amber-700 dark:text-amber-400'
-                      : 'text-neutral-500 dark:text-neutral-400',
-                  )}
-                >
-                  {String(value).padStart(2, '0')}
-                </span>
-                <p className="mt-2 text-xs font-semibold text-neutral-700 dark:text-neutral-200 leading-tight">
-                  {key === 'ELIGIBLE'
-                    ? t('matches.tally.eligible')
-                    : key === 'NEEDS_INFORMATION'
-                      ? t('matches.tally.needsInfo')
-                      : t('matches.tally.notEligible')}
-                </p>
-              </Card>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-1.5 mb-5 overflow-x-auto pb-1" role="tablist" aria-label="Filter matches">
-            {FILTER_IDS.map((id) => {
-              const n = id === 'ALL' ? (results?.length ?? 0) : counts[id]
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  aria-selected={filter === id}
-                  onClick={() => setFilter(id)}
-                  className={cx(
-                    'shrink-0 h-8 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5',
-                    filter === id
-                      ? 'bg-neutral-950 dark:bg-white text-white dark:text-neutral-950'
-                      : 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-white/10',
-                  )}
-                >
-                  {t(`matches.filters.${id}`)}
-                  <span className={cx('mono-badge', filter === id ? 'opacity-70' : 'opacity-60')}>{n}</span>
-                </button>
-              )
-            })}
+                  aria-hidden="true"
+                  className="absolute z-0 rounded-full bg-neutral-950 dark:bg-white pointer-events-none"
+                  style={{
+                    transform: `translateX(${filterPill.x}px)`,
+                    width: `${filterPill.w}px`,
+                    height: `${filterPill.h}px`,
+                    top: `${filterPill.y}px`,
+                    transition: PILL_TRANSITION,
+                  }}
+                />
+              ) : null}
+              {FILTER_IDS.map((id, index) => {
+                const n = id === 'ALL' ? (results?.length ?? 0) : counts[id]
+                const isActive = filter === id
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    data-pill-idx={index}
+                    aria-selected={isActive}
+                    onClick={() => { playClick(); setFilter(id); }}
+                    className={cx(
+                      'relative z-10 shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5 select-none',
+                      isActive
+                        ? filterPill
+                          ? 'text-white dark:text-neutral-950'
+                          : 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
+                        : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white',
+                    )}
+                  >
+                    <span>{t(`matches.filters.${id}`)}</span>
+                    <span className={cx(
+                      'mono-badge text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold',
+                      isActive
+                        ? 'bg-white/20 dark:bg-black/20 text-white dark:text-neutral-950'
+                        : 'bg-neutral-200/70 dark:bg-white/10 text-neutral-600 dark:text-neutral-300'
+                    )}>
+                      {n}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {visible.length === 0 ? (
             <EmptyState
-              icon={Sparkles}
+              icon={Scale}
               title={t('matches.nothingTitle')}
               body={t('matches.nothingBody')}
             />

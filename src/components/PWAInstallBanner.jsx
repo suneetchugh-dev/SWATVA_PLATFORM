@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Download, X, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePWA } from '../hooks/usePWA';
 import { playClick } from '../utils/soundFx';
+
+const AUTO_DISMISS_MS = 7500; // Automatically fade away after 7.5 seconds
 
 export default function PWAInstallBanner() {
   const { t } = useTranslation();
@@ -13,6 +15,8 @@ export default function PWAInstallBanner() {
   const [installing, setInstalling] = useState(false);
   const [installedSuccess, setInstalledSuccess] = useState(false);
   const [scrolledAway, setScrolledAway] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     try {
@@ -23,13 +27,30 @@ export default function PWAInstallBanner() {
     } catch {}
   }, []);
 
-  // Automatically fade out and hide when user starts scrolling on landing page
+  // Automatically fade out and dismiss after a few seconds unless hovered
+  useEffect(() => {
+    const isVisible = isInstallable && !isInstalled && !dismissed && !scrolledAway;
+    if (!isVisible || isHovered || installing || installedSuccess) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      return;
+    }
+
+    timerRef.current = setTimeout(() => {
+      setDismissed(true);
+    }, AUTO_DISMISS_MS);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [isInstallable, isInstalled, dismissed, scrolledAway, isHovered, installing, installedSuccess]);
+
+  // Automatically fade out when user scrolls down
   useEffect(() => {
     if (location.pathname !== '/' || dismissed || scrolledAway) return;
 
     const handleScroll = () => {
       const scrollPos = typeof window !== 'undefined' ? window.scrollY || document.documentElement.scrollTop : 0;
-      if (scrollPos > 25) {
+      if (scrollPos > 30) {
         setScrolledAway(true);
       }
     };
@@ -58,7 +79,7 @@ export default function PWAInstallBanner() {
       setInstalledSuccess(true);
       setTimeout(() => {
         setDismissed(true);
-      }, 3000);
+      }, 2500);
     }
   };
 
@@ -73,19 +94,21 @@ export default function PWAInstallBanner() {
   return (
     <div
       aria-hidden={!isVisible}
-      className={`fixed bottom-20 lg:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`fixed bottom-20 lg:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
         isVisible
           ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto visible'
           : 'opacity-0 translate-y-6 scale-95 pointer-events-none invisible'
       }`}
     >
-      <div className="neo-glass-card p-3.5 sm:p-4 rounded-2xl border border-amber-500/30 dark:border-amber-500/20 shadow-2xl backdrop-blur-xl bg-white/90 dark:bg-neutral-900/90 flex items-center justify-between gap-3 relative overflow-hidden">
-        {/* Amber accent subtle aura */}
-        <div className="absolute -left-6 -top-6 w-24 h-24 bg-amber-500/15 rounded-full blur-xl pointer-events-none" />
+      <div className="neo-glass-card p-3 sm:p-3.5 rounded-2xl border border-neutral-200/80 dark:border-white/15 shadow-2xl backdrop-blur-xl bg-white/95 dark:bg-[#151618]/95 flex items-center justify-between gap-3 relative overflow-hidden">
+        {/* Subtle amber aura accent */}
+        <div className="absolute -left-6 -top-6 w-24 h-24 bg-amber-500/10 dark:bg-amber-500/15 rounded-full blur-xl pointer-events-none" />
 
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-neutral-950 dark:bg-black border border-amber-500/40 flex items-center justify-center flex-shrink-0 shadow-sm relative overflow-hidden">
-            <img src="/pwa-64x64.png" alt="SWATVA Logo" className="w-7 h-7 object-contain" />
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/15 flex items-center justify-center flex-shrink-0 shadow-xs relative overflow-hidden">
+            <img src="/pwa-64x64.png" alt="SWATVA Logo" className="w-6 h-6 object-contain" />
           </div>
 
           <div className="min-w-0 flex-1">
@@ -93,11 +116,11 @@ export default function PWAInstallBanner() {
               <span className="text-xs font-bold text-neutral-950 dark:text-white tracking-tight">
                 {t('pwa.installTitle', 'Install SWATVA App')}
               </span>
-              <span className="inline-flex items-center px-1.5 py-0.2 text-[9px] font-semibold uppercase tracking-wider rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+              <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                 PWA
               </span>
             </div>
-            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+            <p className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
               {t('pwa.installDesc', 'Instant access, offline rules & verified schemes on your device.')}
             </p>
           </div>
@@ -108,18 +131,18 @@ export default function PWAInstallBanner() {
             type="button"
             onClick={handleInstall}
             disabled={installing || installedSuccess || !isVisible}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all active:scale-95 cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
+            className="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 transition-all active:scale-95 cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
           >
             {installedSuccess ? (
               <>
-                <Check size={13} className="stroke-[2.5]" />
+                <Check size={12} className="stroke-[2.5]" />
                 <span>{t('pwa.installed', 'Installed')}</span>
               </>
             ) : installing ? (
               <span>{t('pwa.installing', 'Installing...')}</span>
             ) : (
               <>
-                <Download size={13} className="stroke-[2.5]" />
+                <Download size={12} className="stroke-[2.5]" />
                 <span>{t('pwa.installAction', 'Install')}</span>
               </>
             )}
@@ -129,10 +152,10 @@ export default function PWAInstallBanner() {
             type="button"
             onClick={handleDismiss}
             disabled={!isVisible}
-            className="p-1.5 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
             aria-label={t('common.dismiss', 'Dismiss')}
           >
-            <X size={14} />
+            <X size={13} />
           </button>
         </div>
       </div>

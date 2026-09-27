@@ -22,10 +22,9 @@ export function usePWA() {
       (typeof window.navigator !== 'undefined' && Boolean(window.navigator?.standalone)) ||
       (typeof document !== 'undefined' && typeof document.referrer === 'string' && document.referrer.includes('android-app://')));
 
-  // Register and manage service worker updates natively (production only)
+  // Register and manage service worker updates natively
   useEffect(() => {
     if (
-      !import.meta.env.PROD ||
       typeof window === 'undefined' ||
       typeof navigator === 'undefined' ||
       !('serviceWorker' in navigator)

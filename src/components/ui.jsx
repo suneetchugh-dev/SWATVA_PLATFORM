@@ -7,6 +7,7 @@
  */
 import { useTranslation } from 'react-i18next'
 import CurvyArrow from './CurvyArrow'
+import LoadingLogo from './LoadingLogo'
 
 const cx = (...parts) => parts.filter(Boolean).join(' ')
 
@@ -66,17 +67,23 @@ export function Button({
 
 /* ----------------------------------------------------------------- Spinner */
 
-export function Spinner({ className = '' }) {
+export function Spinner({ className = '', size = 'h-6 w-6', duration = 2.2 }) {
   const { t } = useTranslation()
+  const hasCustomSize = className.includes('h-') || className.includes('w-')
   return (
-    <span
+    <div
       role="status"
       aria-label={t('common.loading')}
-      className={cx(
-        'inline-block h-4 w-4 rounded-full border-2 border-current border-r-transparent animate-spin',
-        className,
-      )}
-    />
+      className={cx('inline-flex items-center justify-center shrink-0 select-none', className)}
+    >
+      <LoadingLogo 
+        size={hasCustomSize ? className : size}
+        loop={true} 
+        animate={true} 
+        hoverable={false} 
+        duration={duration}
+      />
+    </div>
   )
 }
 
