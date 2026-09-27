@@ -1,5 +1,5 @@
 /**
- * Centralized API Client for Swatva AI Backend.
+ * Centralized API Client for SWATVA Backend.
  * Direct communication: Frontend -> Real Backend API -> Real Database -> Real Response.
  */
 
@@ -24,11 +24,18 @@ export function getStoredUser() {
 
 export function setStoredUser(user) {
   if (user) {
-    localStorage.setItem('swatva_user', JSON.stringify(user));
+    let existing = {};
+    try {
+      const raw = localStorage.getItem('swatva_user');
+      if (raw) existing = JSON.parse(raw);
+    } catch {}
+    const merged = { ...existing, ...user };
+    localStorage.setItem('swatva_user', JSON.stringify(merged));
   } else {
     localStorage.removeItem('swatva_user');
   }
 }
+
 
 export async function request(path, options = {}) {
   const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
@@ -65,6 +72,9 @@ export async function request(path, options = {}) {
   }
 
   if (!response.ok || payload.success === false) {
+    if (response.status === 401 && !path.includes('/api/auth/')) {
+      setToken(null);
+    }
     const errorObj = payload.error || {};
     const error = {
       code: errorObj.code || `HTTP_${response.status}`,
@@ -74,6 +84,7 @@ export async function request(path, options = {}) {
     };
     throw error;
   }
+
 
   return payload.data;
 }
@@ -106,11 +117,23 @@ export const api = {
       }
       return data;
     },
+    firebaseSync: async (fullName, email) => {
+      const data = await request('/api/auth/firebase', {
+        method: 'POST',
+        body: JSON.stringify({ fullName: fullName || '', email }),
+      });
+      if (data && data.accessToken) {
+        setToken(data.accessToken);
+        setStoredUser({ email: data.email, userId: data.userId, fullName: fullName || data.email });
+      }
+      return data;
+    },
     logout: () => {
       setToken(null);
       setStoredUser(null);
     },
   },
+
 
   user: {
     getMe: () => request('/api/users/me'),

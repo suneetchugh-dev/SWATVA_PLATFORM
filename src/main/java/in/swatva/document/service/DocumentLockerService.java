@@ -115,7 +115,11 @@ public class DocumentLockerService {
                 fileBytes = file.getBytes();
                 contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
                 fileSize = file.getSize();
-                storageService.upload(storageKey, file.getInputStream(), file.getSize(), contentType);
+                try {
+                    storageService.upload(storageKey, file.getInputStream(), file.getSize(), contentType);
+                } catch (Exception storageEx) {
+                    log.warn("Storage upload to S3/MinIO failed (storage service may be offline): {}. Continuing with in-memory OCR and DB registration.", storageEx.getMessage());
+                }
             } catch (IOException e) {
                 log.error("Failed to read uploaded file for user {}: {}", userEmail, e.getMessage());
                 throw new IllegalStateException("Failed to process file upload: " + e.getMessage(), e);

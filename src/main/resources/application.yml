@@ -2,10 +2,20 @@ spring:
   application:
     name: swatva-ai
 
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 30MB
+
+  # Loads local, untracked secrets from ./.env so `mvn spring-boot:run` and
+  # `docker compose` share one source of truth. Copy .env.example -> .env.
+  config:
+    import: "optional:file:.env[.properties]"
+
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/swatva_ai}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:Rishit@5211}
+    password: ${DB_PASSWORD:}
 
   jpa:
     hibernate:
@@ -21,19 +31,21 @@ spring:
 
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY}
-      base-url: https://openrouter.ai/api
+      # Any OpenAI-compatible endpoint works: OpenRouter, Groq, or OpenAI itself.
+      # Groq: OPENAI_BASE_URL=https://api.groq.com/openai  (no trailing /v1)
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://openrouter.ai/api}
 
       chat:
         options:
-          model: openrouter/free
+          model: ${OPENAI_CHAT_MODEL:openrouter/free}
           temperature: 0.7
           max-completion-tokens: 10000
 
       embedding:
         options:
-          model: openai/text-embedding-3-large
-          dimensions: 2048
+          model: ${OPENAI_EMBEDDING_MODEL:openai/text-embedding-3-large}
+          dimensions: ${OPENAI_EMBEDDING_DIMENSIONS:2048}
 
     vectorstore:
       qdrant:
@@ -76,6 +88,19 @@ app:
 
   security:
     jwt:
-      # Local-only fallback. Set JWT_SECRET to a distinct 32+ byte secret outside development.
-      secret: ${JWT_SECRET:change-this-development-jwt-secret-to-a-secure-value-2026}
+      # No default on purpose. Set JWT_SECRET in .env (32+ bytes) or the app refuses to start.
+      secret: ${JWT_SECRET:}
       expiration-minutes: ${JWT_EXPIRATION_MINUTES:1440}
+
+  cors:
+    # Origins allowed to call this API from a browser. The default covers the
+    # Vite dev server only, so a deployment MUST override this or the browser
+    # blocks every request and the app looks simply broken. Comma-separated.
+    # Patterns, not literals, so a wildcard port is expressible.
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+    allowed-headers: "*"
+    # The client sends a bearer token, but credentials keep cookie-based flows
+    # working. This is why a bare "*" origin is rejected at startup.
+    allow-credentials: true
+    max-age-seconds: 3600

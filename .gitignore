@@ -13,6 +13,11 @@ dist/
 frontend/dist/
 dist-ssr/
 frontend/dist-ssr/
+dist-smoke/
+frontend/dist-smoke/
+dev-dist/
+frontend/dev-dist/
+.vite/
 *.local
 
 # Logs

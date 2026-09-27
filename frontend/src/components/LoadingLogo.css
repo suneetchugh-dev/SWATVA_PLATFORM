@@ -1,0 +1,78 @@
+.logo-svg {
+  overflow: visible;
+}
+
+.logo-text {
+  font-family: 'Playfair Display', 'Georgia', 'Didot', 'Times New Roman', serif;
+  font-weight: 400;
+  stroke-width: 2.5px;
+  stroke: currentColor;
+}
+
+/* 1. Static State */
+.logo-static {
+  stroke-dasharray: 0;
+  stroke-dashoffset: 0;
+  fill: currentColor;
+}
+
+/* 2. Animated Loop State */
+.logo-animated-loop {
+  fill: transparent;
+  stroke-dasharray: 250;
+  stroke-dashoffset: 250;
+  animation: draw-and-fill 2.4s ease-in-out infinite;
+}
+
+/* 3. Animated Once State */
+.logo-animated-once {
+  fill: transparent;
+  stroke-dasharray: 250;
+  stroke-dashoffset: 250;
+  /* both keeps it invisible before the animation (delay) and filled after */
+  animation: draw-and-fill-once 2.8s ease-in-out both;
+}
+
+@keyframes draw-and-fill {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  35% { stroke-dashoffset: 0; fill: transparent; }
+  50% { stroke-dashoffset: 0; fill: currentColor; }
+  80% { stroke-dashoffset: 0; fill: currentColor; }
+  100% { stroke-dashoffset: 250; fill: transparent; }
+}
+
+@keyframes draw-and-fill-once {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  60% { stroke-dashoffset: 0; fill: transparent; }
+  100% { stroke-dashoffset: 0; fill: currentColor; }
+}
+
+@keyframes draw-and-fill-once-dark {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  60% { stroke-dashoffset: 0; fill: transparent; }
+  100% { stroke-dashoffset: 0; fill: #FFFFFF; }
+}
+
+/* 4. Hover Active State */
+.logo-hover-active {
+  fill: transparent;
+  stroke-dasharray: 250;
+  stroke-dashoffset: 250;
+  animation: draw-and-fill-hover 2s ease-in-out forwards;
+}
+.dark .logo-hover-active {
+  animation: draw-and-fill-hover-dark 2s ease-in-out forwards;
+}
+
+@keyframes draw-and-fill-hover {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  60% { stroke-dashoffset: 0; fill: transparent; }
+  100% { stroke-dashoffset: 0; fill: #171717; }
+}
+
+@keyframes draw-and-fill-hover-dark {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  60% { stroke-dashoffset: 0; fill: transparent; }
+  100% { stroke-dashoffset: 0; fill: #FFFFFF; }
+}
+

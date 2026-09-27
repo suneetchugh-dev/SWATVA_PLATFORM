@@ -108,8 +108,8 @@ export default function EligibilitySection() {
 
               {/* Conditions breakdown */}
               <div className="grid-3" style={{ marginTop: '14px', fontSize: '12px' }}>
-                <div style={{ background: '#f0fdf4', padding: '10px', borderRadius: '6px' }}>
-                  <strong style={{ color: '#166534' }}>✓ Satisfied Conditions ({item.satisfiedConditions?.length || 0})</strong>
+                <div style={{ background: '#FAFAFA', padding: '10px', borderRadius: '6px' }}>
+                  <strong style={{ color: '#404040' }}>✓ Satisfied Conditions ({item.satisfiedConditions?.length || 0})</strong>
                   <ul style={{ paddingLeft: '16px', marginTop: '4px' }}>
                     {item.satisfiedConditions && item.satisfiedConditions.length > 0 ? (
                       item.satisfiedConditions.map((c, i) => <li key={i}>{c}</li>)
@@ -119,8 +119,8 @@ export default function EligibilitySection() {
                   </ul>
                 </div>
 
-                <div style={{ background: '#fef2f2', padding: '10px', borderRadius: '6px' }}>
-                  <strong style={{ color: '#991b1b' }}>✗ Failed Conditions ({item.failedConditions?.length || 0})</strong>
+                <div style={{ background: '#FFFBEB', padding: '10px', borderRadius: '6px' }}>
+                  <strong style={{ color: '#92400E' }}>✗ Failed Conditions ({item.failedConditions?.length || 0})</strong>
                   <ul style={{ paddingLeft: '16px', marginTop: '4px' }}>
                     {item.failedConditions && item.failedConditions.length > 0 ? (
                       item.failedConditions.map((c, i) => <li key={i}>{c}</li>)
@@ -131,7 +131,7 @@ export default function EligibilitySection() {
                 </div>
 
                 <div style={{ background: '#fefce8', padding: '10px', borderRadius: '6px' }}>
-                  <strong style={{ color: '#854d0e' }}>? Missing Profile Info ({item.missingInformation?.length || 0})</strong>
+                  <strong style={{ color: '#92400E' }}>? Missing Profile Info ({item.missingInformation?.length || 0})</strong>
                   <ul style={{ paddingLeft: '16px', marginTop: '4px' }}>
                     {item.missingInformation && item.missingInformation.length > 0 ? (
                       item.missingInformation.map((c, i) => <li key={i}>{c}</li>)
@@ -144,7 +144,7 @@ export default function EligibilitySection() {
 
               {/* AI Explanation block */}
               {exp && (
-                <div style={{ marginTop: '12px', background: 'var(--primary-light)', padding: '12px', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
+                <div style={{ marginTop: '12px', background: 'var(--primary-light)', padding: '12px', borderRadius: '6px', border: '1px solid #E5E5E5' }}>
                   <strong style={{ color: 'var(--primary)' }}>AI Explanation (Grounded in Verified Facts):</strong>
                   <p style={{ marginTop: '4px', fontSize: '13px', whiteSpace: 'pre-wrap' }}>
                     {exp.explanation}

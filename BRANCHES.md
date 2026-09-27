@@ -41,14 +41,24 @@ This repository follows a GitFlow branching model tailored for the **SWATVA Plat
 
 ### `frontend`
 - **Purpose**: Pure frontend development for UI/UX React engineers.
+- **Source of truth**: `develop` is canonical. This branch mirrors the contents of
+  `frontend/` on `develop`, promoted to the repository root. Land work on
+  `develop` first, then sync it here — do not build the UI in both places.
 - **Contents**:
   - `src/` (React components, state management, styles, API client)
+  - `src/pages/`, `src/layouts/`, `src/components/`, `src/lib/`, `src/locales/`
+  - `src/__smoke.jsx` & `src/__globals.js` (route render smoke test, not bundled)
   - `public/` (Static assets, SVGs, favicon)
   - `package.json` & `package-lock.json`
   - `vite.config.js` (Vite dev server & `/api` proxy)
+  - `tailwind.config.js` & `postcss.config.js` (design tokens & build)
   - `index.html`
   - `README.md` (Frontend setup, component hierarchy, scripts)
+  - `BRANCHES.md` (this file)
 - **Notice**: Promoted to the repository root. A frontend developer can clone `frontend` and directly run `npm install && npm run dev` without touching Java or Maven.
+- **Design system**: `tailwind.config.js` omits the blue, green, cyan, teal and
+  slate families outright, so a banned class such as `bg-blue-500` does not
+  compile. The palette is achromatic plus a single amber accent.
 
 ---
 
@@ -112,6 +122,31 @@ git checkout develop
 git merge -s subtree -Xsubtree=frontend/ frontend -m "chore: sync frontend changes to develop"
 ```
 *(Alternatively, pull requests or sync scripts can port frontend updates directly into `frontend/` on `develop`.)*
+
+### Syncing `develop` into `frontend`:
+This is the direction used in practice: the UI is built and reviewed on `develop`,
+then mirrored to the isolated branch. Because `frontend/` is a strict subtree of
+`develop`, the whole thing is replaced in one step rather than merged file by file:
+```bash
+git checkout frontend
+git fetch origin
+
+# Load develop's frontend/ subtree in as this branch's root tree, then
+# materialise it into the working directory.
+git read-tree origin/develop:frontend
+git checkout-index -a -f
+git checkout HEAD -- BRANCHES.md   # lives only on this branch
+
+npm install
+npm run build
+npx vite build --ssr src/__smoke.jsx --outDir dist-smoke && node dist-smoke/__smoke.js
+git commit -am "chore(frontend): sync the UI from develop"
+git push origin frontend
+```
+Do **not** loop `git checkout origin/develop -- <file>` over the subtree entries.
+That pathspec resolves against the root of `develop`, not against `frontend/`, so
+it silently pulls the Spring Boot sources in and overwrites this branch with the
+backend. `read-tree` is what binds the subtree at the root correctly.
 
 ---
 

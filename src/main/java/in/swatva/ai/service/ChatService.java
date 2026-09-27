@@ -336,6 +336,14 @@ public class ChatService {
                                       ActionChecklist checklist,
                                       ChatReadinessSummary readiness,
                                       String groundedContext) {
+        if (intent == ChatIntent.GREETING) {
+            return "नमस्ते! मैं Swatva AI सहायक हूँ। मैं आपकी इस प्रकार मदद कर सकता हूँ:\n\n"
+                    + "• **सरकारी योजनाएं खोजें** — पूछें \"मेरे लिए कौन सी योजनाएं हैं?\"\n"
+                    + "• **दस्तावेज़ जांचें** — पूछें \"PM-KISAN के लिए क्या चाहिए?\"\n"
+                    + "• **आवेदन तैयारी देखें** — पूछें \"क्या मैं आवेदन के लिए तैयार हूँ?\"\n\n"
+                    + "जितना अधिक आप अपना प्रोफ़ाइल भरेंगे, उतने सटीक जवाब मिलेंगे। आज मैं आपकी कैसे मदद करूँ?";
+        }
+
         if (intent == ChatIntent.DISCOVER_BENEFITS) {
             StringBuilder sb = new StringBuilder();
             sb.append("नमस्ते! आपके प्रोफ़ाइल और पात्रता के अनुसार, निम्नलिखित सरकारी योजनाएं आपके लिए उपयुक्त हैं:\n\n");
@@ -413,6 +421,14 @@ public class ChatService {
                                         ActionChecklist checklist,
                                         ChatReadinessSummary readiness,
                                         String groundedContext) {
+        if (intent == ChatIntent.GREETING) {
+            return "ನಮಸ್ಕಾರ! ನಾನು Swatva AI ಸಹಾಯಕ. ನಾನು ನಿಮಗೆ ಹೀಗೆ ಸಹಾಯ ಮಾಡಬಲ್ಲೆ:\n\n"
+                    + "• **ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು ಹುಡುಕಿ** — ಕೇಳಿ \"ನನಗೆ ಯಾವ ಯೋಜನೆಗಳು ಇವೆ?\"\n"
+                    + "• **ಅಗತ್ಯ ದಾಖಲೆಗಳು ತಿಳಿಯಿರಿ** — ಕೇಳಿ \"PM-KISAN ಗೆ ಏನು ಬೇಕು?\"\n"
+                    + "• **ಅರ್ಜಿ ಸಿದ್ಧತೆ ನೋಡಿ** — ಕೇಳಿ \"ನಾನು ಅರ್ಜಿ ಹಾಕಲು ಸಿದ್ಧವಾಗಿದ್ದೇನೆಯೇ?\"\n\n"
+                    + "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಹೆಚ್ಚು ಭರ್ತಿ ಮಾಡಿದಷ್ಟು, ನಾನು ಹೆಚ್ಚು ನಿಖರವಾದ ಉತ್ತರ ನೀಡಬಲ್ಲೆ. ಇಂದು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?";
+        }
+
         if (intent == ChatIntent.DISCOVER_BENEFITS) {
             StringBuilder sb = new StringBuilder();
             sb.append("ನಮಸ್ಕಾರ! ನಿಮ್ಮ ವಿವರಗಳ ಪ್ರಕಾರ, ಈ ಕೆಳಗಿನ ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು ನಿಮಗೆ ಲಭ್ಯವಿವೆ:\n\n");
@@ -480,6 +496,14 @@ public class ChatService {
                                         ActionChecklist checklist,
                                         ChatReadinessSummary readiness,
                                         String groundedContext) {
+        if (intent == ChatIntent.GREETING) {
+            return "Hello! I'm the Swatva AI assistant. I can help you:\n\n"
+                    + "• **Find government schemes** you may be eligible for — just say \"What schemes am I eligible for?\"\n"
+                    + "• **Check documents required** for any scheme — say \"What documents do I need for PM-KISAN?\"\n"
+                    + "• **Track your application readiness** — say \"Am I ready to apply?\"\n\n"
+                    + "The more you fill in your profile, the more accurate my answers will be. How can I help you today?";
+        }
+
         if (intent == ChatIntent.DISCOVER_BENEFITS) {
             StringBuilder sb = new StringBuilder();
             sb.append("Based on your profile, here are the potentially eligible schemes for you:\n\n");
@@ -643,7 +667,12 @@ public class ChatService {
     }
 
     private ChatIntent classifyIntent(String query, String lang, boolean isAnaphoric, boolean hasActiveScheme) {
-        String lower = query.toLowerCase(Locale.ROOT);
+        String lower = query.toLowerCase(Locale.ROOT).strip();
+
+        // Greetings — short openers that don't match any scheme topic
+        if (lower.matches("(hi|hello|hey|namaste|namaskar|hii|helo|hai|नमस्ते|नमस्कार|ನಮಸ್ಕಾರ|ಹಾಯ್)([!?.\\s]*)")) {
+            return ChatIntent.GREETING;
+        }
 
         // Check if asking for requirements
         if (isAnaphoric || lower.contains("क्या चाहिए") || lower.contains("कागजात") || lower.contains("दस्तावेज़")
@@ -767,6 +796,7 @@ public class ChatService {
     private record SchemeEvaluationPair(Scheme scheme, EligibilityResult result) {}
 
     public enum ChatIntent {
+        GREETING,
         DISCOVER_BENEFITS,
         SCHEME_REQUIREMENTS,
         READINESS_STATUS,

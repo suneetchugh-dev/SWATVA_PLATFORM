@@ -190,7 +190,7 @@ export default function SchemesSection({ onSelectSchemeForReadiness }) {
             </div>
           </div>
 
-          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '6px', marginBottom: '16px' }}>
+          <div style={{ background: '#FAFAFA', padding: '12px', borderRadius: '6px', marginBottom: '16px' }}>
             <strong>Benefit Information:</strong>
             <p style={{ marginTop: '4px' }}>{selectedScheme.scheme.benefitInformation}</p>
           </div>

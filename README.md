@@ -63,6 +63,12 @@ export JPA_DDL_AUTO="update"
 export JWT_SECRET="a-long-random-secret-with-at-least-32-bytes"
 export JWT_EXPIRATION_MINUTES="1440"
 
+# Browser origins allowed to call the API (comma-separated).
+# The default covers only the Vite dev server, so a deployed build must set this
+# or the browser blocks every request. A bare "*" is refused at startup because
+# credentials are enabled.
+export CORS_ALLOWED_ORIGIN_PATTERNS="http://localhost:*,http://127.0.0.1:*"
+
 # Vector DB & AI (Optional for basic API, required for RAG)
 export QDRANT_HOST="localhost"
 export QDRANT_PORT="6334"

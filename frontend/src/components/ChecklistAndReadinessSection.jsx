@@ -87,7 +87,7 @@ export default function ChecklistAndReadinessSection({ initialSchemeId }) {
 
       {/* Readiness Score Card */}
       {readiness && (
-        <div className="card" style={{ background: '#f8fafc', marginBottom: '20px' }}>
+        <div className="card" style={{ background: '#FAFAFA', marginBottom: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{readiness.schemeName} — Readiness</h3>
@@ -112,8 +112,8 @@ export default function ChecklistAndReadinessSection({ initialSchemeId }) {
 
           {/* Breakdown lists */}
           <div className="grid-3" style={{ marginTop: '16px', fontSize: '12px' }}>
-            <div style={{ background: '#fff', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '10px' }}>
-              <strong style={{ color: '#16a34a' }}>✓ Completed ({readiness.completed?.length || 0})</strong>
+            <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '6px', padding: '10px' }}>
+              <strong style={{ color: '#525252' }}>✓ Completed ({readiness.completed?.length || 0})</strong>
               <ul style={{ paddingLeft: '16px', marginTop: '4px' }}>
                 {readiness.completed?.map((d, i) => (
                   <li key={i}>{d.documentName || d.documentTypeCode}</li>
@@ -121,8 +121,8 @@ export default function ChecklistAndReadinessSection({ initialSchemeId }) {
               </ul>
             </div>
 
-            <div style={{ background: '#fff', border: '1px solid #fecaca', borderRadius: '6px', padding: '10px' }}>
-              <strong style={{ color: '#dc2626' }}>✗ Missing ({readiness.missing?.length || 0})</strong>
+            <div style={{ background: '#fff', border: '1px solid #FDE68A', borderRadius: '6px', padding: '10px' }}>
+              <strong style={{ color: '#B45309' }}>✗ Missing ({readiness.missing?.length || 0})</strong>
               <ul style={{ paddingLeft: '16px', marginTop: '4px' }}>
                 {readiness.missing?.map((d, i) => (
                   <li key={i}>{d.documentName || d.documentTypeCode}</li>
@@ -150,7 +150,7 @@ export default function ChecklistAndReadinessSection({ initialSchemeId }) {
           </h3>
 
           {/* Application Channel and Portal Link */}
-          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '6px', marginBottom: '16px' }}>
+          <div style={{ background: '#FAFAFA', padding: '12px', borderRadius: '6px', marginBottom: '16px' }}>
             <div><strong>Where to Apply:</strong> {checklist.whereToApply || 'Official Portal'}</div>
             {checklist.officialApplicationUrl && (
               <div style={{ marginTop: '4px' }}>
