@@ -109,6 +109,7 @@ function LanguageCards({ current, onPick, columns }) {
 export default function SettingsPanel({ className = '' }) {
   const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
+  const [panelPos, setPanelPos] = useState(null)
   const rootRef = useRef(null)
   const buttonRef = useRef(null)
   const isDesktop = useMediaQuery('(min-width: 768px)')
@@ -140,6 +141,34 @@ export default function SettingsPanel({ className = '' }) {
     return () => {
       document.removeEventListener('mousedown', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open, isDesktop])
+
+  // Desktop popover is positioned against the viewport, not the trigger.
+  // Anchored with `absolute`, the 288px panel reached ~252px to the left of the
+  // gear and its top edge sat 44px down — inside the ~64px header — so it covered
+  // the nav links and read as the bar shifting. Measuring the trigger and using
+  // `fixed` puts it in a layer of its own: no reflow, no overlap. The node stays
+  // a DOM child of `rootRef`, so outside-click detection is unaffected.
+  useEffect(() => {
+    if (!open || !isDesktop) {
+      setPanelPos(null)
+      return undefined
+    }
+    const place = () => {
+      const rect = buttonRef.current?.getBoundingClientRect()
+      if (!rect) return
+      setPanelPos({
+        top: Math.round(rect.bottom + 8),
+        right: Math.max(8, Math.round(window.innerWidth - rect.right)),
+      })
+    }
+    place()
+    window.addEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
+    return () => {
+      window.removeEventListener('resize', place)
+      window.removeEventListener('scroll', place, true)
     }
   }, [open, isDesktop])
 
@@ -178,11 +207,12 @@ export default function SettingsPanel({ className = '' }) {
     return (
       <div ref={rootRef} className={cx('relative flex-shrink-0', className)}>
         {trigger}
-        {open ? (
+        {open && panelPos ? (
           <div
             role="dialog"
             aria-label={t('settings.title')}
-            className="absolute right-0 top-11 z-50 w-72 rounded-2xl p-2 neo-glass-card animate-fade-up"
+            style={{ top: panelPos.top, right: panelPos.right }}
+            className="fixed z-50 w-72 rounded-2xl p-2 neo-glass-card animate-fade-up"
           >
             {body}
           </div>

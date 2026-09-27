@@ -6,6 +6,7 @@
  * a banned colour cannot even be spelled.
  */
 import { useTranslation } from 'react-i18next'
+import CurvyArrow from './CurvyArrow'
 
 const cx = (...parts) => parts.filter(Boolean).join(' ')
 
@@ -184,11 +185,20 @@ export function Textarea({ className = '', ...rest }) {
 
 /* ------------------------------------------------------------------ Layout */
 
-export function PageHeader({ badge, title, desc, actions, className = '' }) {
+export function PageHeader({ arrowLabel, title, desc, actions, className = '' }) {
   return (
     <header className={cx('flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8', className)}>
-      <div className="max-w-2xl">
-        {badge ? <Badge>{badge}</Badge> : null}
+      <div className="relative max-w-2xl">
+        {/* Hand-drawn arrow + tag, matching the landing hero. Preferred over the
+            flat amber `Badge` because it reads as a hand-annotated callout
+            instead of a status chip, which is what these section labels are. */}
+        {arrowLabel ? (
+          <CurvyArrow
+            direction="top-left"
+            className="-left-6 sm:-left-16 -top-7 sm:-top-9"
+            label={arrowLabel}
+          />
+        ) : null}
         <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold tracking-tight text-balance">
           {title}
         </h1>
