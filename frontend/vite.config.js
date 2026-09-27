@@ -3,11 +3,22 @@ import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from 'tailwindcss'
 import autoprefixer from 'autoprefixer'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export default defineConfig({
+  root: __dirname,
   css: {
     postcss: {
-      plugins: [tailwindcss(), autoprefixer()],
+      plugins: [
+        tailwindcss({
+          config: path.resolve(__dirname, 'tailwind.config.js'),
+        }),
+        autoprefixer(),
+      ],
     },
   },
   plugins: [
