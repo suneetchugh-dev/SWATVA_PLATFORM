@@ -6,6 +6,7 @@
  * a banned colour cannot even be spelled.
  */
 import { useTranslation } from 'react-i18next'
+import CurvyArrow from './CurvyArrow'
 
 const cx = (...parts) => parts.filter(Boolean).join(' ')
 
@@ -93,14 +94,31 @@ export function Card({ as: Tag = 'div', accent = false, className = '', children
 
 /** Monospace eyebrow. The design system forbids coloured status dots, so the
  *  only sanctioned way to signal a state in the chrome is a mono badge. */
-export function Badge({ children, className = '' }) {
+/**
+ * Informational chip: a fact attached to a card or result, not a verdict.
+ *
+ * Deliberately achromatic. It used to be an amber-tinted uppercase mono chip,
+ * which meant a card with three of them read as a block of amber and shouted
+ * at a size no other label on the page used. The amber survives as a single
+ * small dot, so the brand accent is still present but the chip stays quiet.
+ *
+ * Verdict chips are a different component on purpose — see StatusPill, where
+ * amber means "eligible" and carries meaning rather than decoration.
+ */
+export function Badge({ children, className = '', dot = true }) {
   return (
     <span
       className={cx(
-        'inline-block mono-badge text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1',
+        'inline-flex items-center gap-1.5 rounded-full border border-neutral-200/90 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium leading-none text-neutral-600 dark:text-neutral-300',
         className,
       )}
     >
+      {dot ? (
+        <span
+          aria-hidden="true"
+          className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500/70"
+        />
+      ) : null}
       {children}
     </span>
   )
@@ -184,11 +202,20 @@ export function Textarea({ className = '', ...rest }) {
 
 /* ------------------------------------------------------------------ Layout */
 
-export function PageHeader({ badge, title, desc, actions, className = '' }) {
+export function PageHeader({ arrowLabel, title, desc, actions, className = '' }) {
   return (
     <header className={cx('flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8', className)}>
-      <div className="max-w-2xl">
-        {badge ? <Badge>{badge}</Badge> : null}
+      <div className="relative max-w-2xl">
+        {/* Hand-drawn arrow + tag, matching the landing hero. Preferred over the
+            flat amber `Badge` because it reads as a hand-annotated callout
+            instead of a status chip, which is what these section labels are. */}
+        {arrowLabel ? (
+          <CurvyArrow
+            direction="top-left"
+            className="-left-6 sm:-left-16 -top-7 sm:-top-9"
+            label={arrowLabel}
+          />
+        ) : null}
         <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold tracking-tight text-balance">
           {title}
         </h1>

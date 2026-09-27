@@ -67,7 +67,7 @@ export default function TransparencySection() {
           <span>Submit Anonymous Corruption / Fee Report</span>
         </div>
         <p className="card-subtitle">
-          Swatva AI strictly strips all user IDs, names, emails, phones, and IP addresses. Reports are aggregated anonymously for citizen transparency.
+          SWATVA strictly strips all user IDs, names, emails, phones, and IP addresses. Reports are aggregated anonymously for citizen transparency.
         </p>
 
         {submitSuccess && <div className="alert alert-success">{submitSuccess}</div>}

@@ -40,10 +40,10 @@
   stroke-dasharray: 250;
   stroke-dashoffset: 250;
   /* both keeps it invisible before the animation (delay) and filled after */
-  animation: draw-and-fill-once 2s ease-in-out both;
+  animation: draw-and-fill-once 2.8s ease-in-out both;
 }
 .dark .logo-animated-once {
-  animation: draw-and-fill-once-dark 2s ease-in-out both;
+  animation: draw-and-fill-once-dark 2.8s ease-in-out both;
 }
 
 @keyframes draw-and-fill {

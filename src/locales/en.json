@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Swatva AI",
+    "appName": "SWATVA",
     "loading": "Loading",
     "loadingShort": "Loading…",
     "back": "Back",
@@ -25,6 +25,7 @@
     "switchToLight": "Switch to light mode",
     "switchToDark": "Switch to dark mode",
     "close": "Close",
+    "dismiss": "Dismiss",
     "retry": "Retry",
     "open": "Open",
     "submitting": "Submitting…",
@@ -35,16 +36,13 @@
     "how": "How it works",
     "coverage": "Coverage",
     "faq": "FAQ",
-    "cta": "Open app",
-    "profile": "Profile",
+    "cta": "Sign In",
     "matches": "My matches",
-    "benefits": "Benefits",
     "documents": "Documents",
     "assistant": "Assistant",
     "main": "Main",
     "home": "Home",
-    "discover": "Discover",
-    "transparency": "Transparency"
+    "discover": "Discover"
   },
   "status": {
     "ELIGIBLE": "Eligible",
@@ -57,6 +55,53 @@
     "match": "{{n}}% match"
   },
   "landing": {
+    "arrowTags": {
+      "citizenEmpowerment": "CITIZEN EMPOWERMENT",
+      "allSchemes": "ALL SCHEMES",
+      "threeStepFlow": "3-STEP FLOW",
+      "aiSuite": "AI SUITE",
+      "auditIntegrity": "AUDIT & INTEGRITY",
+      "schemesCoverage": "20+ SCHEMES",
+      "helpFaq": "HELP & FAQ",
+      "instantAccess": "INSTANT ACCESS",
+      "platformArchitecture": "PLATFORM ARCHITECTURE"
+    },
+    "bento": {
+      "title": "Built for citizen truth, not approximations",
+      "desc": "How SWATVA combines versioned statutory rulebooks, zero-retention OCR lockers, and natural language explanation.",
+      "card1Tag": "Statutory Rules",
+      "card1Meta": "20 Official Gazette Catalogues",
+      "card1Badge": "DETERMINISTIC",
+      "card1Title": "Deterministic Rule Evaluation Engine",
+      "card1Desc": "Eligibility is computed against structured logic trees codified directly from gazette notifications. Zero hallucination — every verdict cites the exact statutory condition.",
+      "card1FooterTitle": "SWATVA Rule Engine v2.4",
+      "card1FooterSub": "Reproducible Verifiable Rules",
+      "card1StatusLabel": "Execution:",
+      "card1StatusVal": "Zero LLM Bias",
+      "card2Tag": "Live Telemetry",
+      "card2Title": "Welfare Impact Telemetry",
+      "card2Metric1": "Verified Schemes",
+      "card2Val1": "20 Active",
+      "card2Metric2": "Disbursement Tracking",
+      "card2Val2": "₹10,500+ Cr",
+      "card2Metric3": "Rule Types",
+      "card2Val3": "9 Deterministic",
+      "card2Footer": "Catalogue Health",
+      "card2FooterVal": "100% Up to Date",
+      "card3Sub": "Encrypted Locker",
+      "card3Badge": "ZERO RETENTION",
+      "card3Title": "Client-Validated Document Locker",
+      "card3Desc": "Extract and check mandatory fields from Aadhaar, Income Certificates, and Land Records once. No unconsented storage.",
+      "card3Security": "Private Document Vault",
+      "card3Tech": "Client AES-256",
+      "card4Location": "Grassroots Assistant",
+      "card4Dialects": "Hindi & English",
+      "card4Badge": "NATURAL LANGUAGE",
+      "card4Title": "Bilingual Voice & Text Welfare Matching",
+      "card4Desc": "Describe family circumstances in your mother tongue. SWATVA's multilingual pipeline translates everyday problems into exact statutory criteria.",
+      "card4Engine": "SWATVA Multi-Modal Assistant",
+      "card4Citation": "Cites Official Gazette"
+    },
     "hero": {
       "title": "Missing welfare benefits?",
       "rotating0": "Found in minutes, not years of paperwork.",
@@ -72,7 +117,7 @@
       "watermark": "PROCESS",
       "badge": "Three steps",
       "title": "From nothing to applying",
-      "desc": "No forms to guess at. Swatva reads the scheme rules, checks them against your profile, and tells you exactly what to do next.",
+      "desc": "No forms to guess at. SWATVA reads the scheme rules, checks them against your profile, and tells you exactly what to do next.",
       "item0Title": "Build your profile",
       "item0Body": "Age, income, state, occupation, category, disability status and household. Takes about two minutes, and you can stop and resume at any point.",
       "item1Title": "Get your matches",
@@ -84,7 +129,7 @@
       "watermark": "CAPABILITIES",
       "badge": "What it does",
       "title": "Built around the whole application, not just the search",
-      "desc": "Finding a scheme is the easy half. Swatva covers the documents, the readiness and the paperwork that decide whether you actually receive the benefit.",
+      "desc": "Finding a scheme is the easy half. SWATVA covers the documents, the readiness and the paperwork that decide whether you actually receive the benefit.",
       "item0Title": "Deterministic eligibility",
       "item0Body": "Eligibility is decided by stored eligibility rules, never by a language model. Every verdict is reproducible and cites the condition that produced it.",
       "item1Title": "Value on the table",
@@ -102,7 +147,7 @@
       "watermark": "TRUST",
       "badge": "Why rule-based",
       "title": "An LLM should not decide what you are owed",
-      "body": "A wrong answer about a pension is not a small mistake — it is a family waiting on money that never arrives. So Swatva keeps the decision and the language model strictly apart.",
+      "body": "A wrong answer about a pension is not a small mistake — it is a family waiting on money that never arrives. So SWATVA keeps the decision and the language model strictly apart.",
       "point0Title": "Rules decide, the model explains",
       "point0Body": "Matches come from versioned scheme rules. When a language model is available it only rewrites the outcome in plain language, and the response is labelled as deterministic.",
       "point1Title": "Missing is not the same as no",
@@ -110,7 +155,7 @@
       "point2Title": "Every answer is traceable",
       "point2Body": "Each match lists the conditions it satisfied, the ones it failed, and the information it still needs.",
       "point3Title": "It degrades instead of lying",
-      "point3Body": "If the model or the vector store is unavailable, Swatva falls back to keyword retrieval and rule-based explanations rather than inventing an answer."
+      "point3Body": "If the model or the vector store is unavailable, SWATVA falls back to keyword retrieval and rule-based explanations rather than inventing an answer."
     },
     "coverage": {
       "watermark": "COVERAGE",
@@ -142,16 +187,16 @@
       "body": "Two minutes to build a profile. Every match explained."
     },
     "footer": {
-      "note": "Scheme data is sourced from official government publications.",
-      "right": "Built for citizens who cannot afford to miss out."
+      "tagline": "BY TheQuirkies"
     }
   },
   "auth": {
+    "backToHome": "Back to Platform",
     "loginBadge": "Welcome back",
     "loginTitle": "Sign in to your account",
     "loginDesc": "Your matches, documents and checklists are exactly where you left them.",
     "loginSubmit": "Sign in",
-    "loginSwitchText": "New to Swatva?",
+    "loginSwitchText": "New to SWATVA?",
     "loginSwitchLabel": "Create an account",
     "registerBadge": "Get started",
     "registerTitle": "Create your account",
@@ -229,6 +274,7 @@
       "emptyBody": "Household-size schemes will report missing information until you add at least one."
     },
     "completeness": "Profile completeness",
+    "completenessHint": "{{n}}% — every gap you fill removes a “needs information” result.",
     "completenessHint_one": "{{n}}% — every gap you fill removes a “needs information” result.",
     "completenessHint_other": "{{n}}% — every gap you fill removes a “needs information” result."
   },
@@ -292,6 +338,9 @@
     "badge": "Document locker",
     "title": "Your documents",
     "desc": "Stored once, reused for every application. We flag an expiry before it costs you an application.",
+    "tabLocker": "My Locker",
+    "tabAdd": "Add Document",
+    "tabLockerCount": "My Locker ({{n}})",
     "addTitle": "Add a document",
     "addIntro": "You can add the file now or just record it. Nothing is required to check your eligibility.",
     "type": "Document type",
@@ -340,8 +389,10 @@
     "send": "Send message",
     "thinking": "Thinking",
     "readiness": "Application readiness",
+    "docsReady": "{{done}} of {{total}} documents ready",
     "docsReady_one": "{{done}} of {{total}} documents ready",
     "docsReady_other": "{{done}} of {{total}} documents ready",
+    "docsMissing": " · {{n}} missing",
     "docsMissing_one": " · {{n}} missing",
     "docsMissing_other": " · {{n}} missing",
     "sources": "Sources: {{list}}",
@@ -384,12 +435,14 @@
     "citizen": "citizen",
     "desc": "Your eligibility, the value you may be leaving behind, and what still blocks an application.",
     "missedValueLabel": "Estimated value you may be missing",
-    "missedValueHint_one": "Across {{n}} scheme you are not claiming",
-    "missedValueHint_other": "Across {{n}} schemes you are not claiming",
+    "missedValueHint": "Across {{count, n}} schemes you are not claiming",
+    "missedValueHint_one": "Across {{count, n}} scheme you are not claiming",
+    "missedValueHint_other": "Across {{count, n}} schemes you are not claiming",
     "missedValueCta": "See the breakdown",
     "eligibleLabel": "Eligible now",
-    "eligibleHint_one": "of {{n}} scheme evaluated",
-    "eligibleHint_other": "of {{n}} schemes evaluated",
+    "eligibleHint": "of {{count, n}} schemes evaluated",
+    "eligibleHint_one": "of {{count, n}} scheme evaluated",
+    "eligibleHint_other": "of {{count, n}} schemes evaluated",
     "documentsLabel": "Documents stored",
     "documentsHint": "In your document locker",
     "profileLabel": "Profile",
@@ -526,5 +579,16 @@
       "failed": "Does not meet",
       "missing": "Still needed"
     }
+  },
+  "pwa": {
+    "installTitle": "Install SWATVA App",
+    "installDesc": "Instant access, offline rules & verified schemes on your device.",
+    "installAction": "Install",
+    "installing": "Installing...",
+    "installed": "Installed",
+    "updateAvailable": "New Version Available",
+    "updatePrompt": "Reload to update SWATVA with the latest rules.",
+    "reload": "Reload",
+    "offlineNotice": "You are currently offline. SWATVA is serving cached benefit rules and offline records."
   }
 }

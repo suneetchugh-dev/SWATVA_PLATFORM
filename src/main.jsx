@@ -8,6 +8,10 @@ import { getToken } from './api/client'
 import { ThemeProvider } from './lib/theme'
 import SplashLoader from './components/SplashLoader'
 import { Spinner } from './components/ui'
+import ScrollToTop from './components/ScrollToTop'
+import { initGlobalClickSound } from './utils/soundFx'
+
+initGlobalClickSound()
 
 // The landing page is the public entry point, so it stays in the initial bundle.
 // Everything behind auth is split out: a citizen who only reads the marketing
@@ -16,6 +20,9 @@ import { Spinner } from './components/ui'
 import AppShell from './layouts/AppShell.jsx'
 import Landing from './pages/Landing.jsx'
 import Auth from './pages/Auth.jsx'
+import PWAInstallBanner from './components/PWAInstallBanner'
+import PWAUpdateToast from './components/PWAUpdateToast'
+import OfflineBanner from './components/OfflineBanner'
 
 const App = lazy(() => import('./App.jsx')) // the original developer console, kept at /console
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
@@ -47,8 +54,11 @@ function RouteFallback() {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider>
+      <OfflineBanner />
+      <PWAUpdateToast />
       <SplashLoader />
       <BrowserRouter>
+        <ScrollToTop />
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<Landing />} />
@@ -82,6 +92,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
+        <PWAInstallBanner />
       </BrowserRouter>
     </ThemeProvider>
   </StrictMode>,

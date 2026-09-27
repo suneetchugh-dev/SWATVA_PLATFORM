@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ExternalLink, Send, Sparkles } from 'lucide-react'
+import { ExternalLink, Send } from 'lucide-react'
 import { api } from '../api/client'
 import { Badge, Banner, Button, Card, PageHeader, StatusPill, cx } from '../components/ui'
+import AIOrbFace from '../components/AIOrbFace'
+import { playClick } from '../utils/soundFx'
 
 /**
  * The assistant. The backend degrades rather than failing: with no LLM key
@@ -32,6 +34,7 @@ export default function Assistant() {
   const send = async (raw) => {
     const message = (raw ?? text).trim()
     if (!message || sending) return
+    playClick()
     setError(null)
     setText('')
     setMessages((m) => [...m, { role: 'user', content: message }])
@@ -66,7 +69,6 @@ export default function Assistant() {
   return (
     <div className="flex flex-col h-[calc(100dvh-13rem)]">
       <PageHeader
-        badge={t('assistant.badge')}
         title={t('assistant.title')}
         desc={t('assistant.desc')}
         className="mb-4"
@@ -88,10 +90,8 @@ export default function Assistant() {
       <div className="flex-1 overflow-y-auto rounded-2xl border border-neutral-200 dark:border-white/10 p-4 sm:p-5 bg-white/50 dark:bg-white/[0.02]">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-8">
-            <span className="h-11 w-11 flex items-center justify-center rounded-xl bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
-              <Sparkles size={19} />
-            </span>
-            <h3 className="mt-4 text-base font-bold tracking-tight">{t('assistant.emptyTitle')}</h3>
+            <AIOrbFace size={76} state={sending ? 'thinking' : 'idle'} className="mb-3" />
+            <h3 className="mt-2 text-base font-bold tracking-tight">{t('assistant.emptyTitle')}</h3>
             <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300 max-w-sm text-balance">
               {t('assistant.emptyBody')}
             </p>
@@ -101,7 +101,7 @@ export default function Assistant() {
                   key={k}
                   type="button"
                   onClick={() => send(t(`assistant.openers.${k}`))}
-                  className="text-left text-xs px-3 py-2.5 rounded-xl bg-neutral-100 dark:bg-white/[0.06] hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  className="text-left text-xs px-3.5 py-2.5 rounded-xl bg-neutral-100 dark:bg-white/[0.06] hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
                 >
                   {t(`assistant.openers.${k}`)}
                 </button>
@@ -118,77 +118,90 @@ export default function Assistant() {
                   </p>
                 </div>
               ) : (
-                <div key={i}>
-                  <div
-                    className={cx(
-                      'max-w-[92%] rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap',
-                      m.error
-                        ? 'border border-amber-600/40 bg-amber-500/10'
-                        : 'bg-white dark:bg-white/[0.05] border border-neutral-200 dark:border-white/10',
-                    )}
-                  >
-                    {m.content}
-                  </div>
-
-                  {m.readiness ? (
-                    <div className="mt-2.5">
-                      <Card accent className="p-3.5">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-xs font-semibold">{t('assistant.readiness')}</span>
-                          <span className="mono-badge text-amber-700 dark:text-amber-400">
-                            {m.readiness.readinessPercentage}%
-                          </span>
-                        </div>
-                        <div className="mt-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
-                          <div className="h-full rounded-full bg-amber-500" style={{ width: `${m.readiness.readinessPercentage}%` }} />
-                        </div>
-                        <p className="mt-2 text-[11px] text-neutral-600 dark:text-neutral-300">
-                          {t('assistant.docsReady', { done: m.readiness.completedDocuments, total: m.readiness.totalRequired })}
-                          {m.readiness.missingDocuments
-                            ? t('assistant.docsMissing', { n: m.readiness.missingDocuments })
-                            : ''}
-                        </p>
-                      </Card>
+                <div key={i} className="flex items-start gap-2.5 max-w-[92%]">
+                  <AIOrbFace size={28} state={m.error ? 'error' : 'done'} className="flex-shrink-0 mt-1" />
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className={cx(
+                        'rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap',
+                        m.error
+                          ? 'border border-amber-600/40 bg-amber-500/10'
+                          : 'bg-white dark:bg-white/[0.05] border border-neutral-200 dark:border-white/10',
+                      )}
+                    >
+                      {m.content}
                     </div>
-                  ) : null}
 
-                  {m.benefits?.length ? (
-                    <div className="mt-2.5 flex flex-col gap-1.5">
-                      {m.benefits.map((b) => (
-                        <Card key={b.schemeId} className="p-3">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <StatusPill status={b.matchStatus} />
-                            <span className="mono-badge text-neutral-400">{b.matchPercentage}%</span>
+                    {m.readiness ? (
+                      <div className="mt-2.5">
+                        <Card accent className="p-3.5">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs font-semibold">{t('assistant.readiness')}</span>
+                            <span className="mono-badge text-amber-700 dark:text-amber-400">
+                              {m.readiness.readinessPercentage}%
+                            </span>
                           </div>
-                          <p className="text-xs font-semibold text-balance">{b.schemeName}</p>
-                          {b.officialSourceUrl ? (
-                            <a
-                              href={b.officialSourceUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline"
-                            >
-                              Official source
-                              <ExternalLink size={10} />
-                            </a>
-                          ) : null}
+                          <div className="mt-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                            <div className="h-full rounded-full bg-amber-500" style={{ width: `${m.readiness.readinessPercentage}%` }} />
+                          </div>
+                          <p className="mt-2 text-[11px] text-neutral-600 dark:text-neutral-300">
+                            {t('assistant.docsReady', {
+                              count: m.readiness.totalRequired,
+                              done: m.readiness.completedDocuments,
+                              total: m.readiness.totalRequired,
+                            })}
+                            {m.readiness.missingDocuments
+                              ? t('assistant.docsMissing', {
+                                  count: m.readiness.missingDocuments,
+                                  n: m.readiness.missingDocuments,
+                                })
+                              : ''}
+                          </p>
                         </Card>
-                      ))}
-                    </div>
-                  ) : null}
+                      </div>
+                    ) : null}
 
-                  {m.citations?.length ? (
-                    <p className="mt-2 text-[11px] text-neutral-500 dark:text-neutral-400">
-                      {t('assistant.sources', { list: m.citations.slice(0, 3).join(' · ') })}
-                    </p>
-                  ) : null}
+                    {m.benefits?.length ? (
+                      <div className="mt-2.5 flex flex-col gap-1.5">
+                        {m.benefits.map((b) => (
+                          <Card key={b.schemeId} className="p-3">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <StatusPill status={b.matchStatus} />
+                              <span className="mono-badge text-neutral-400">{b.matchPercentage}%</span>
+                            </div>
+                            <p className="text-xs font-semibold text-balance">{b.schemeName}</p>
+                            {b.officialSourceUrl ? (
+                              <a
+                                href={b.officialSourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                              >
+                                Official source
+                                <ExternalLink size={10} />
+                              </a>
+                            ) : null}
+                          </Card>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {m.citations?.length ? (
+                      <p className="mt-2 text-[11px] text-neutral-500 dark:text-neutral-400">
+                        {t('assistant.sources', { list: m.citations.slice(0, 3).join(' · ') })}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
               ),
             )}
             {sending ? (
-              <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                {t('assistant.thinking')}
+              <div className="flex items-center gap-2.5 text-xs text-neutral-500 dark:text-neutral-400">
+                <AIOrbFace size={24} state="thinking" className="flex-shrink-0" />
+                <span className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  {t('assistant.thinking')}
+                </span>
               </div>
             ) : null}
             <div ref={endRef} />

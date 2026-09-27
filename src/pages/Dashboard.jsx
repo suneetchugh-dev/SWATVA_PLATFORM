@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next'
 import {
   ArrowRight,
   BadgeIndianRupee,
+  Compass,
   FileStack,
   Scale,
-  Sparkles,
   UserCog,
 } from 'lucide-react'
 import { api } from '../api/client'
@@ -31,13 +31,13 @@ function Tile({ icon: Icon, label, value, hint, to, cta, tone = 'default', statu
       <div className="flex items-start justify-between gap-3">
         <span
           className={cx(
-            'inline-flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0',
+            'inline-flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0 transition-colors',
             tone === 'accent'
-              ? 'bg-neutral-950 dark:bg-white text-white dark:text-neutral-950'
-              : 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-300',
+              ? 'bg-neutral-950 dark:bg-white/[0.12] text-white dark:text-white border border-neutral-800 dark:border-white/10'
+              : 'bg-neutral-900 dark:bg-white/[0.08] text-white dark:text-white border border-neutral-800/80 dark:border-white/10',
           )}
         >
-          <Icon size={16} />
+          <Icon size={16} className="text-white dark:text-white" />
         </span>
         {status ? <StatusPill status={status} /> : null}
       </div>
@@ -110,9 +110,9 @@ export default function Dashboard() {
   }, [])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mt-10 sm:mt-12">
       <PageHeader
-        badge={t('dashboard.badge')}
+        arrowLabel={t('dashboard.badge')}
         title={t('dashboard.title', { name: user?.fullName?.split(' ')[0] || t('dashboard.citizen') })}
         desc={t('dashboard.desc')}
       />
@@ -134,7 +134,10 @@ export default function Dashboard() {
                   ₹{Number(missed?.totalEstimatedAnnualBenefit ?? 0).toLocaleString('en-IN')}
                 </p>
                 <p className="mt-1.5 text-sm text-neutral-600 dark:text-neutral-300">
-                  {t('dashboard.missedValueHint', { n: missed?.totalMissedBenefits ?? 0 })}
+                  {t('dashboard.missedValueHint', {
+                    count: missed?.totalMissedBenefits ?? 0,
+                    n: missed?.totalMissedBenefits ?? 0,
+                  })}
                 </p>
               </div>
               <Button as={Link} to="/app/benefits" variant="primary">
@@ -156,7 +159,7 @@ export default function Dashboard() {
                 icon={Scale}
                 label={t('dashboard.eligibleLabel')}
                 value={eligible}
-                hint={t('dashboard.eligibleHint', { n: list.length })}
+                hint={t('dashboard.eligibleHint', { count: list.length, n: list.length })}
                 to="/app/matches"
                 cta={t('dashboard.ctaReview')}
                 status={eligible > 0 ? 'ELIGIBLE' : null}
@@ -196,7 +199,7 @@ export default function Dashboard() {
         />
 
         <Tile
-          icon={Sparkles}
+          icon={Compass}
           label={t('dashboard.discoverLabel')}
           value={t('dashboard.discoverValue')}
           hint={t('dashboard.discoverHint')}

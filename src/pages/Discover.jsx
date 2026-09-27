@@ -62,7 +62,6 @@ export default function Discover() {
   return (
     <div className="space-y-6">
       <PageHeader
-        badge={t('discover.badge')}
         title={t('discover.title')}
         desc={t('discover.desc')}
       />

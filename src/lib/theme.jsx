@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
 const STORAGE_KEY = 'swatva_theme'
 const ThemeContext = createContext(null)
@@ -21,14 +21,32 @@ function readInitialTheme() {
  */
 export function ThemeProvider({ children }) {
   const [dark, setDark] = useState(readInitialTheme)
+  const mounted = useRef(false)
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark)
+    const root = document.documentElement
+    root.classList.toggle('dark', dark)
     try {
       localStorage.setItem(STORAGE_KEY, dark ? 'dark' : 'light')
     } catch {
       // Non-fatal: the theme still applies for this session.
     }
+
+    // Skipped on first paint — easing the colours in on page load reads as a
+    // slow fade-in of the whole app, which is worse than an instant switch.
+    if (!mounted.current) {
+      mounted.current = true
+      return undefined
+    }
+
+    // Flipping `dark` repaints every surface at once, which is the harsh part of
+    // the toggle. Flag the switch so CSS can ease the colours, then drop the flag
+    // once the ease is over so nothing else inherits the timing. Scoping it to
+    // this window is what keeps hover states and the nav pill on their own
+    // durations instead of a blanket global transition.
+    root.classList.add('theme-switching')
+    const clear = window.setTimeout(() => root.classList.remove('theme-switching'), 340)
+    return () => window.clearTimeout(clear)
   }, [dark])
 
   const toggle = useCallback(() => setDark((d) => !d), [])

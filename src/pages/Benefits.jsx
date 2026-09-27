@@ -49,7 +49,6 @@ export default function Benefits() {
   return (
     <div>
       <PageHeader
-        badge={t('benefits.badge')}
         title={t('benefits.title')}
         desc={t('benefits.desc')}
       />

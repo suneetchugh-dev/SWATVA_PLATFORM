@@ -1,174 +1,297 @@
-import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { ArrowRight, Landmark, Moon, Sun } from 'lucide-react'
-import { api, getToken } from '../api/client'
-import { useTheme } from '../lib/theme'
-import LanguageSwitcher from '../components/LanguageSwitcher'
-import { Badge, Banner, Button, Field, Input } from '../components/ui'
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { User, Mail, Lock, ArrowRight, LogIn, UserPlus } from 'lucide-react';
+import MinimalBrandHeader from '../components/MinimalBrandHeader';
+import { useTheme } from '../lib/theme';
+import { api, getToken } from '../api/client';
+import { playClick } from '../utils/soundFx';
 
-// One component serves both routes; only the copy keys differ.
-const MODE_KEYS = {
-  login: {
-    badge: 'loginBadge', title: 'loginTitle', desc: 'loginDesc', submit: 'loginSubmit',
-    switchText: 'loginSwitchText', switchLabel: 'loginSwitchLabel', switchTo: '/register',
-  },
-  register: {
-    badge: 'registerBadge', title: 'registerTitle', desc: 'registerDesc', submit: 'registerSubmit',
-    switchText: 'registerSwitchText', switchLabel: 'registerSwitchLabel', switchTo: '/login',
-  },
-}
+export default function Auth({ mode: initialMode = 'login' }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { dark } = useTheme();
 
-/**
- * Login and registration. The card follows the design system's amber,
- * borderless, backdrop-blur frosted-glass architecture — no stroke, no outline,
- * and a blurred amber halo sitting behind it via a ::before layer.
- */
-export default function Auth({ mode = 'login' }) {
-  const { t } = useTranslation()
-  const copy = MODE_KEYS[mode] ?? MODE_KEYS.login
-  const { dark, toggle } = useTheme()
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState(null)
-  const [busy, setBusy] = useState(false)
-  const navigate = useNavigate()
+  const [mode, setMode] = useState(initialMode); // 'login' | 'register'
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  if (getToken()) return <Navigate to="/app" replace />
+  // The two modes carry different field counts, so the card's natural height
+  // differs. Left alone the box snaps to the new size on every switch, and since
+  // the page is vertically centred that also drags the whole card up or down — a
+  // double jolt. The standard fix is to measure, pin the current height, then
+  // ease to the new one and hand the height back to `auto` once it lands. That
+  // keeps the inputs at their real size throughout, unlike a scale-based FLIP
+  // which would shrink the type while it moves.
+  const cardRef = useRef(null);
+  const [cardHeight, setCardHeight] = useState(null);
+  const animatingHeight = useRef(false);
 
-  const onSubmit = async (event) => {
-    event.preventDefault()
-    setError(null)
-    setBusy(true)
-    try {
-      if (mode === 'login') {
-        await api.auth.login(email.trim(), password)
-      } else {
-        await api.auth.register(fullName.trim(), email.trim(), password)
-      }
-      navigate('/app', { replace: true })
-    } catch (err) {
-      // Field-level errors first, then the envelope message, then a fallback.
-      const field = err?.fieldErrors
-      if (field && Object.keys(field).length) {
-        setError(Object.entries(field).map(([k, v]) => `${k}: ${v}`).join(' · '))
-      } else {
-        setError(err?.message || t('auth.genericError'))
-      }
-    } finally {
-      setBusy(false)
+  const switchMode = (next) => {
+    if (next === mode) return;
+    playClick();
+    const el = cardRef.current;
+    if (el) {
+      animatingHeight.current = true;
+      setCardHeight(el.offsetHeight);
     }
+    setError(null);
+    setMode(next);
+  };
+
+  // Runs after the new mode's fields are in the DOM but before paint, so the
+  // pinned height is committed and only then released to the target. Batching
+  // both into one update is what makes the card jump instead of ease.
+  useLayoutEffect(() => {
+    const el = cardRef.current;
+    if (!el || !animatingHeight.current) return undefined;
+    const target = el.scrollHeight;
+    const frame = requestAnimationFrame(() => setCardHeight(target));
+    // Timer rather than transitionend: child colour transitions also fire
+    // transitionend, so listening on the card would settle on the wrong event.
+    const settle = window.setTimeout(() => {
+      animatingHeight.current = false;
+      setCardHeight(null);
+    }, 380);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(settle);
+    };
+  }, [mode]);
+
+  const cardStyle = useMemo(
+    () =>
+      cardHeight == null
+        ? undefined
+        : {
+            height: `${cardHeight}px`,
+            // `overflow: hidden` only while pinned, so the incoming field is
+            // revealed as the box grows rather than spilling past the edge.
+            overflow: 'hidden',
+            transition: 'height 300ms cubic-bezier(0.32, 0.72, 0, 1)',
+          },
+    [cardHeight],
+  );
+
+  // Redirect if already authenticated. This has to stay below every hook call —
+  // returning above them changes the hook count between renders, which React
+  // rejects outright.
+  if (getToken()) {
+    return <Navigate to="/app" replace />;
   }
 
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const emailTrimmed = email.trim();
+    if (!emailTrimmed) {
+      setError('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (mode === 'login') {
+        await api.auth.login(emailTrimmed, password);
+      } else {
+        await api.auth.register(fullName.trim(), emailTrimmed, password);
+      }
+      playClick();
+      navigate('/app', { replace: true });
+    } catch (err) {
+      setError(err?.message || 'Could not sign you in. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-dvh w-full overflow-x-hidden bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white flex flex-col">
-      <div className="fixed top-0 right-0 p-4 z-20 flex items-center gap-2">
-        <LanguageSwitcher />
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label={dark ? t('common.switchToLight') : t('common.switchToDark')}
-          aria-pressed={dark}
-          className="h-9 w-9 flex items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200/70 dark:hover:bg-white/10 transition-colors cursor-pointer"
-        >
-          {dark ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+    <div
+      className={`min-h-[100dvh] flex flex-col items-center justify-between relative p-3 sm:p-6 transition-colors duration-300 overflow-x-hidden ${
+        dark
+          ? 'dark bg-[#080808] text-neutral-100 bg-dot-pattern-dark'
+          : 'bg-[#fcfdfd] text-neutral-900 bg-dot-pattern-light'
+      }`}
+    >
+      {/* Monumental Background Typography Watermark - Acclaimed SAHNIRMAAN Style */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center select-none z-0 overflow-hidden">
+        <span className="text-[22vw] font-black tracking-tighter text-neutral-950/[0.04] dark:text-white/[0.06] leading-none font-mono">
+          SWATVA
+        </span>
       </div>
 
-      <main className="flex-1 flex items-center justify-center px-4 py-12 sm:py-20">
-        <div className="w-full max-w-md">
-          <Link to="/" className="flex items-center justify-center gap-2.5 mb-8">
-            <span className="h-9 w-9 flex items-center justify-center rounded-lg bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
-              <Landmark size={17} strokeWidth={2.2} />
-            </span>
-            <span className="font-bold tracking-tight">{t('common.appName')}</span>
-          </Link>
+      <MinimalBrandHeader
+        onBack={() => navigate('/')}
+        backLabel={t('auth.backToHome') || 'Back to Platform'}
+        brandLabel="SWATVA"
+        logoKey={loading ? 'busy' : 'idle'}
+      />
 
-          <div className="auth-glass-card rounded-3xl p-6 sm:p-8">
-            <Badge>{t(`auth.${copy.badge}`)}</Badge>
-            <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-balance">
-              {t(`auth.${copy.title}`)}
-            </h1>
-            <p className="mt-2.5 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 text-balance">
-              {t(`auth.${copy.desc}`)}
-            </p>
+      {/* Main Content Area: Absolute Geometric & Optical Centering with Responsive Padding */}
+      <main className="flex-1 flex items-center justify-center p-2 sm:p-6 pt-16 sm:pt-20 pb-16 sm:pb-24 w-full z-10 my-auto">
+        <div
+          ref={cardRef}
+          style={cardStyle}
+          className="w-full max-w-[720px] p-4 sm:p-8 sm:pb-10 login-form-card"
+        >
+          <h1 className="flex items-center justify-center gap-2 text-base sm:text-lg font-bold text-neutral-950 dark:text-white text-center mb-5 sm:mb-6 text-balance">
+            {mode === 'login'
+              ? <><LogIn size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Sign in to SWATVA</span></>
+              : <><UserPlus size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Create your SWATVA account</span></>}
+          </h1>
 
-            {error ? (
-              <div className="mt-5">
-                <Banner tone="error">{error}</Banner>
+            {/* Segmented control. The indicator is positioned from the column
+                count rather than measured, because a two-up control's geometry
+                is known exactly: each column is (100% - gap) / 2, so the pill
+                is 50% minus half the gap, and the second slot is that same
+                width plus the gap. Nothing to measure means nothing to drift,
+                which is what left white tab labels sitting on a light card last
+                time. The dashboard nav still measures, because its items are
+                variable width and no closed form exists for that. */}
+            <div className="mb-5 p-1 rounded-full neo-glass-card">
+              <div className="relative grid grid-cols-2 gap-1">
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-y-0 left-0 w-[calc(50%-2px)] rounded-full bg-neutral-950 dark:bg-white transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    mode === 'register'
+                      ? 'translate-x-[calc(100%+4px)]'
+                      : 'translate-x-0'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => switchMode('login')}
+                  aria-pressed={mode === 'login'}
+                  className={`relative z-10 inline-flex items-center justify-center gap-1.5 h-8 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                    mode === 'login'
+                      ? 'text-white dark:text-neutral-950'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+                  }`}
+                >
+                  <LogIn size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
+                  Sign In to Account
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchMode('register')}
+                  aria-pressed={mode === 'register'}
+                  className={`relative z-10 inline-flex items-center justify-center gap-1.5 h-8 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                    mode === 'register'
+                      ? 'text-white dark:text-neutral-950'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+                  }`}
+                >
+                  <UserPlus size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
+                  Create New Account
+                </button>
               </div>
-            ) : null}
+            </div>
 
-            <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-4">
-              {mode === 'register' ? (
-                <Field label={t('auth.fullName')} htmlFor="fullName" required>
-                  <Input
-                    id="fullName"
-                    name="fullName"
-                    autoComplete="name"
+            {/* Error Notification */}
+            {error && (
+              <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center">
+                {error}
+              </div>
+            )}
+
+            {/* Authentication Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'register' && (
+                <div>
+                  <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
+                    Full Name
+                  </label>
+                  <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
+                    <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
+                      <User size={16} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Your full name"
+                      autoComplete="name"
+                      className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
+                  Email address
+                </label>
+                <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
+                  <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
+                    <Mail size={16} />
+                  </div>
+                  <input
+                    type="email"
                     required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder={t('auth.namePlaceholder')}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    inputMode="email"
+                    autoComplete="email"
+                    className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
                   />
-                </Field>
-              ) : null}
+                </div>
+              </div>
 
-              <Field label={t('auth.email')} htmlFor="email" required>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('auth.emailPlaceholder')}
-                />
-              </Field>
+              <div>
+                <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
+                  Password
+                </label>
+                <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
+                  <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
+                    <Lock size={16} />
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
+                  />
+                </div>
+              </div>
 
-              <Field
-                label={t('auth.password')}
-                htmlFor="password"
-                required
-                hint={mode === 'register' ? t('auth.passwordHint') : undefined}
-              >
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                  required
-                  minLength={mode === 'register' ? 8 : undefined}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t('auth.passwordPlaceholder')}
-                />
-              </Field>
-
-              <Button type="submit" variant="accent" size="lg" loading={busy} className="w-full mt-1">
-                {t(`auth.${copy.submit}`)}
-                {!busy ? <ArrowRight size={15} /> : null}
-              </Button>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  data-sound="click"
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-neutral-950 hover:bg-neutral-800 active:scale-[0.99] dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md cursor-pointer"
+                >
+                  <span>{loading ? 'Authenticating...' : mode === 'login' ? 'Sign In' : 'Create Account'}</span>
+                  <ArrowRight size={14} className="stroke-[2.2]" />
+                </button>
+              </div>
             </form>
-
-            <p className="mt-6 text-center text-xs text-neutral-600 dark:text-neutral-300">
-              {t(`auth.${copy.switchText}`)}{' '}
-              <Link
-                to={copy.switchTo}
-                className="font-semibold text-amber-700 dark:text-amber-400 hover:underline"
-              >
-                {t(`auth.${copy.switchLabel}`)}
-              </Link>
-            </p>
-          </div>
-
-          <p className="mt-6 text-center text-[11px] text-neutral-500 dark:text-neutral-400 text-balance">
-            {t('auth.reassurance')}
-          </p>
         </div>
       </main>
+
+      {/* Bottom Trust Bar - Clean High-Contrast Monochrome */}
+      <footer className="fixed bottom-0 left-0 right-0 z-40 px-4 sm:px-12 py-2.5 sm:py-3 border-t border-neutral-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0c0c10]/90 backdrop-blur-xl flex items-center justify-between gap-2 sm:gap-3 shadow-sm pb-[calc(0.6rem+env(safe-area-inset-bottom))]">
+        <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0">
+          SWATVA · CITIZEN EMPOWERMENT ARCHITECTURE
+        </span>
+        <button
+          type="button"
+          onClick={() => { playClick(); navigate('/'); }}
+          className="text-[11px] font-mono text-neutral-700 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white transition cursor-pointer font-medium hover:underline flex-shrink-0 whitespace-nowrap"
+        >
+          Explore Platform &rarr;
+        </button>
+      </footer>
     </div>
-  )
+  );
 }

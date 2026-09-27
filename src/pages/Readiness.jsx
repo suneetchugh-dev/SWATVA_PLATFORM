@@ -110,7 +110,6 @@ export default function Readiness() {
       <BackLink />
 
       <PageHeader
-        badge={t('readiness.badge')}
         title={data.schemeName || t('readiness.title')}
         desc={t('readiness.desc')}
         actions={
