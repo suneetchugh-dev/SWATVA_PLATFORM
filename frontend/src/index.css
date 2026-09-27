@@ -404,6 +404,63 @@ pre.code-view {
    or slate-blue here.
    ========================================================================== */
 
+/* The authentication card. Amber, borderless, frosted glass with a blurred
+   amber halo behind it — UI_DESIGN_SYSTEM.md section 2.1. No stroke, no
+   outline: the depth comes from the backdrop blur and the halo only. */
+.auth-glass-card {
+  position: relative;
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border-radius: 1.5rem;
+  border: none !important;
+  outline: none !important;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 16px 45px -8px rgba(0, 0, 0, 0.08);
+  transition: background 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+}
+
+.auth-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  background: radial-gradient(ellipse at 50% 25%, rgba(245, 158, 11, 0.16), rgba(217, 119, 6, 0.06), transparent 70%);
+  filter: blur(28px);
+  -webkit-filter: blur(28px);
+  border-radius: 2rem;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
+  opacity: 0.7;
+}
+
+.auth-glass-card:hover {
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.12);
+}
+
+.dark .auth-glass-card {
+  background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.12) 0%, rgba(22, 18, 14, 0.65) 65%, rgba(14, 12, 10, 0.8) 100%);
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 16px 45px -8px rgba(0, 0, 0, 0.7), 0 0 35px rgba(245, 158, 11, 0.12);
+}
+
+.dark .auth-glass-card::before {
+  background: radial-gradient(ellipse at 50% 25%, rgba(245, 158, 11, 0.22), rgba(217, 119, 6, 0.1), transparent 70%);
+  opacity: 0.75;
+}
+
+.dark .auth-glass-card:hover {
+  background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.2) 0%, rgba(28, 22, 16, 0.78) 65%, rgba(18, 14, 12, 0.9) 100%);
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.85), 0 0 50px rgba(245, 158, 11, 0.25);
+}
+
+.dark .auth-glass-card:hover::before {
+  opacity: 1;
+  transform: scale(1.03);
+  filter: blur(34px);
+  -webkit-filter: blur(34px);
+}
+
 /* Frosted glass platform card. The amber halo is a single-achromatic-surface
    glow, applied only over pure neutral obsidian. */
 .neo-glass-card {
@@ -477,6 +534,16 @@ pre.code-view {
 
 .dashboard-amber-card:hover {
   border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* Bottom navigation bar on small screens. A vertical fade into the canvas so
+   scrolling content dissolves behind it instead of being clipped by it. */
+.app-bottom-bar {
+  background: linear-gradient(to top, #fcfdfd 55%, rgba(252, 253, 253, 0));
+}
+
+.dark .app-bottom-bar {
+  background: linear-gradient(to top, #080808 55%, rgba(8, 8, 8, 0));
 }
 
 /* Monochrome status badge. Status is never communicated by a coloured dot. */

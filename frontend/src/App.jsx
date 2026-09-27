@@ -10,6 +10,7 @@ import DocumentsSection from './components/DocumentsSection';
 import AiQuerySection from './components/AiQuerySection';
 import ChatSection from './components/ChatSection';
 import TransparencySection from './components/TransparencySection';
+import LoadingLogo from './components/LoadingLogo';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('auth');
@@ -46,8 +47,8 @@ export default function App() {
       {/* Top Header */}
       <header className="app-header">
         <div className="brand-title">
-          <span style={{ fontSize: '22px' }}>🇮🇳</span>
-          <span>Sahayak AI — Backend Test Console</span>
+          <LoadingLogo size="h-6 w-6" />
+          <span>Swatva AI — Backend Test Console</span>
         </div>
 
         <div className="header-status">

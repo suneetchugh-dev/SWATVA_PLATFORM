@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
@@ -16,94 +16,54 @@ import {
   Target,
   Wallet,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useTheme } from '../lib/theme'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 /* ------------------------------------------------------------------ *
  * Copy. Kept in one place so the English/Hindi pass (i18next) is a
  * mechanical change rather than a rewrite.
  * ------------------------------------------------------------------ */
 
-const COPY = {
-  nav: { platform: 'Platform', how: 'How it works', coverage: 'Coverage', faq: 'FAQ', cta: 'Open app' },
-  hero: {
-    badge: 'Government scheme discovery',
-    title: 'Every scheme you qualify for.',
-    rotating: ['Found in minutes, not years of paperwork.', 'Matched by rule, not by guesswork.', 'Applied for with the right paperwork ready.'],
-    placeholder: 'Describe your situation, or ask about a scheme...',
-    prompts: [
-      'Am I eligible for PM-KISAN?',
-      'Which pension scheme works for a 62-year-old?',
-      'What documents does Ayushman Bharat need?',
-      'I just lost my job — what can I claim?',
-    ],
-  },
-  steps: {
-    watermark: 'PROCESS',
-    badge: 'Three steps',
-    title: 'From nothing to applying',
-    desc: 'No forms to guess at. Swatva reads the scheme rules, checks them against your profile, and tells you exactly what to do next.',
-    items: [
-      { n: '01', title: 'Build your profile', body: 'Age, income, state, occupation, category, disability status and household. Takes about two minutes, and you can stop and resume at any point.' },
-      { n: '02', title: 'Get your matches', body: 'Every active scheme is evaluated against your profile and returned as eligible, not eligible, or missing information — each with the exact condition that decided it.' },
-      { n: '03', title: 'Apply with a checklist', body: 'For each match you get a step-by-step checklist, the documents it needs, and a readiness score that tells you whether you are actually able to submit today.' },
-    ],
-  },
-  capabilities: {
-    watermark: 'CAPABILITIES',
-    badge: 'What it does',
-    title: 'Built around the whole application, not just the search',
-    desc: 'Finding a scheme is the easy half. Swatva covers the documents, the readiness and the paperwork that decide whether you actually receive the benefit.',
-    items: [
-      { Icon: Scale, title: 'Deterministic eligibility', body: 'Eligibility is decided by stored eligibility rules, never by a language model. Every verdict is reproducible and cites the condition that produced it.' },
-      { Icon: Wallet, title: 'Value on the table', body: 'Aggregates the annual value of everything you qualify for but have not claimed, so the cost of not applying is a number rather than a suspicion.' },
-      { Icon: FileStack, title: 'Document locker', body: 'Upload a document once, validate it against the scheme requirement, correct extracted fields, and reuse it across every scheme that needs it.' },
-      { Icon: ClipboardCheck, title: 'Application readiness', body: 'Per-scheme readiness scoring across the documents and steps still outstanding, so you know which applications are genuinely submittable.' },
-      { Icon: Sparkles, title: 'Ask in your own words', body: 'Describe a life event in Hindi or English and get the schemes it unlocked, with citations back to the official scheme text.' },
-      { Icon: ShieldCheck, title: 'Transparency reports', body: 'Read how much each department disbursed, how long applications take, and report problems back through the same surface.' },
-    ],
-  },
-  trust: {
-    watermark: 'TRUST',
-    badge: 'Why rule-based',
-    title: 'An LLM should not decide what you are owed',
-    body: 'A wrong answer about a pension is not a small mistake — it is a family waiting on money that never arrives. So Swatva keeps the decision and the language model strictly apart.',
-    points: [
-      { title: 'Rules decide, the model explains', body: 'Matches come from versioned scheme rules. When a language model is available it only rewrites the outcome in plain language, and the response is labelled as deterministic.' },
-      { title: 'Missing is not the same as no', body: 'A blank profile field produces a missing-information outcome, never a silent rejection. The system asks instead of guessing.' },
-      { title: 'Every answer is traceable', body: 'Each match lists the conditions it satisfied, the ones it failed, and the information it still needs.' },
-      { title: 'It degrades instead of lying', body: 'If the model or the vector store is unavailable, Swatva falls back to keyword retrieval and rule-based explanations rather than inventing an answer.' },
-    ],
-  },
-  coverage: {
-    watermark: 'COVERAGE',
-    badge: 'Catalogue',
-    title: 'Twenty schemes, verified against official sources',
-    desc: 'Every scheme carries its official source URL, its raw published text, its document requirements, its application steps and the date it was last verified.',
-    stats: [
-      { n: '20', l: 'Live schemes' },
-      { n: '6', l: 'Central' },
-      { n: '14', l: 'Uttar Pradesh' },
-      { n: '9', l: 'Rule types' },
-    ],
-    samples: ['PM-KISAN', 'Ayushman Bharat PM-JAY', 'PM Jan-Dhan Yojana', 'Jeevan Jyoti Bima', 'PM Vishwakarma', 'UP Kanya Sumangala', 'UP Shadi Anudan', 'UP Divyangjan Pension'],
-  },
-  faq: {
-    badge: 'Questions',
-    title: 'Before you ask',
-    items: [
-      { q: 'Is this really free?', a: 'Yes. The code, the catalogue and the rules are open. You never need to pay anyone to find out what you qualify for, and a broker who claims otherwise is misleading you.' },
-      { q: 'Do I need an Aadhaar number to start?', a: 'No. Build a profile with the basics and add documents later. Aadhaar is needed for some schemes at the application stage, not for discovery.' },
-      { q: 'How current is the scheme data?', a: 'Each scheme records a lastVerifiedAt date and links to its official government source. The catalogue is seeded from those sources rather than written from memory.' },
-      { q: 'Which languages are supported?', a: 'The interface and assistant work in English and Hindi.' },
-      { q: 'What happens to my documents?', a: 'They are stored against your own account, used only to check scheme requirements, and you can delete any of them at any time.' },
-    ],
-  },
-  cta: {
-    badge: 'Free, no sign-up wall',
-    title: 'Find out what you are owed',
-    body: 'Two minutes to build a profile. Every match explained.',
-  },
-  footer: { note: 'Scheme data is sourced from official government publications.', right: 'Built for citizens who cannot afford to miss out.' },
-}
+// All landing copy lives in src/locales/{en,hi}.json under `landing.*`.
+// Keeping it out of the component is what makes the Hindi pass mechanical.
+const ROTATING = ['rotating0', 'rotating1', 'rotating2']
+const PROMPTS = ['prompt0', 'prompt1', 'prompt2', 'prompt3']
+const STEP_ITEMS = [
+  { n: '01', titleKey: 'item0Title', bodyKey: 'item0Body' },
+  { n: '02', titleKey: 'item1Title', bodyKey: 'item1Body' },
+  { n: '03', titleKey: 'item2Title', bodyKey: 'item2Body' },
+]
+const CAPABILITY_ITEMS = [
+  { Icon: Scale, titleKey: 'item0Title', bodyKey: 'item0Body' },
+  { Icon: Wallet, titleKey: 'item1Title', bodyKey: 'item1Body' },
+  { Icon: FileStack, titleKey: 'item2Title', bodyKey: 'item2Body' },
+  { Icon: ClipboardCheck, titleKey: 'item3Title', bodyKey: 'item3Body' },
+  { Icon: Sparkles, titleKey: 'item4Title', bodyKey: 'item4Body' },
+  { Icon: ShieldCheck, titleKey: 'item5Title', bodyKey: 'item5Body' },
+]
+const TRUST_POINTS = [
+  { titleKey: 'point0Title', bodyKey: 'point0Body' },
+  { titleKey: 'point1Title', bodyKey: 'point1Body' },
+  { titleKey: 'point2Title', bodyKey: 'point2Body' },
+  { titleKey: 'point3Title', bodyKey: 'point3Body' },
+]
+// Figures are facts about the seeded catalogue, not copy — only the labels
+// below each one are translatable.
+const COVERAGE_STATS = [
+  { n: '20', key: 'stat0' },
+  { n: '6', key: 'stat1' },
+  { n: '14', key: 'stat2' },
+  { n: '9', key: 'stat3' },
+]
+const COVERAGE_SAMPLES = [
+  'PM-KISAN', 'Ayushman Bharat PM-JAY', 'PM Jan-Dhan Yojana', 'Jeevan Jyoti Bima',
+  'PM Vishwakarma', 'UP Kanya Sumangala', 'UP Shadi Anudan', 'UP Divyangjan Pension',
+]
+const FAQ_ITEMS = [
+  { q: 'q0', a: 'a0' }, { q: 'q1', a: 'a1' }, { q: 'q2', a: 'a2' },
+  { q: 'q3', a: 'a3' }, { q: 'q4', a: 'a4' },
+]
 
 /* ------------------------------------------------------------------ *
  * Typewriter suggestion engine. Signature Sahnirmaan interaction: human
@@ -150,21 +110,6 @@ function useTypewriter(phrases, active) {
   }, [text, phase, index, phrases, active])
 
   return text
-}
-
-/* ------------------------------------------------------------------ *
- * Theme
- * ------------------------------------------------------------------ */
-
-function useTheme() {
-  const [dark, setDark] = useState(
-    () => localStorage.getItem('swatva_theme') === 'dark',
-  )
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark)
-    localStorage.setItem('swatva_theme', dark ? 'dark' : 'light')
-  }, [dark])
-  return [dark, setDark]
 }
 
 /* ------------------------------------------------------------------ *
@@ -222,13 +167,15 @@ function SectionHeading({ badge, title, desc }) {
  * ------------------------------------------------------------------ */
 
 export default function Landing() {
-  const [dark, setDark] = useTheme()
+  const { t } = useTranslation()
+  const { dark, setDark } = useTheme()
   const [query, setQuery] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
   const [open, setOpen] = useState(null)
   const navigate = useNavigate()
   const searchRef = useRef(null)
-  const prompt = useTypewriter(COPY.hero.prompts, !searchFocused && query.length === 0)
+  const promptTexts = useMemo(() => ROTATING.map((k) => t(`landing.hero.${k}`)), [t])
+  const prompt = useTypewriter(promptTexts, !searchFocused && query.length === 0)
 
   // Ctrl/Cmd + K focuses the search, as in the Sahnirmaan shell.
   useEffect(() => {
@@ -258,23 +205,24 @@ export default function Landing() {
             <span className="h-8 w-8 flex items-center justify-center rounded-lg bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex-shrink-0">
               <Landmark size={16} strokeWidth={2.2} />
             </span>
-            <span className="font-bold text-sm tracking-tight truncate">Swatva AI</span>
+            <span className="font-bold text-sm tracking-tight truncate">{t('common.appName')}</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6 text-xs font-medium text-neutral-600 dark:text-neutral-300">
-            <a href="#how" className="hover:text-neutral-950 dark:hover:text-white transition-colors">{COPY.nav.how}</a>
-            <a href="#capabilities" className="hover:text-neutral-950 dark:hover:text-white transition-colors">{COPY.nav.platform}</a>
-            <a href="#coverage" className="hover:text-neutral-950 dark:hover:text-white transition-colors">{COPY.nav.coverage}</a>
-            <a href="#faq" className="hover:text-neutral-950 dark:hover:text-white transition-colors">{COPY.nav.faq}</a>
+            <a href="#how" className="hover:text-neutral-950 dark:hover:text-white transition-colors">{t('nav.how')}</a>
+            <a href="#capabilities" className="hover:text-neutral-950 dark:hover:text-white transition-colors">{t('nav.platform')}</a>
+            <a href="#coverage" className="hover:text-neutral-950 dark:hover:text-white transition-colors">{t('nav.coverage')}</a>
+            <a href="#faq" className="hover:text-neutral-950 dark:hover:text-white transition-colors">{t('nav.faq')}</a>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
+            <LanguageSwitcher className="hidden sm:inline-flex" />
             <ThemeToggle dark={dark} setDark={setDark} />
             <Link
               to="/app"
               className="h-9 px-3.5 sm:px-4 rounded-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 text-xs font-semibold flex items-center gap-1.5 hover:opacity-90 transition-opacity"
             >
-              {COPY.nav.cta}
+              {t('nav.cta')}
               <ArrowUpRight size={13} strokeWidth={2.2} />
             </Link>
           </div>
@@ -289,14 +237,14 @@ export default function Landing() {
         />
 
         <div className="relative w-full max-w-4xl z-10 flex flex-col items-center">
-          <Badge>{COPY.hero.badge}</Badge>
+          <Badge>{t('landing.hero.badge')}</Badge>
 
           <h1 className="mt-6 flex flex-col items-center w-full">
             <span className="block text-3xl sm:text-5xl md:text-7xl font-black leading-[1.12] tracking-tight text-balance bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 via-neutral-800 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400">
-              {COPY.hero.title}
+              {t('landing.hero.title')}
             </span>
             <span className="block mt-3 sm:mt-4 text-lg sm:text-2xl md:text-4xl font-semibold leading-[1.25] text-balance text-neutral-700 dark:text-neutral-200">
-              {COPY.hero.rotating[0]}
+              {promptTexts[0]}
             </span>
           </h1>
         </div>
@@ -313,7 +261,7 @@ export default function Landing() {
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
-                placeholder={COPY.hero.placeholder}
+                placeholder={t('landing.hero.placeholder')}
                 aria-label="Search schemes"
                 className="w-full bg-transparent border-none text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 focus:ring-0 focus:outline-none p-0 font-medium"
               />
@@ -342,14 +290,14 @@ export default function Landing() {
         </div>
 
         <div className="relative z-10 mt-6 flex flex-wrap items-center justify-center gap-2 max-w-2xl">
-          {COPY.hero.prompts.slice(0, 3).map((p) => (
+          {PROMPTS.slice(0, 3).map((k) => (
             <button
-              key={p}
+              key={k}
               type="button"
-              onClick={() => { setQuery(p); navigate('/app') }}
+              onClick={() => { setQuery(t(`landing.hero.${k}`)); navigate('/app') }}
               className="px-3 py-1.5 rounded-full text-[11px] font-medium bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
-              {p}
+              {t(`landing.hero.${k}`)}
             </button>
           ))}
         </div>
@@ -357,15 +305,15 @@ export default function Landing() {
 
       {/* ------------------------------------------- how it works */}
       <section id="how" className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24">
-        <Watermark>{COPY.steps.watermark}</Watermark>
+        <Watermark>{t('landing.steps.watermark')}</Watermark>
         <div className="w-full max-w-5xl relative z-10">
-          <SectionHeading badge={COPY.steps.badge} title={COPY.steps.title} desc={COPY.steps.desc} />
+          <SectionHeading badge={t('landing.steps.badge')} title={t('landing.steps.title')} desc={t('landing.steps.desc')} />
           <div className="mt-10 grid gap-4 sm:gap-5 md:grid-cols-3">
-            {COPY.steps.items.map((s) => (
+            {STEP_ITEMS.map((s) => (
               <div key={s.n} className="neo-glass-card p-6 sm:p-7 flex flex-col">
                 <span className="mono-badge text-amber-600 dark:text-amber-400">{s.n}</span>
-                <h3 className="mt-3 text-lg font-bold tracking-tight">{s.title}</h3>
-                <p className="mt-2.5 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">{s.body}</p>
+                <h3 className="mt-3 text-lg font-bold tracking-tight">{t(`landing.steps.${s.titleKey}`)}</h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">{t(`landing.steps.${s.bodyKey}`)}</p>
               </div>
             ))}
           </div>
@@ -374,21 +322,21 @@ export default function Landing() {
 
       {/* ------------------------------------------- capabilities */}
       <section id="capabilities" className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24">
-        <Watermark>{COPY.capabilities.watermark}</Watermark>
+        <Watermark>{t('landing.capabilities.watermark')}</Watermark>
         <div className="w-full max-w-5xl relative z-10">
           <SectionHeading
-            badge={COPY.capabilities.badge}
-            title={COPY.capabilities.title}
-            desc={COPY.capabilities.desc}
+            badge={t('landing.capabilities.badge')}
+            title={t('landing.capabilities.title')}
+            desc={t('landing.capabilities.desc')}
           />
           <div className="mt-10 grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {COPY.capabilities.items.map(({ Icon, title, body }) => (
-              <div key={title} className="neo-glass-card p-6 sm:p-7">
+            {CAPABILITY_ITEMS.map(({ Icon, titleKey, bodyKey }) => (
+              <div key={titleKey} className="neo-glass-card p-6 sm:p-7">
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
                   <Icon size={16} strokeWidth={2} />
                 </span>
-                <h3 className="mt-4 text-base font-bold tracking-tight">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">{body}</p>
+                <h3 className="mt-4 text-base font-bold tracking-tight">{t(`landing.capabilities.${titleKey}`)}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">{t(`landing.capabilities.${bodyKey}`)}</p>
               </div>
             ))}
           </div>
@@ -397,17 +345,17 @@ export default function Landing() {
 
       {/* ----------------------------------------------- trust */}
       <section className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24">
-        <Watermark>{COPY.trust.watermark}</Watermark>
+        <Watermark>{t('landing.trust.watermark')}</Watermark>
         <div className="w-full max-w-5xl relative z-10">
           <div className="w-full p-8 sm:p-12 neo-glass-card">
-            <SectionHeading badge={COPY.trust.badge} title={COPY.trust.title} desc={COPY.trust.body} />
+            <SectionHeading badge={t('landing.trust.badge')} title={t('landing.trust.title')} desc={t('landing.trust.body')} />
             <div className="mt-9 grid gap-x-8 gap-y-6 sm:grid-cols-2">
-              {COPY.trust.points.map((p) => (
-                <div key={p.title} className="flex gap-3">
+              {TRUST_POINTS.map((p) => (
+                <div key={p.titleKey} className="flex gap-3">
                   <BadgeCheck size={17} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="text-sm font-bold tracking-tight">{p.title}</h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">{p.body}</p>
+                    <h3 className="text-sm font-bold tracking-tight">{t(`landing.trust.${p.titleKey}`)}</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">{t(`landing.trust.${p.bodyKey}`)}</p>
                   </div>
                 </div>
               ))}
@@ -418,19 +366,19 @@ export default function Landing() {
 
       {/* ------------------------------------------- coverage */}
       <section id="coverage" className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24">
-        <Watermark>{COPY.coverage.watermark}</Watermark>
+        <Watermark>{t('landing.coverage.watermark')}</Watermark>
         <div className="w-full max-w-5xl relative z-10">
-          <SectionHeading badge={COPY.coverage.badge} title={COPY.coverage.title} desc={COPY.coverage.desc} />
+          <SectionHeading badge={t('landing.coverage.badge')} title={t('landing.coverage.title')} desc={t('landing.coverage.desc')} />
           <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            {COPY.coverage.stats.map((s) => (
-              <div key={s.l} className="dashboard-amber-card p-6 text-center">
+            {COVERAGE_STATS.map((s) => (
+              <div key={s.key} className="dashboard-amber-card p-6 text-center">
                 <div className="text-3xl sm:text-4xl font-black tracking-tight font-mono tabular-nums">{s.n}</div>
-                <div className="mt-1.5 mono-badge text-neutral-500 dark:text-neutral-400">{s.l}</div>
+                <div className="mt-1.5 mono-badge text-neutral-500 dark:text-neutral-400">{t(`landing.coverage.${s.key}`)}</div>
               </div>
             ))}
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            {COPY.coverage.samples.map((s) => (
+            {COVERAGE_SAMPLES.map((s) => (
               <span
                 key={s}
                 className="px-3 py-1.5 rounded-full text-[11px] font-medium bg-neutral-950 dark:bg-white text-white dark:text-neutral-950"
@@ -444,11 +392,11 @@ export default function Landing() {
 
       {/* ----------------------------------------------- faq */}
       <section id="faq" className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24">
-        <Watermark>{COPY.faq.badge.toUpperCase()}</Watermark>
+        <Watermark>{t('landing.faq.badge').toUpperCase()}</Watermark>
         <div className="w-full max-w-3xl relative z-10">
-          <SectionHeading badge={COPY.faq.badge} title={COPY.faq.title} />
+          <SectionHeading badge={t('landing.faq.badge')} title={t('landing.faq.title')} />
           <div className="mt-8 divide-y divide-neutral-200 dark:divide-white/10 border-y border-neutral-200 dark:border-white/10">
-            {COPY.faq.items.map((item) => {
+            {FAQ_ITEMS.map((item) => {
               const isOpen = open === item.q
               return (
                 <div key={item.q}>
@@ -459,7 +407,7 @@ export default function Landing() {
                     className="w-full text-left py-4 flex items-center justify-between gap-4 cursor-pointer group"
                   >
                     <span className="text-sm sm:text-base font-semibold tracking-tight group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
-                      {item.q}
+                      {t(`landing.faq.${item.q}`)}
                     </span>
                     <span
                       className={`flex-shrink-0 text-neutral-400 text-lg leading-none transition-transform duration-300 ${isOpen ? 'rotate-45' : ''}`}
@@ -470,7 +418,7 @@ export default function Landing() {
                   </button>
                   {isOpen ? (
                     <p className="pb-4 -mt-1 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 max-w-2xl">
-                      {item.a}
+                      {t(`landing.faq.${item.a}`)}
                     </p>
                   ) : null}
                 </div>
@@ -483,16 +431,16 @@ export default function Landing() {
       {/* ----------------------------------------------- cta */}
       <section className="relative w-full flex flex-col items-center text-center px-6 py-20 sm:py-28">
         <div className="max-w-2xl relative z-10">
-          <Badge>{COPY.cta.badge}</Badge>
+          <Badge>{t('landing.cta.badge')}</Badge>
           <h2 className="mt-5 text-3xl sm:text-5xl font-black tracking-tight text-balance bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 via-neutral-800 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400">
-            {COPY.cta.title}
+            {t('landing.cta.title')}
           </h2>
-          <p className="mt-4 text-sm sm:text-base text-neutral-600 dark:text-neutral-300 text-balance">{COPY.cta.body}</p>
+          <p className="mt-4 text-sm sm:text-base text-neutral-600 dark:text-neutral-300 text-balance">{t('landing.cta.body')}</p>
           <Link
             to="/app"
             className="mt-8 inline-flex h-11 items-center gap-2 px-6 rounded-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 text-sm font-semibold hover:opacity-90 transition-opacity"
           >
-            {COPY.nav.cta}
+            {t('nav.cta')}
             <ArrowRight size={15} />
           </Link>
         </div>
@@ -507,10 +455,10 @@ export default function Landing() {
             </span>
             <span className="text-xs font-bold tracking-tight">Swatva AI</span>
           </div>
-          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 max-w-md">{COPY.footer.note}</p>
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 max-w-md">{t('landing.footer.note')}</p>
           <p className="text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
             <Target size={12} />
-            {COPY.footer.right}
+            {t('landing.footer.right')}
           </p>
         </div>
       </footer>
