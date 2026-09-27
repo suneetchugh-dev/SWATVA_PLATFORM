@@ -35,6 +35,7 @@ import ThemeToggle from '../components/ThemeToggle'
 import FooterParticles from '../components/FooterParticles'
 import DragScrollController from '../components/DragScrollController'
 import { playClick } from '../utils/soundFx'
+import { getToken } from '../api/client'
 
 /* ------------------------------------------------------------------ *
  * Copy. Kept in one place so the English/Hindi pass (i18next) is a
@@ -212,6 +213,11 @@ export default function Landing() {
   const [scrolled, setScrolled] = useState(false)
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAuthed, setIsAuthed] = useState(() => Boolean(getToken()))
+
+  useEffect(() => {
+    setIsAuthed(Boolean(getToken()))
+  }, [])
 
   // Sahnirmaan morphing navbar scroll engine
   useEffect(() => {
@@ -369,11 +375,11 @@ export default function Landing() {
           <ThemeToggle darkMode={dark} toggleTheme={() => setDark(!dark)} />
 
           <Link
-            to="/app"
+            to={isAuthed ? "/app" : "/login"}
             onClick={playClick}
             className="h-8 sm:h-8.5 px-3 sm:px-4 rounded-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 text-xs font-semibold flex items-center gap-1.5 hover:opacity-90 transition-opacity flex-shrink-0"
           >
-            <span>{t('nav.cta')}</span>
+            <span>{isAuthed ? t('nav.goToApp') : t('nav.cta')}</span>
             <ArrowUpRight size={13} strokeWidth={2.2} />
           </Link>
 
@@ -531,14 +537,14 @@ export default function Landing() {
             </button>
           </div>
 
-          {/* Mobile Drawer Footer: Primary Solid Sign In CTA Button */}
+          {/* Mobile Drawer Footer: Primary Solid Sign In / Go To App CTA Button */}
           <div className="px-4 pb-6 pt-2 flex-shrink-0 mt-auto">
             <Link
-              to="/app"
+              to={isAuthed ? "/app" : "/login"}
               onClick={() => { playClick(); setIsMobileMenuOpen(false); }}
               className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-wider bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 transition cursor-pointer shadow-md active:scale-[0.98]"
             >
-              <span>{t('nav.cta')}</span>
+              <span>{isAuthed ? t('nav.goToApp') : t('nav.cta')}</span>
               <ArrowUpRight size={14} className="text-current flex-shrink-0 stroke-[2.2]" />
             </Link>
           </div>
@@ -1008,11 +1014,11 @@ export default function Landing() {
           </div>
           <p className="mt-4 text-sm sm:text-base text-neutral-600 dark:text-neutral-300 text-balance">{t('landing.cta.body')}</p>
           <Link
-            to="/app"
+            to={isAuthed ? "/app" : "/login"}
             onClick={playClick}
             className="mt-8 inline-flex h-11 items-center gap-2 px-6 rounded-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 text-sm font-semibold hover:opacity-90 transition-opacity"
           >
-            {t('nav.cta')}
+            {isAuthed ? t('nav.goToApp') : t('nav.cta')}
             <ArrowRight size={15} />
           </Link>
         </div>
