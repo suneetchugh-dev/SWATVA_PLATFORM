@@ -273,6 +273,7 @@
       "emptyBody": "कम से कम एक सदस्य जोड़ने तक घर-आधारित योजनाएँ जानकारी अधूरी बताएँगी।"
     },
     "completeness": "प्रोफ़ाइल की पूर्णता",
+    "completenessHint": "{{n}}% — हर भरी हुई जगह एक 'जानकारी चाहिए' परिणाम हटा देती है।",
     "completenessHint_one": "{{n}}% — हर भरी हुई जगह एक 'जानकारी चाहिए' परिणाम हटा देती है।",
     "completenessHint_other": "{{n}}% — हर भरी हुई जगह एक 'जानकारी चाहिए' परिणाम हटा देती है।"
   },
@@ -393,8 +394,10 @@
       "1": "मेरी सबसे ऊपरी योजना के लिए कौन-से दस्तावेज़ चाहिए?",
       "2": "मैं इस समय कितना दावा नहीं कर रहा?"
     },
+    "docsReady": "{{done}} / {{total}} दस्तावेज़ तैयार",
     "docsReady_one": "{{done}} / {{total}} दस्तावेज़ तैयार",
     "docsReady_other": "{{done}} / {{total}} दस्तावेज़ तैयार",
+    "docsMissing": " · {{n}} अधूरे",
     "docsMissing_one": " · {{n}} अधूरे",
     "docsMissing_other": " · {{n}} अधूरे"
   },
@@ -431,12 +434,14 @@
     "citizen": "नागरिक",
     "desc": "आपकी पात्रता, छोड़ी जा सकने वाली राशि, और आवेदन में आने वाली बाधाएँ।",
     "missedValueLabel": "छोड़ी जा सकने वाली अनुमानित राशि",
-    "missedValueHint_one": "{{n}} योजना जिसका आप लाभ नहीं ले रहे",
-    "missedValueHint_other": "{{n}} योजनाएँ जिनका आप लाभ नहीं ले रहे",
+    "missedValueHint": "{{count, n}} योजनाओं में जिनका आप लाभ नहीं ले रहे",
+    "missedValueHint_one": "{{count, n}} योजना जिसका आप लाभ नहीं ले रहे",
+    "missedValueHint_other": "{{count, n}} योजनाएँ जिनका आप लाभ नहीं ले रहे",
     "missedValueCta": "विवरण देखें",
     "eligibleLabel": "अभी पात्र",
-    "eligibleHint_one": "{{n}} योजना में से",
-    "eligibleHint_other": "{{n}} योजनाओं में से",
+    "eligibleHint": "{{count, n}} योजनाओं में से",
+    "eligibleHint_one": "{{count, n}} योजना में से",
+    "eligibleHint_other": "{{count, n}} योजनाओं में से",
     "documentsLabel": "संग्रहीत दस्तावेज़",
     "documentsHint": "आपकी दस्तावेज़ अलमारी में",
     "profileLabel": "प्रोफ़ाइल",

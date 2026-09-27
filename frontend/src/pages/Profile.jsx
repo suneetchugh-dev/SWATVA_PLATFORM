@@ -414,7 +414,7 @@ export default function Profile() {
         <div>
           <p className="text-sm font-semibold tracking-tight">{t('profile.completeness')}</p>
           <p className="text-xs text-neutral-600 dark:text-neutral-300 mt-0.5">
-            {t('profile.completenessHint', { n: complete })}
+            {t('profile.completenessHint', { count: complete, n: complete })}
           </p>
         </div>
         <span className="mono-badge text-amber-700 dark:text-amber-400">{complete}%</span>

@@ -134,7 +134,10 @@ export default function Dashboard() {
                   ₹{Number(missed?.totalEstimatedAnnualBenefit ?? 0).toLocaleString('en-IN')}
                 </p>
                 <p className="mt-1.5 text-sm text-neutral-600 dark:text-neutral-300">
-                  {t('dashboard.missedValueHint', { n: missed?.totalMissedBenefits ?? 0 })}
+                  {t('dashboard.missedValueHint', {
+                    count: missed?.totalMissedBenefits ?? 0,
+                    n: missed?.totalMissedBenefits ?? 0,
+                  })}
                 </p>
               </div>
               <Button as={Link} to="/app/benefits" variant="primary">
@@ -156,7 +159,7 @@ export default function Dashboard() {
                 icon={Scale}
                 label={t('dashboard.eligibleLabel')}
                 value={eligible}
-                hint={t('dashboard.eligibleHint', { n: list.length })}
+                hint={t('dashboard.eligibleHint', { count: list.length, n: list.length })}
                 to="/app/matches"
                 cta={t('dashboard.ctaReview')}
                 status={eligible > 0 ? 'ELIGIBLE' : null}

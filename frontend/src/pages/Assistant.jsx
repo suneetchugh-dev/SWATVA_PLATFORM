@@ -145,9 +145,16 @@ export default function Assistant() {
                             <div className="h-full rounded-full bg-amber-500" style={{ width: `${m.readiness.readinessPercentage}%` }} />
                           </div>
                           <p className="mt-2 text-[11px] text-neutral-600 dark:text-neutral-300">
-                            {t('assistant.docsReady', { done: m.readiness.completedDocuments, total: m.readiness.totalRequired })}
+                            {t('assistant.docsReady', {
+                              count: m.readiness.totalRequired,
+                              done: m.readiness.completedDocuments,
+                              total: m.readiness.totalRequired,
+                            })}
                             {m.readiness.missingDocuments
-                              ? t('assistant.docsMissing', { n: m.readiness.missingDocuments })
+                              ? t('assistant.docsMissing', {
+                                  count: m.readiness.missingDocuments,
+                                  n: m.readiness.missingDocuments,
+                                })
                               : ''}
                           </p>
                         </Card>
