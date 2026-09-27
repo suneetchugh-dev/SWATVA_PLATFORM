@@ -1,32 +1,32 @@
 /**
- * Centralized API Client for Sahayak AI Backend.
+ * Centralized API Client for Swatva AI Backend.
  * Direct communication: Frontend -> Real Backend API -> Real Database -> Real Response.
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export function getToken() {
-  return localStorage.getItem('sahayak_token');
+  return localStorage.getItem('swatva_token');
 }
 
 export function setToken(token) {
   if (token) {
-    localStorage.setItem('sahayak_token', token);
+    localStorage.setItem('swatva_token', token);
   } else {
-    localStorage.removeItem('sahayak_token');
+    localStorage.removeItem('swatva_token');
   }
 }
 
 export function getStoredUser() {
-  const user = localStorage.getItem('sahayak_user');
+  const user = localStorage.getItem('swatva_user');
   return user ? JSON.parse(user) : null;
 }
 
 export function setStoredUser(user) {
   if (user) {
-    localStorage.setItem('sahayak_user', JSON.stringify(user));
+    localStorage.setItem('swatva_user', JSON.stringify(user));
   } else {
-    localStorage.removeItem('sahayak_user');
+    localStorage.removeItem('swatva_user');
   }
 }
 

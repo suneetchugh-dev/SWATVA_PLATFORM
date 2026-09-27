@@ -47,7 +47,7 @@ export default function App() {
       <header className="app-header">
         <div className="brand-title">
           <span style={{ fontSize: '22px' }}>🇮🇳</span>
-          <span>Sahayak AI — Backend Test Console</span>
+          <span>Swatva AI — Backend Test Console</span>
         </div>
 
         <div className="header-status">

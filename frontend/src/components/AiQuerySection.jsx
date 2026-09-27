@@ -48,7 +48,7 @@ export default function AiQuerySection() {
         <div>
           <strong>Qdrant Vector Store Management</strong>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-            Re-chunk all 20 schemes (120 chunks) and upsert embeddings into Qdrant collection <code>sahayak_schemes</code>.
+            Re-chunk all 20 schemes (120 chunks) and upsert embeddings into Qdrant collection <code>swatva_schemes</code>.
           </p>
         </div>
         <button className="btn btn-secondary btn-sm" onClick={handleReindex} disabled={indexing}>

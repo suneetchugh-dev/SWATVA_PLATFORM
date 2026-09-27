@@ -4,7 +4,7 @@ import { api, getToken } from '../api/client';
 export default function ChatSection() {
   const token = getToken();
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Namaste! I am Sahayak AI. How can I assist you with government schemes and citizen benefits today? (आप हिंदी या अंग्रेजी में पूछ सकते हैं)' }
+    { sender: 'bot', text: 'Namaste! I am Swatva AI. How can I assist you with government schemes and citizen benefits today? (आप हिंदी या अंग्रेजी में पूछ सकते हैं)' }
   ]);
   const [input, setInput] = useState('');
   const [language, setLanguage] = useState('English');
@@ -105,7 +105,7 @@ export default function ChatSection() {
 
           {loading && (
             <div className="chat-bubble chat-bot" style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
-              Sahayak AI is thinking and retrieving verified facts...
+              Swatva AI is thinking and retrieving verified facts...
             </div>
           )}
         </div>

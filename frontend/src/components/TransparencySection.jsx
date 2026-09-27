@@ -67,7 +67,7 @@ export default function TransparencySection() {
           <span>Submit Anonymous Corruption / Fee Report</span>
         </div>
         <p className="card-subtitle">
-          Sahayak AI strictly strips all user IDs, names, emails, phones, and IP addresses. Reports are aggregated anonymously for citizen transparency.
+          Swatva AI strictly strips all user IDs, names, emails, phones, and IP addresses. Reports are aggregated anonymously for citizen transparency.
         </p>
 
         {submitSuccess && <div className="alert alert-success">{submitSuccess}</div>}

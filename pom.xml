@@ -10,10 +10,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>in.sahayak</groupId>
-    <artifactId>sahayak-ai</artifactId>
+    <groupId>in.swatva</groupId>
+    <artifactId>swatva-ai</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Sahayak AI</name>
+    <name>Swatva AI</name>
     <description>Personalized government benefit discovery platform</description>
 
     <properties>

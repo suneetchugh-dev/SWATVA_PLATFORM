@@ -1,6 +1,6 @@
-# Sahayak AI backend
+# Swatva AI backend
 
-Foundation for Sahayak AI, a personalized government-benefit discovery platform for Indian citizens. It is a single Spring Boot modular monolith: domain packages are separated in code while the service is deployed as one application.
+Foundation for Swatva AI, a personalized government-benefit discovery platform for Indian citizens. It is a single Spring Boot modular monolith: domain packages are separated in code while the service is deployed as one application.
 
 ## Technology
 
@@ -19,7 +19,7 @@ The foundation provides module boundaries for `auth`, `user`, `scheme`, `eligibi
 Create the local database:
 
 ```sql
-CREATE DATABASE sahayak_ai;
+CREATE DATABASE swatva_ai;
 ```
 
 ## Configure and run
@@ -27,7 +27,7 @@ CREATE DATABASE sahayak_ai;
 Set secrets through the environment; do not commit credentials:
 
 ```powershell
-$env:DB_URL = "jdbc:postgresql://localhost:5432/sahayak_ai"
+$env:DB_URL = "jdbc:postgresql://localhost:5432/swatva_ai"
 $env:DB_USERNAME = "postgres"
 $env:DB_PASSWORD = "your-password"
 $env:JPA_DDL_AUTO = "validate"
@@ -43,7 +43,7 @@ Or build and run the JAR:
 
 ```powershell
 mvn clean package
-java -jar target/sahayak-ai-0.0.1-SNAPSHOT.jar
+java -jar target/swatva-ai-0.0.1-SNAPSHOT.jar
 ```
 
 Verify the public foundation endpoint:
@@ -58,7 +58,7 @@ All API responses use a shared envelope: `success`, `data`, `error`, and UTC `ti
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `DB_URL` | `jdbc:postgresql://localhost:5432/sahayak_ai` | JDBC connection URL |
+| `DB_URL` | `jdbc:postgresql://localhost:5432/swatva_ai` | JDBC connection URL |
 | `DB_USERNAME` | `postgres` | Database user |
 | `DB_PASSWORD` | `postgres` | Database password |
 | `JPA_DDL_AUTO` | `validate` | Hibernate schema policy |
@@ -67,7 +67,7 @@ All API responses use a shared envelope: `success`, `data`, `error`, and UTC `ti
 | `QDRANT_HOST` | `localhost` | Qdrant vector database hostname |
 | `QDRANT_PORT` | `6334` | Qdrant gRPC port |
 | `QDRANT_API_KEY` | (empty) | Qdrant API key |
-| `QDRANT_COLLECTION_NAME` | `sahayak_schemes` | Qdrant vector collection name |
+| `QDRANT_COLLECTION_NAME` | `swatva_schemes` | Qdrant vector collection name |
 | `OPENAI_API_KEY` | `demo-key` | OpenAI API key for embeddings and LLM |
 
 When adding the first entities, introduce versioned migrations. `JPA_DDL_AUTO=update` may be used only for local, short-lived development schemas.

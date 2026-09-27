@@ -1,6 +1,6 @@
-# Sahayak AI — Verified Scheme Dataset (20 Real Government Schemes)
+# Swatva AI — Verified Scheme Dataset (20 Real Government Schemes)
 
-This document catalogs the verified dataset of **20 authentic government schemes** seeded in Sahayak AI:
+This document catalogs the verified dataset of **20 authentic government schemes** seeded in Swatva AI:
 - **6 Central Government Schemes**
 - **14 Uttar Pradesh Government Schemes**
 
@@ -191,7 +191,7 @@ Total chunks: **20 schemes × 6 chunks = 120 document chunks**.
 ### Step 3: Embeddings & Vector Storage (`SchemeVectorIndexingService`)
 1. Generates deterministic UUID point IDs based on `UUID.nameUUIDFromBytes(schemeId + ":" + chunkType)`.
 2. Stores relational chunks in PostgreSQL `scheme_document_chunks`.
-3. Pushes documents to Spring AI `VectorStore` (Qdrant collection `sahayak_schemes`) with metadata:
+3. Pushes documents to Spring AI `VectorStore` (Qdrant collection `swatva_schemes`) with metadata:
    - `schemeId`
    - `schemeName`
    - `governmentLevel`

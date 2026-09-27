@@ -1,9 +1,9 @@
 spring:
   application:
-    name: sahayak-ai
+    name: swatva-ai
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/sahayak_ai}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/swatva_ai}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:Rishit@5211}
 
@@ -40,7 +40,7 @@ spring:
         host: ${QDRANT_HOST:localhost}
         port: ${QDRANT_PORT:6334}
         api-key: ${QDRANT_API_KEY:}
-        collection-name: ${QDRANT_COLLECTION_NAME:sahayak_schemes}
+        collection-name: ${QDRANT_COLLECTION_NAME:swatva_schemes}
         initialize-schema: ${QDRANT_INITIALIZE_SCHEMA:true}
 
 server:
@@ -51,7 +51,7 @@ server:
 logging:
   level:
     root: INFO
-    in.sahayak: ${APP_LOG_LEVEL:INFO}
+    in.swatva: ${APP_LOG_LEVEL:INFO}
 
   pattern:
     console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{36} - %msg%n"
@@ -60,7 +60,7 @@ app:
   storage:
     s3:
       endpoint: ${S3_ENDPOINT:http://localhost:9000}
-      bucket: ${S3_BUCKET:sahayak-documents}
+      bucket: ${S3_BUCKET:swatva-documents}
       region: ${S3_REGION:us-east-1}
       access-key: ${S3_ACCESS_KEY:minioadmin}
       secret-key: ${S3_SECRET_KEY:minioadmin}
@@ -70,7 +70,7 @@ app:
     host: ${QDRANT_HOST:localhost}
     port: ${QDRANT_PORT:6334}
     api-key: ${QDRANT_API_KEY:}
-    collection-name: ${QDRANT_COLLECTION_NAME:sahayak_schemes}
+    collection-name: ${QDRANT_COLLECTION_NAME:swatva_schemes}
     use-tls: ${QDRANT_USE_TLS:false}
     initialize-schema: ${QDRANT_INITIALIZE_SCHEMA:true}
 

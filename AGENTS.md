@@ -1,8 +1,8 @@
-# Sahayak AI — Agent Guide
+# Swatva AI — Agent Guide
 
 ## Project overview
 
-Sahayak AI is a Java/Spring Boot modular monolith for discovering Indian government-benefit schemes. The current implementation contains JWT authentication, progressive user profiling, deterministic eligibility evaluation, a JPA data model, a seeded Central/Karnataka catalogue, and read-only scheme APIs. AI/RAG, Qdrant, and a frontend are not implemented.
+Swatva AI is a Java/Spring Boot modular monolith for discovering Indian government-benefit schemes. The current implementation contains JWT authentication, progressive user profiling, deterministic eligibility evaluation, a JPA data model, a seeded Central/Karnataka catalogue, and read-only scheme APIs. AI/RAG, Qdrant, and a frontend are not implemented.
 
 ## Tech stack
 
@@ -14,7 +14,7 @@ Sahayak AI is a Java/Spring Boot modular monolith for discovering Indian governm
 
 ## Architecture and packages
 
-Use `in.sahayak.<module>` for domain ownership: `auth`, `user`, `scheme`, `eligibility`, `document`, `readiness`, `transparency`, `notification`, `ai`, and `common`.
+Use `in.swatva.<module>` for domain ownership: `auth`, `user`, `scheme`, `eligibility`, `document`, `readiness`, `transparency`, `notification`, `ai`, and `common`.
 
 - Domain entities live in `<module>.model`; enum types in `<module>.model.enums`; repositories in `<module>.repository`.
 - HTTP code currently lives in `<module>.api` (for example, `scheme.api.SchemeController`).
@@ -73,7 +73,7 @@ Use `in.sahayak.<module>` for domain ownership: `auth`, `user`, `scheme`, `eligi
 - `EligibilityRuleEvaluator` makes deterministic decisions only; do not invoke an LLM for eligibility.
 - Missing profile fields produce missing-information outcomes, not failed conditions or automatic ineligibility.
 - `GET /api/eligibility/matches` is protected and evaluates active Central schemes plus active State schemes for the authenticated profile's state.
-- Keep unit tests for evaluator behavior under `src/test/java/in/sahayak/eligibility` when changing rule semantics.
+- Keep unit tests for evaluator behavior under `src/test/java/in/swatva/eligibility` when changing rule semantics.
 
 ## Build and test
 
@@ -88,11 +88,11 @@ Use PostgreSQL before starting the application; startup creates/updates the loca
 
 - `pom.xml` — Java version and dependencies
 - `src/main/resources/application.yml` — datasource, JPA, server, logging configuration
-- `src/main/java/in/sahayak/auth/config/SecurityConfig.java` — route security and auth error responses
-- `src/main/java/in/sahayak/common/api/ApiResponse.java` and `ApiError.java` — response contract
-- `src/main/java/in/sahayak/common/exception/GlobalExceptionHandler.java` — error mapping
-- `src/main/java/in/sahayak/common/persistence/BaseEntity.java` — UUID/audit convention
-- `src/main/java/in/sahayak/scheme/seed/SchemeDataInitializer.java` — catalogue seed data
+- `src/main/java/in/swatva/auth/config/SecurityConfig.java` — route security and auth error responses
+- `src/main/java/in/swatva/common/api/ApiResponse.java` and `ApiError.java` — response contract
+- `src/main/java/in/swatva/common/exception/GlobalExceptionHandler.java` — error mapping
+- `src/main/java/in/swatva/common/persistence/BaseEntity.java` — UUID/audit convention
+- `src/main/java/in/swatva/scheme/seed/SchemeDataInitializer.java` — catalogue seed data
 
 ## Changing or adding functionality
 
