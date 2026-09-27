@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next'
 import {
   ArrowRight,
   BadgeIndianRupee,
+  Compass,
   FileStack,
   Scale,
-  Sparkles,
   UserCog,
 } from 'lucide-react'
 import { api } from '../api/client'
@@ -199,7 +199,7 @@ export default function Dashboard() {
         />
 
         <Tile
-          icon={Sparkles}
+          icon={Compass}
           label={t('dashboard.discoverLabel')}
           value={t('dashboard.discoverValue')}
           hint={t('dashboard.discoverHint')}
