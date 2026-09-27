@@ -51,7 +51,12 @@ function RouteFallback() {
   )
 }
 
-createRoot(document.getElementById('root')).render(
+const container = document.getElementById('root')
+if (!container.__reactRoot) {
+  container.__reactRoot = createRoot(container)
+}
+
+container.__reactRoot.render(
   <StrictMode>
     <ThemeProvider>
       <OfflineBanner />

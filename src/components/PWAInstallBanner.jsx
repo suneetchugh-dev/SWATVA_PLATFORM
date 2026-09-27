@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Download, X, Sparkles, Smartphone, Check } from 'lucide-react';
+import { Download, X, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePWA } from '../hooks/usePWA';
 import { playClick } from '../utils/soundFx';
@@ -12,8 +12,7 @@ export default function PWAInstallBanner() {
   const [dismissed, setDismissed] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [installedSuccess, setInstalledSuccess] = useState(false);
-  const [isFadingOut, setIsFadingOut] = useState(false);
-  const [isRemovedByScroll, setIsRemovedByScroll] = useState(false);
+  const [scrolledAway, setScrolledAway] = useState(false);
 
   useEffect(() => {
     try {
@@ -24,26 +23,18 @@ export default function PWAInstallBanner() {
     } catch {}
   }, []);
 
-  // Automatically fade out and remove when user starts scrolling on landing page
+  // Automatically fade out and hide when user starts scrolling on landing page
   useEffect(() => {
-    if (location.pathname !== '/' || isRemovedByScroll || dismissed) return;
-
-    let timeoutId = null;
+    if (location.pathname !== '/' || dismissed || scrolledAway) return;
 
     const handleScroll = () => {
       const scrollPos = typeof window !== 'undefined' ? window.scrollY || document.documentElement.scrollTop : 0;
       if (scrollPos > 25) {
-        setIsFadingOut(true);
-        if (!timeoutId) {
-          timeoutId = setTimeout(() => {
-            setIsRemovedByScroll(true);
-          }, 550); // Wait for fade-out animation to complete
-        }
+        setScrolledAway(true);
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    // Also listen to Lenis smooth-scroll instance if active
     if (window.lenis && typeof window.lenis.on === 'function') {
       window.lenis.on('scroll', handleScroll);
     }
@@ -53,13 +44,10 @@ export default function PWAInstallBanner() {
       if (window.lenis && typeof window.lenis.off === 'function') {
         window.lenis.off('scroll', handleScroll);
       }
-      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [location.pathname, isRemovedByScroll, dismissed]);
+  }, [location.pathname, dismissed, scrolledAway]);
 
-  if (!isInstallable || isInstalled || dismissed || isRemovedByScroll) {
-    return null;
-  }
+  const isVisible = isInstallable && !isInstalled && !dismissed && !scrolledAway;
 
   const handleInstall = async () => {
     playClick();
@@ -76,10 +64,7 @@ export default function PWAInstallBanner() {
 
   const handleDismiss = () => {
     playClick();
-    setIsFadingOut(true);
-    setTimeout(() => {
-      setDismissed(true);
-    }, 400);
+    setDismissed(true);
     try {
       sessionStorage.setItem('swatva_pwa_banner_dismissed', 'true');
     } catch {}
@@ -87,10 +72,11 @@ export default function PWAInstallBanner() {
 
   return (
     <div
+      aria-hidden={!isVisible}
       className={`fixed bottom-20 lg:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-        isFadingOut
-          ? 'opacity-0 translate-y-6 scale-95 pointer-events-none'
-          : 'opacity-100 translate-y-0 scale-100 pointer-events-auto animate-in fade-in slide-in-from-bottom-5'
+        isVisible
+          ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto visible'
+          : 'opacity-0 translate-y-6 scale-95 pointer-events-none invisible'
       }`}
     >
       <div className="neo-glass-card p-3.5 sm:p-4 rounded-2xl border border-amber-500/30 dark:border-amber-500/20 shadow-2xl backdrop-blur-xl bg-white/90 dark:bg-neutral-900/90 flex items-center justify-between gap-3 relative overflow-hidden">
@@ -121,7 +107,7 @@ export default function PWAInstallBanner() {
           <button
             type="button"
             onClick={handleInstall}
-            disabled={installing || installedSuccess}
+            disabled={installing || installedSuccess || !isVisible}
             className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all active:scale-95 cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
           >
             {installedSuccess ? (
@@ -142,6 +128,7 @@ export default function PWAInstallBanner() {
           <button
             type="button"
             onClick={handleDismiss}
+            disabled={!isVisible}
             className="p-1.5 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors cursor-pointer"
             aria-label={t('common.dismiss', 'Dismiss')}
           >
