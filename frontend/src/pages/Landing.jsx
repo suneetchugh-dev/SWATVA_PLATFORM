@@ -985,7 +985,7 @@ export default function Landing() {
           <div className="relative group max-w-fit mx-auto">
             <CurvyArrow
               direction="top-right"
-              className="-right-4 sm:-right-16 -top-9 sm:-top-11"
+              className="-right-8 sm:-right-20 -top-9 sm:-top-11"
               label={t('landing.arrowTags.instantAccess')}
             />
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-balance bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 via-neutral-800 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400">

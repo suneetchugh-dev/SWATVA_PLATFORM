@@ -1,6 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import {
   Compass,
   FileStack,
@@ -11,6 +10,7 @@ import {
 } from 'lucide-react'
 import { api, getStoredUser } from '../api/client'
 import { useTheme } from '../lib/theme'
+import { PILL_TRANSITION, useSlidingPill } from '../lib/useSlidingPill'
 import SettingsPanel from '../components/SettingsPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import { cx } from '../components/ui'
@@ -40,52 +40,6 @@ const NAV = [
 const isNavItemActive = ({ to, end }, pathname) =>
   end ? pathname === to : pathname === to || pathname.startsWith(`${to}/`)
 
-/**
- * Positions one shared pill behind whichever item is current, so the highlight
- * travels between items instead of blinking out and in on each route change.
- * There is no animation library in the project, so the pill is measured and
- * moved with a CSS transition.
- *
- * `recalcKey` re-measures when something other than the route changes the item
- * widths — a language switch relabels every item, and the pill would otherwise
- * keep the old width.
- */
-function useSlidingPill(count, activeIndex, recalcKey) {
-  const trackRef = useRef(null)
-  const [pill, setPill] = useState(null)
-
-  const measure = useCallback(() => {
-    const track = trackRef.current
-    if (!track) return
-    const item = track.querySelector(`[data-nav-idx="${activeIndex}"]`)
-    if (!item) {
-      setPill(null)
-      return
-    }
-    setPill({
-      x: item.offsetLeft,
-      y: item.offsetTop,
-      w: item.offsetWidth,
-      h: item.offsetHeight,
-    })
-  }, [activeIndex])
-
-  useLayoutEffect(() => {
-    measure()
-    // offsetWidth is 0 on the first paint if web fonts are still swapping in, so
-    // re-measure once the font load settles rather than trusting frame one.
-    const fonts = document.fonts?.ready
-    if (fonts?.then) fonts.then(measure).catch(() => {})
-    window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [measure, count, recalcKey])
-
-  return { trackRef, pill }
-}
-
-const PILL_TRANSITION =
-  'transform 0.34s cubic-bezier(0.32, 0.72, 0, 1), width 0.34s cubic-bezier(0.32, 0.72, 0, 1), height 0.34s cubic-bezier(0.32, 0.72, 0, 1)'
-
 // Shared by both bars so the two rows can never drift apart.
 const renderNavItem = ({ to, key, icon: Icon, end }, t, cx, index, variant) =>
   (
@@ -93,7 +47,7 @@ const renderNavItem = ({ to, key, icon: Icon, end }, t, cx, index, variant) =>
       key={to}
       to={to}
       end={end}
-      data-nav-idx={index}
+      data-pill-idx={index}
       className={({ isActive }) =>
         cx(
           variant === 'bar'

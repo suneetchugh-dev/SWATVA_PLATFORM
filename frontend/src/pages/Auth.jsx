@@ -145,38 +145,51 @@ export default function Auth({ mode: initialMode = 'login' }) {
               : <><UserPlus size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Create your SWATVA account</span></>}
           </h1>
 
-            {/* Form Mode Tabs: Sign In / Create Account */}
-            <div className="flex items-center justify-center gap-3 mb-5 border-b border-neutral-200/80 dark:border-white/10 pb-3">
-              <button
-                type="button"
-                onClick={() => switchMode('login')}
-                className={`inline-flex items-center gap-1.5 text-xs font-semibold pb-1 relative transition-colors cursor-pointer ${
-                  mode === 'login'
-                    ? 'text-neutral-950 dark:text-white'
-                    : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
-                }`}
-              >
-                <LogIn size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                Sign In to Account
-                {mode === 'login' && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-950 dark:bg-white rounded-full" />
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => switchMode('register')}
-                className={`inline-flex items-center gap-1.5 text-xs font-semibold pb-1 relative transition-colors cursor-pointer ${
-                  mode === 'register'
-                    ? 'text-neutral-950 dark:text-white'
-                    : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
-                }`}
-              >
-                <UserPlus size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                Create New Account
-                {mode === 'register' && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-950 dark:bg-white rounded-full" />
-                )}
-              </button>
+            {/* Segmented control. The indicator is positioned from the column
+                count rather than measured, because a two-up control's geometry
+                is known exactly: each column is (100% - gap) / 2, so the pill
+                is 50% minus half the gap, and the second slot is that same
+                width plus the gap. Nothing to measure means nothing to drift,
+                which is what left white tab labels sitting on a light card last
+                time. The dashboard nav still measures, because its items are
+                variable width and no closed form exists for that. */}
+            <div className="mb-5 p-1 rounded-full neo-glass-card">
+              <div className="relative grid grid-cols-2 gap-1">
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-y-0 left-0 w-[calc(50%-2px)] rounded-full bg-neutral-950 dark:bg-white transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    mode === 'register'
+                      ? 'translate-x-[calc(100%+4px)]'
+                      : 'translate-x-0'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => switchMode('login')}
+                  aria-pressed={mode === 'login'}
+                  className={`relative z-10 inline-flex items-center justify-center gap-1.5 h-8 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                    mode === 'login'
+                      ? 'text-white dark:text-neutral-950'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+                  }`}
+                >
+                  <LogIn size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
+                  Sign In to Account
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchMode('register')}
+                  aria-pressed={mode === 'register'}
+                  className={`relative z-10 inline-flex items-center justify-center gap-1.5 h-8 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                    mode === 'register'
+                      ? 'text-white dark:text-neutral-950'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+                  }`}
+                >
+                  <UserPlus size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
+                  Create New Account
+                </button>
+              </div>
             </div>
 
             {/* Error Notification */}
@@ -258,7 +271,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                   data-sound="click"
                   className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-neutral-950 hover:bg-neutral-800 active:scale-[0.99] dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md cursor-pointer"
                 >
-                  <span>{loading ? 'Authenticating...' : mode === 'login' ? 'Sign In to SWATVA' : 'Create Account & Access'}</span>
+                  <span>{loading ? 'Authenticating...' : mode === 'login' ? 'Sign In' : 'Create Account'}</span>
                   <ArrowRight size={14} className="stroke-[2.2]" />
                 </button>
               </div>

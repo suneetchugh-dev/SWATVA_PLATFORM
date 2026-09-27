@@ -94,14 +94,31 @@ export function Card({ as: Tag = 'div', accent = false, className = '', children
 
 /** Monospace eyebrow. The design system forbids coloured status dots, so the
  *  only sanctioned way to signal a state in the chrome is a mono badge. */
-export function Badge({ children, className = '' }) {
+/**
+ * Informational chip: a fact attached to a card or result, not a verdict.
+ *
+ * Deliberately achromatic. It used to be an amber-tinted uppercase mono chip,
+ * which meant a card with three of them read as a block of amber and shouted
+ * at a size no other label on the page used. The amber survives as a single
+ * small dot, so the brand accent is still present but the chip stays quiet.
+ *
+ * Verdict chips are a different component on purpose — see StatusPill, where
+ * amber means "eligible" and carries meaning rather than decoration.
+ */
+export function Badge({ children, className = '', dot = true }) {
   return (
     <span
       className={cx(
-        'inline-block mono-badge text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1',
+        'inline-flex items-center gap-1.5 rounded-full border border-neutral-200/90 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium leading-none text-neutral-600 dark:text-neutral-300',
         className,
       )}
     >
+      {dot ? (
+        <span
+          aria-hidden="true"
+          className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500/70"
+        />
+      ) : null}
       {children}
     </span>
   )
