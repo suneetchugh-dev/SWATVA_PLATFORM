@@ -7,3 +7,15 @@ target/
 # Local environment files may contain credentials.
 .env
 .env.*
+# ...but the committed template must stay trackable.
+!.env.example
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
