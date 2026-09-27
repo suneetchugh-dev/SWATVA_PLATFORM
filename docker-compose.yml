@@ -1,10 +1,12 @@
-# Swatva AI — local backing services only.
-# The Spring Boot app runs on the host (`mvn spring-boot:run`) for fast iteration.
-#   docker compose up -d
-#   mvn spring-boot:run
+# Swatva AI — full stack compose.
 #
-# Postgres is the only hard requirement. Qdrant and MinIO are optional: the app
-# degrades gracefully (keyword search, document upload disabled) if they are down.
+#   docker compose up -d --build       → brings up ALL services (postgres, qdrant,
+#                                         backend, frontend)
+#   docker compose --profile storage up -d --build  → also starts MinIO
+#
+# Frontend is served by Nginx on http://localhost:3000
+# Backend  is served by Spring Boot on http://localhost:8080
+# Nginx proxies /api/* → backend automatically inside the compose network.
 
 services:
   postgres:
@@ -35,19 +37,60 @@ services:
     volumes:
       - swatva-qdrant-data:/qdrant/storage
     healthcheck:
-      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      test: ["CMD-SHELL", "bash -c ':<>/dev/tcp/127.0.0.1/6333' || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  # ── Spring Boot backend ────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: swatva-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Override localhost references so the backend reaches sibling containers
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-swatva_ai}
+      QDRANT_HOST: qdrant
+      S3_ENDPOINT: http://minio:9000
+      CORS_ALLOWED_ORIGIN_PATTERNS: "http://localhost:*,http://127.0.0.1:*,http://frontend:80"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  # ── React/Vite frontend (Nginx) ────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: swatva-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
 
   # OPTIONAL — object storage for the /api/documents upload feature.
   # Not started by default. MinIO is no longer pullable from Docker Hub
   # (registry.min.io requires auth), and the app degrades gracefully without it.
   #
   # For local dev, either enable this with:
-  #     docker compose --profile storage up -d
-  # ...or point S3_* at Cloudflare R2 (S3-compatible, free tier, and the
-  # sahnirmaan.live nameservers are already on Cloudflare) — recommended for prod.
+  #     docker compose --profile storage up -d --build
+  # ...or point S3_* at Cloudflare R2 (S3-compatible, free tier) — recommended for prod.
   minio:
     image: minio/minio:latest
     container_name: swatva-minio
