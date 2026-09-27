@@ -140,7 +140,6 @@ export default function Documents() {
   return (
     <div>
       <PageHeader
-        badge={t('documents.badge')}
         title={t('documents.title')}
         desc={t('documents.desc')}
       />

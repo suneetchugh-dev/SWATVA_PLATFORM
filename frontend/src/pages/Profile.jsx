@@ -197,7 +197,6 @@ export default function Profile() {
   return (
     <div>
       <PageHeader
-        badge={t('profile.badge')}
         title={t('profile.title')}
         desc={t('profile.desc')}
         actions={

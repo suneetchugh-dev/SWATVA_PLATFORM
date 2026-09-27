@@ -66,7 +66,6 @@ export default function Assistant() {
   return (
     <div className="flex flex-col h-[calc(100dvh-13rem)]">
       <PageHeader
-        badge={t('assistant.badge')}
         title={t('assistant.title')}
         desc={t('assistant.desc')}
         className="mb-4"

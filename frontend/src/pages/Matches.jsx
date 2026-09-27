@@ -68,7 +68,6 @@ export default function Matches() {
   return (
     <div>
       <PageHeader
-        badge={t('matches.badge')}
         title={t('matches.title')}
         desc={t('matches.desc')}
         actions={
