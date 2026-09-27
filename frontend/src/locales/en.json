@@ -414,7 +414,23 @@
       "0": "What am I eligible for?",
       "1": "What documents do I need for my top scheme?",
       "2": "How much am I not claiming right now?"
-    }
+    },
+    "historyTitle": "Conversation History",
+    "historyDesc": "Access and resume your past scheme consultations.",
+    "historyButton": "History",
+    "newChat": "New Chat",
+    "searchHistory": "Search conversations…",
+    "noHistoryTitle": "No past conversations",
+    "noHistoryDesc": "Ask questions above to save your consultations here.",
+    "noSearchResults": "No conversations match your search",
+    "clearHistory": "Clear all history",
+    "confirmClear": "Are you sure you want to delete all saved conversations?",
+    "deleteSession": "Delete conversation",
+    "activeBadge": "Active",
+    "messagesCount": "{{count}} messages",
+    "messagesCount_one": "{{count}} message",
+    "messagesCount_other": "{{count}} messages",
+    "justNow": "Just now"
   },
   "scheme": {
     "back": "Back",
