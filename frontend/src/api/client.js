@@ -151,6 +151,17 @@ export const api = {
       }
       return data;
     },
+    registerWithOtp: async (fullName, email, password, otp) => {
+      const data = await request('/api/auth/register-otp', {
+        method: 'POST',
+        body: JSON.stringify({ fullName, email, password, otp }),
+      });
+      if (data && data.accessToken) {
+        setToken(data.accessToken);
+        setStoredUser({ email: data.email, userId: data.userId });
+      }
+      return data;
+    },
     logout: () => {
       setToken(null);
       setStoredUser(null);

@@ -94,6 +94,29 @@ public class AuthService {
         });
     }
 
+    @Transactional
+    public User registerWithOtp(String fullName, String email, String password, String otp) {
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        OtpRecord record = otpStore.get(normalizedEmail);
+        if (record == null || Instant.now().isAfter(record.expiresAt())) {
+            throw new InvalidCredentialsException();
+        }
+        if (!record.otp().equals(otp.trim())) {
+            throw new InvalidCredentialsException();
+        }
+        otpStore.remove(normalizedEmail);
+
+        if (users.findByEmail(normalizedEmail).isPresent()) {
+            throw new DuplicateEmailException();
+        }
+
+        User user = new User();
+        user.setFullName(fullName.trim());
+        user.setEmail(normalizedEmail);
+        user.setPasswordHash(passwordEncoder.encode(password));
+        return users.save(user);
+    }
+
     public String login(String email, String password) {
         User user = users.findByEmail(email.trim().toLowerCase(Locale.ROOT))
                 .filter(User::isActive)

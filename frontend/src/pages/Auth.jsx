@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { User, Mail, Lock, ArrowRight, LogIn, UserPlus, KeyRound, RefreshCw, AlertTriangle } from 'lucide-react';
+import { User, Mail, Lock, ArrowRight, LogIn, UserPlus, KeyRound, RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import MinimalBrandHeader from '../components/MinimalBrandHeader';
 import { useTheme } from '../lib/theme';
 import { api, getToken, setToken, setStoredUser } from '../api/client';
@@ -13,13 +13,13 @@ export default function Auth({ mode: initialMode = 'login' }) {
   const navigate = useNavigate();
   const { dark } = useTheme();
 
-  const [mode, setMode] = useState(initialMode); // 'login' | 'otp' | 'register'
+  const [mode, setMode] = useState(initialMode); // 'login' | 'register'
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // OTP state & Resend service
-  const [otpStep, setOtpStep] = useState('request'); // 'request' | 'verify'
+  // OTP Validation state & Resend service
+  const [otpStep, setOtpStep] = useState('input'); // 'input' | 'otp_verify'
   const [otpCode, setOtpCode] = useState('');
   const [otpMessage, setOtpMessage] = useState(null);
   const [resendTimer, setResendTimer] = useState(0);
@@ -56,6 +56,8 @@ export default function Auth({ mode: initialMode = 'login' }) {
     }
     setError(null);
     setOtpMessage(null);
+    setOtpStep('input');
+    setOtpCode('');
     setMode(next);
   };
 
@@ -99,10 +101,6 @@ export default function Auth({ mode: initialMode = 'login' }) {
       const result = await signInWithGoogle();
       if (result.error) {
         setError(result.error);
-        if (result.error.includes('unauthorized-domain') || result.code === 'auth/unauthorized-domain') {
-          // Switch to Email OTP mode automatically as a seamless fallback
-          switchMode('otp');
-        }
         setGoogleLoading(false);
         return;
       }
@@ -137,16 +135,27 @@ export default function Auth({ mode: initialMode = 'login' }) {
     }
   };
 
-  // OTP handlers
-  const handleSendOtp = async (e) => {
+  // Trigger Email Validation OTP
+  const handleInitiateRegisterWithOtp = async (e) => {
     if (e) e.preventDefault();
     setError(null);
     setOtpMessage(null);
     setLoading(true);
 
     const emailTrimmed = email.trim();
+    const nameTrimmed = fullName.trim();
+    if (!nameTrimmed) {
+      setError('Please enter your full name.');
+      setLoading(false);
+      return;
+    }
     if (!emailTrimmed) {
       setError('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+    if (!password || password.length < 6) {
+      setError('Password must be at least 6 characters.');
       setLoading(false);
       return;
     }
@@ -154,16 +163,17 @@ export default function Auth({ mode: initialMode = 'login' }) {
     try {
       const res = await api.auth.sendOtp(emailTrimmed);
       playClick();
-      setOtpStep('verify');
+      setOtpStep('otp_verify');
       setResendTimer(res.coolDownSeconds || 30);
-      setOtpMessage(res.message || `OTP code sent to ${emailTrimmed}`);
+      setOtpMessage(res.message || `A 6-digit OTP code has been sent to ${emailTrimmed} to verify email ownership.`);
     } catch (err) {
-      setError(err?.message || 'Failed to send OTP code. Please try again.');
+      setError(err?.message || 'Failed to send verification OTP code. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Resend OTP Service Handler
   const handleResendOtp = async () => {
     if (resendTimer > 0 || resendLoading) return;
     setError(null);
@@ -183,14 +193,17 @@ export default function Auth({ mode: initialMode = 'login' }) {
     }
   };
 
-  const handleVerifyOtp = async (e) => {
+  // Complete Registration after OTP validation
+  const handleCompleteRegisterOtp = async (e) => {
     if (e) e.preventDefault();
     setError(null);
     setLoading(true);
     playClick();
 
     const emailTrimmed = email.trim();
+    const nameTrimmed = fullName.trim();
     const otpTrimmed = otpCode.trim();
+
     if (!otpTrimmed || otpTrimmed.length !== 6) {
       setError('Please enter the complete 6-digit OTP code.');
       setLoading(false);
@@ -198,25 +211,28 @@ export default function Auth({ mode: initialMode = 'login' }) {
     }
 
     try {
-      await api.auth.verifyOtp(emailTrimmed, otpTrimmed);
+      await api.auth.registerWithOtp(nameTrimmed, emailTrimmed, password, otpTrimmed);
+      registerWithFirebaseEmail(nameTrimmed, emailTrimmed, password).catch(() => {});
       navigate('/app', { replace: true });
     } catch (err) {
-      setError(err?.message || 'Invalid or expired OTP code. Please check and try again.');
+      setError(err?.message || 'Invalid or expired OTP code. Please check your email and try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle Standard Sign In or Registration Form Submit
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-    if (mode === 'otp') {
-      if (otpStep === 'request') {
-        return handleSendOtp(e);
+    if (mode === 'register') {
+      if (otpStep === 'input') {
+        return handleInitiateRegisterWithOtp(e);
       } else {
-        return handleVerifyOtp(e);
+        return handleCompleteRegisterOtp(e);
       }
     }
 
+    // Login mode
     setError(null);
     setLoading(true);
 
@@ -228,15 +244,8 @@ export default function Auth({ mode: initialMode = 'login' }) {
     }
 
     try {
-      if (mode === 'login') {
-        await api.auth.login(emailTrimmed, password);
-        signInWithFirebaseEmail(emailTrimmed, password).catch(() => {});
-      } else {
-        const trimmedName = fullName.trim();
-        await api.auth.register(trimmedName, emailTrimmed, password);
-        registerWithFirebaseEmail(trimmedName, emailTrimmed, password).catch(() => {});
-      }
-
+      await api.auth.login(emailTrimmed, password);
+      signInWithFirebaseEmail(emailTrimmed, password).catch(() => {});
       playClick();
       navigate('/app', { replace: true });
     } catch (err) {
@@ -275,20 +284,17 @@ export default function Auth({ mode: initialMode = 'login' }) {
         >
           <h1 className="flex items-center justify-center gap-2 text-base sm:text-lg font-bold text-neutral-950 dark:text-white text-center mb-5 sm:mb-6 text-balance">
             {mode === 'login' && <><LogIn size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Sign in to SWATVA</span></>}
-            {mode === 'otp' && <><KeyRound size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>{t('auth.otpMode') || 'Email OTP Validation'}</span></>}
             {mode === 'register' && <><UserPlus size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Create your SWATVA account</span></>}
           </h1>
 
-          {/* Segmented Control Mode Switcher */}
+          {/* Clean 2-Tab Segmented Control */}
           <div className="mb-5 p-1 rounded-full neo-glass-card">
-            <div className="relative grid grid-cols-3 gap-1">
+            <div className="relative grid grid-cols-2 gap-1">
               <span
                 aria-hidden="true"
-                className={`absolute inset-y-0 left-0 w-[calc(33.333%-2px)] rounded-full bg-neutral-950 dark:bg-white transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                  mode === 'otp'
-                    ? 'translate-x-[calc(100%+2px)]'
-                    : mode === 'register'
-                    ? 'translate-x-[calc(200%+4px)]'
+                className={`absolute inset-y-0 left-0 w-[calc(50%-2px)] rounded-full bg-neutral-950 dark:bg-white transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                  mode === 'register'
+                    ? 'translate-x-[calc(100%+4px)]'
                     : 'translate-x-0'
                 }`}
               />
@@ -303,20 +309,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 }`}
               >
                 <LogIn size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                <span>Password</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => switchMode('otp')}
-                aria-pressed={mode === 'otp'}
-                className={`relative z-10 inline-flex items-center justify-center gap-1.5 h-8 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
-                  mode === 'otp'
-                    ? 'text-white dark:text-neutral-950'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
-                }`}
-              >
-                <KeyRound size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                <span>Email OTP</span>
+                <span>Sign In to Account</span>
               </button>
               <button
                 type="button"
@@ -329,12 +322,12 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 }`}
               >
                 <UserPlus size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                <span>Register</span>
+                <span>Create New Account</span>
               </button>
             </div>
           </div>
 
-          {/* Firebase Domain Authorization / General Error Notification */}
+          {/* Error Notification */}
           {error && error.includes('unauthorized-domain') ? (
             <div className="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs text-left leading-relaxed">
               <div className="font-bold flex items-center gap-1.5 mb-1 text-amber-900 dark:text-amber-100">
@@ -343,7 +336,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
               </div>
               <p>{error}</p>
               <div className="mt-2 text-[11px] font-mono opacity-90">
-                You can use <strong>Email OTP</strong> or <strong>Password Login</strong> below to sign in immediately.
+                You can sign in or register directly using <strong>Email & Password</strong> below.
               </div>
             </div>
           ) : error ? (
@@ -389,13 +382,13 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 />
               </svg>
             )}
-            <span>{googleLoading ? 'Connecting to Google...' : mode === 'register' ? 'Sign up with Google' : 'Sign in with Google'}</span>
+            <span>{googleLoading ? 'Connecting to Google...' : mode === 'login' ? 'Sign in with Google' : 'Sign up with Google'}</span>
           </button>
 
           <div className="relative flex items-center justify-center my-4">
             <div className="border-t border-neutral-200/80 dark:border-white/10 w-full" />
             <span className="bg-white dark:bg-[#121216] px-3 text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 shrink-0">
-              {mode === 'otp' ? 'or validation via email otp' : 'or continue with email'}
+              or continue with email
             </span>
             <div className="border-t border-neutral-200/80 dark:border-white/10 w-full" />
           </div>
@@ -413,11 +406,12 @@ export default function Auth({ mode: initialMode = 'login' }) {
                   <input
                     type="text"
                     required
+                    disabled={mode === 'register' && otpStep === 'otp_verify'}
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Your full name"
                     autoComplete="name"
-                    className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
+                    className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 disabled:opacity-70"
                   />
                 </div>
               </div>
@@ -434,7 +428,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 <input
                   type="email"
                   required
-                  disabled={mode === 'otp' && otpStep === 'verify'}
+                  disabled={mode === 'register' && otpStep === 'otp_verify'}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
@@ -445,40 +439,40 @@ export default function Auth({ mode: initialMode = 'login' }) {
               </div>
             </div>
 
-            {mode === 'login' || mode === 'register' ? (
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
-                  Password
-                </label>
-                <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
-                  <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
-                    <Lock size={16} />
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                    className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
-                  />
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
+                Password
+              </label>
+              <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
+                <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
+                  <Lock size={16} />
                 </div>
+                <input
+                  type="password"
+                  required
+                  disabled={mode === 'register' && otpStep === 'otp_verify'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 disabled:opacity-70"
+                />
               </div>
-            ) : null}
+            </div>
 
-            {mode === 'otp' && otpStep === 'verify' && (
-              <div>
+            {/* Email OTP Verification Step in Registration */}
+            {mode === 'register' && otpStep === 'otp_verify' && (
+              <div className="pt-2">
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 font-semibold">
-                    6-Digit OTP Code
+                    6-Digit Email Validation OTP
                   </label>
                   <button
                     type="button"
-                    onClick={() => setOtpStep('request')}
+                    onClick={() => setOtpStep('input')}
                     className="text-[10px] font-mono text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
                   >
-                    Change Email
+                    Edit Details
                   </button>
                 </div>
                 <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
@@ -498,10 +492,10 @@ export default function Auth({ mode: initialMode = 'login' }) {
                   />
                 </div>
 
-                {/* Resend Service Controls */}
+                {/* Resend OTP Service Bar */}
                 <div className="mt-3 flex items-center justify-between px-1 text-xs">
                   <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
-                    Didn't receive code?
+                    Didn't receive verification code?
                   </span>
                   <button
                     type="button"
@@ -536,13 +530,11 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 <span>
                   {loading
                     ? 'Processing...'
-                    : mode === 'otp'
-                    ? otpStep === 'request'
-                      ? t('auth.sendOtp') || 'Send OTP Code'
-                      : t('auth.verifyAndSignIn') || 'Verify & Sign In'
                     : mode === 'login'
                     ? 'Sign In'
-                    : 'Create Account'}
+                    : otpStep === 'input'
+                    ? 'Send Verification OTP'
+                    : 'Verify OTP & Create Account'}
                 </span>
                 <ArrowRight size={14} className="stroke-[2.2]" />
               </button>
