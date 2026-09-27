@@ -64,10 +64,16 @@ export async function signInWithGoogle() {
     };
   } catch (error) {
     console.error('Firebase Google Sign-In Error:', error);
+    let errorMessage = error.message || 'Google sign-in failed';
+    if (error.code === 'auth/unauthorized-domain' || errorMessage.includes('unauthorized-domain')) {
+      const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'swatva.sahnirmaan.live';
+      errorMessage = `Firebase Auth Domain Error: '${currentDomain}' is not listed in Authorized Domains. Please add '${currentDomain}' under Firebase Console > Authentication > Settings > Authorized Domains, or sign in using Email / OTP below.`;
+    }
     return {
       user: null,
       token: null,
-      error: error.message || 'Google sign-in failed',
+      error: errorMessage,
+      code: error.code,
     };
   }
 }
