@@ -405,6 +405,11 @@
     "docsMissing_one": " · {{n}} missing",
     "docsMissing_other": " · {{n}} missing",
     "sources": "Sources: {{list}}",
+    "voiceInput": "Voice dictation (Speak)",
+    "voiceListening": "Listening… Speak now",
+    "voiceNotSupported": "Voice recognition is not supported in this browser",
+    "voiceSpeak": "Read aloud",
+    "voiceStop": "Stop audio readout",
     "openers": {
       "0": "What am I eligible for?",
       "1": "What documents do I need for my top scheme?",

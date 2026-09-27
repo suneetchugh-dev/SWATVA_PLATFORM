@@ -21,12 +21,15 @@ import {
   CheckCircle2,
   Share,
   Laptop,
-  Info,
-  ChevronRight
+  ChevronRight,
+  Play,
+  Square,
+  Gauge
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../lib/theme';
 import { playClick } from '../utils/soundFx';
+import { speakText, stopSpeaking } from '../utils/speech';
 import { usePWA } from '../hooks/usePWA';
 import CurvyArrow from './CurvyArrow';
 import ThemeToggle from './ThemeToggle';
@@ -86,6 +89,10 @@ export default function PreferencesModal({ isOpen, onClose }) {
   const [clickSoundActive, setClickSoundActive] = useState(() => localStorage.getItem('swatva_sound_click') !== 'off');
   const [loadSoundActive, setLoadSoundActive] = useState(() => localStorage.getItem('swatva_sound_load') !== 'off');
   const [voiceTtsActive, setVoiceTtsActive] = useState(() => localStorage.getItem('swatva_sound_tts') !== 'off');
+  const [speechRate, setSpeechRate] = useState(() => {
+    return parseFloat(localStorage.getItem('swatva_sound_speed') || '1.0');
+  });
+  const [isTestingVoice, setIsTestingVoice] = useState(false);
 
   const [motionActive, setMotionActive] = useState(() => localStorage.getItem('swatva_motion') !== 'off');
   const [particlesActive, setParticlesActive] = useState(() => localStorage.getItem('swatva_particles') !== 'off');
@@ -204,6 +211,36 @@ export default function PreferencesModal({ isOpen, onClose }) {
     localStorage.setItem('swatva_sound_tts', newVal ? 'on' : 'off');
     spinGear();
     if (newVal) playClick();
+    if (!newVal && isTestingVoice) {
+      stopSpeaking();
+      setIsTestingVoice(false);
+    }
+  };
+
+  const handleSpeechRateChange = (rate) => {
+    playClick();
+    setSpeechRate(rate);
+    localStorage.setItem('swatva_sound_speed', rate.toString());
+  };
+
+  const handleTestVoice = () => {
+    playClick();
+    if (isTestingVoice) {
+      stopSpeaking();
+      setIsTestingVoice(false);
+      return;
+    }
+    const sampleText = currentLang === 'hi'
+      ? 'नमस्ते! स्वत्व सहायक में आपका स्वागत है। आपकी सभी सरकारी योजनाओं की जानकारी यहाँ उपलब्ध है।'
+      : 'Hello! Welcome to Swatva Assistant. All your welfare scheme details are ready.';
+    
+    setIsTestingVoice(true);
+    speakText(sampleText, currentLang, {
+      rate: speechRate,
+      onStart: () => setIsTestingVoice(true),
+      onEnd: () => setIsTestingVoice(false),
+      onError: () => setIsTestingVoice(false),
+    });
   };
 
   const handleMotionToggle = (newVal) => {
@@ -456,7 +493,7 @@ export default function PreferencesModal({ isOpen, onClose }) {
               className={`space-y-1.5 border-l-2 border-neutral-300 dark:border-white/20 ml-2 pl-3 overflow-hidden ${
                 !soundsActive ? 'opacity-40 pointer-events-none' : ''
               }`}
-              style={getAccordionStyle(expandedGroupId === 'sounds', '150px')}
+              style={getAccordionStyle(expandedGroupId === 'sounds', '320px')}
             >
               {/* Sound Sub 1: Click Feedback */}
               <div className="flex items-center justify-between p-2 rounded-lg sm:rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-200 dark:border-white/10">
@@ -493,20 +530,67 @@ export default function PreferencesModal({ isOpen, onClose }) {
               </div>
 
               {/* Sound Sub 3: Voice Readout */}
-              <div className="flex items-center justify-between p-2 rounded-lg sm:rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-200 dark:border-white/10">
-                <div className="flex items-center space-x-2">
-                  <Volume2 size={13} className="text-neutral-700 dark:text-neutral-300 flex-shrink-0" />
-                  <span className="text-[10px] sm:text-[11px] text-neutral-700 dark:text-neutral-200 font-medium">
-                    {currentLang === 'hi' ? 'सहायक वाक् उद्घोषणा' : 'Assistant Voice Readout'}
-                  </span>
+              <div className="flex flex-col p-2 rounded-lg sm:rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-200 dark:border-white/10 gap-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Volume2 size={13} className="text-neutral-700 dark:text-neutral-300 flex-shrink-0" />
+                    <span className="text-[10px] sm:text-[11px] text-neutral-700 dark:text-neutral-200 font-medium">
+                      {currentLang === 'hi' ? 'सहायक वाक् उद्घोषणा (Indic TTS)' : 'Assistant Voice Readout (Indic TTS)'}
+                    </span>
+                  </div>
+                  <ToggleSwitch 
+                    size="sm"
+                    disabled={!soundsActive}
+                    checked={voiceTtsActive} 
+                    onChange={handleVoiceTtsToggle}
+                    ariaLabel="Toggle voice readout"
+                  />
                 </div>
-                <ToggleSwitch 
-                  size="sm"
-                  disabled={!soundsActive}
-                  checked={voiceTtsActive} 
-                  onChange={handleVoiceTtsToggle}
-                  ariaLabel="Toggle voice readout"
-                />
+
+                {voiceTtsActive && soundsActive && (
+                  <div className="pt-1.5 border-t border-neutral-100 dark:border-white/5 flex items-center justify-between gap-2">
+                    {/* Speed Selector */}
+                    <div className="flex items-center gap-1">
+                      <Gauge size={11} className="text-neutral-400" />
+                      <span className="text-[9px] text-neutral-500 dark:text-neutral-400 font-medium">
+                        {currentLang === 'hi' ? 'गति:' : 'Speed:'}
+                      </span>
+                      {[0.85, 1.0, 1.2].map((speed) => (
+                        <button
+                          key={speed}
+                          type="button"
+                          onClick={() => handleSpeechRateChange(speed)}
+                          className={`text-[9px] px-2 py-0.5 rounded-md cursor-pointer font-medium transition-all ${
+                            speechRate === speed
+                              ? 'bg-amber-500 text-neutral-950 font-bold shadow-xs'
+                              : 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-white/15'
+                          }`}
+                        >
+                          {speed}×
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Test Voice Button */}
+                    <button
+                      type="button"
+                      onClick={handleTestVoice}
+                      className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-950 dark:text-amber-200 hover:bg-amber-500/25 border border-amber-500/30 transition-all cursor-pointer shadow-xs"
+                    >
+                      {isTestingVoice ? (
+                        <>
+                          <Square size={9} className="text-amber-600 dark:text-amber-400 animate-pulse" />
+                          <span>{currentLang === 'hi' ? 'रोकें' : 'Stop'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play size={9} />
+                          <span>{currentLang === 'hi' ? 'परीक्षण' : 'Test Voice'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

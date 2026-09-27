@@ -125,6 +125,7 @@ export default function AIOrbFace({
     const baseShadow = 'shadow-[0_4px_14px_rgba(0,0,0,0.12)] dark:shadow-[0_0_20px_rgba(255,255,255,0.22)]';
     switch (state) {
       case 'listening':
+      case 'speaking':
       case 'done':
       case 'happy':
       case 'smile':
@@ -138,6 +139,8 @@ export default function AIOrbFace({
     switch (state) {
       case 'thinking':
         return '4s'; // 2.2x speedup on thinking
+      case 'speaking':
+        return '5s';
       case 'listening':
         return '6s';
       case 'streaming':
@@ -150,6 +153,8 @@ export default function AIOrbFace({
   // Layered conic shell — Warm porcelain/amber in BOTH themes
   const getOrbShell = () => {
     switch (state) {
+      case 'speaking':
+        return 'bg-[conic-gradient(from_0deg,#ffffff,#fef3c7,#f59e0b,#fde68a,#ffffff)]';
       case 'listening':
         return 'bg-[conic-gradient(from_0deg,#ffffff,#fffbeb,#fef3c7,#fffbeb,#ffffff)]';
       case 'thinking':
@@ -167,7 +172,7 @@ export default function AIOrbFace({
     }
   };
 
-  const eyeScaleY = isBlinking ? 0.08 : state === 'listening' ? 1.3 : state === 'thinking' ? 0.45 : state === 'streaming' ? 0.75 : isSmilingActive ? 0.85 : 1;
+  const eyeScaleY = isBlinking ? 0.08 : state === 'listening' ? 1.3 : state === 'speaking' ? 1.15 : state === 'thinking' ? 0.45 : state === 'streaming' ? 0.75 : isSmilingActive ? 0.85 : 1;
 
   return (
     <div
@@ -248,6 +253,8 @@ export default function AIOrbFace({
             {/* Expressive Mouth */}
             {state === 'listening' ? (
               <ellipse cx="50" cy="65" rx="3.5" ry="3.5" className="fill-neutral-950" opacity="0.95" />
+            ) : state === 'speaking' ? (
+              <ellipse cx="50" cy="64" rx="4.5" ry="3.8" className="fill-neutral-950 animate-pulse" opacity="0.95" />
             ) : state === 'thinking' ? (
               <path d="M 46 64 Q 50 66 55 63" className="stroke-neutral-950" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.8" />
             ) : state === 'streaming' ? (
