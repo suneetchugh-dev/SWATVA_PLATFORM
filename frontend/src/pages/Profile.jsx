@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check, ChevronLeft, ChevronRight, UserRound } from 'lucide-react'
 import { api } from '../api/client'
+import { INDIAN_STATES } from '../lib/india'
 import {
   Badge,
   Banner,
@@ -60,14 +61,6 @@ const RELATIONSHIP_LABELS = {
   GRANDPARENT: 'options.grandparent', SIBLING: 'options.sibling', OTHER: 'options.other',
 }
 
-const STATES = [
-  'Uttar Pradesh', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-  'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
-  'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland',
-  'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
-  'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 'Chandigarh', 'Jammu and Kashmir',
-  'Ladakh', 'Lakshadweep', 'Puducherry',
-]
 
 const toNum = (v) => (v === '' || v == null ? null : Number(v))
 
@@ -289,7 +282,7 @@ export default function Profile() {
               <Field label={t('profile.fields.state')} htmlFor="state" hint={t('profile.fields.stateHint')}>
                 <Select id="state" value={form.state} onChange={set('state')}>
                   <option value="">{t('profile.fields.statePlaceholder')}</option>
-                  {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </Field>
               <Field label={t('profile.fields.district')} htmlFor="district" hint={t('profile.fields.districtHint')}>
