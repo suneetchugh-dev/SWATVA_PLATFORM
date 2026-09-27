@@ -27,7 +27,7 @@ export default function ThemeToggle({ darkMode, toggleTheme, className = '' }) {
           transform: `rotate(${rotation}deg)`,
           transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
-        className="flex items-center justify-center"
+        className="theme-toggle-dial flex items-center justify-center"
       >
         {darkMode ? (
           /* Minimalist Outline Sun Icon */

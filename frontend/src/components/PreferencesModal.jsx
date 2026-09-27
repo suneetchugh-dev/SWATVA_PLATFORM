@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Settings, 
   X, 
@@ -197,7 +198,11 @@ export default function PreferencesModal({ isOpen, onClose }) {
 
   const currentLang = i18n.language?.startsWith('hi') ? 'hi' : 'en';
 
-  return (
+  // Portalled to <body> on purpose. Any ancestor with a backdrop-filter — which
+  // includes the frosted navbar this is also opened from — becomes the
+  // containing block for `position: fixed` descendants, so an in-tree overlay
+  // would size and position itself against that bar instead of the viewport.
+  const overlay = (
     <div 
       className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-xl animate-in fade-in duration-200"
       onClick={(e) => {
@@ -588,4 +593,6 @@ export default function PreferencesModal({ isOpen, onClose }) {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(overlay, document.body) : overlay;
 }

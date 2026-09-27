@@ -8,6 +8,10 @@ import { getToken } from './api/client'
 import { ThemeProvider } from './lib/theme'
 import SplashLoader from './components/SplashLoader'
 import { Spinner } from './components/ui'
+import ScrollToTop from './components/ScrollToTop'
+import { initGlobalClickSound } from './utils/soundFx'
+
+initGlobalClickSound()
 
 // The landing page is the public entry point, so it stays in the initial bundle.
 // Everything behind auth is split out: a citizen who only reads the marketing
@@ -49,6 +53,7 @@ createRoot(document.getElementById('root')).render(
     <ThemeProvider>
       <SplashLoader />
       <BrowserRouter>
+        <ScrollToTop />
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<Landing />} />

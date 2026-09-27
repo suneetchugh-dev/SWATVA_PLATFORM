@@ -1,5 +1,6 @@
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useState } from 'react'
 import {
   Compass,
   FileStack,
@@ -7,14 +8,16 @@ import {
   LogOut,
   MessageSquare,
   Scale,
+  Settings,
 } from 'lucide-react'
 import { api, getStoredUser } from '../api/client'
 import { useTheme } from '../lib/theme'
 import { PILL_TRANSITION, useSlidingPill } from '../lib/useSlidingPill'
-import SettingsPanel from '../components/SettingsPanel'
+import PreferencesModal from '../components/PreferencesModal'
 import ThemeToggle from '../components/ThemeToggle'
 import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
+import { playClick } from '../utils/soundFx'
 
 // Routes are stable; only the labels are translated.
 // Per-scheme readiness (/app/readiness/:id) is deliberately absent: it is a
@@ -75,6 +78,7 @@ const renderNavItem = ({ to, key, icon: Icon, end }, t, cx, index, variant) =>
 export default function AppShell() {
   const { t, i18n } = useTranslation()
   const { dark, toggle } = useTheme()
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false)
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const user = getStoredUser()
@@ -105,9 +109,14 @@ export default function AppShell() {
     <div className="min-h-dvh w-full bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">
       <header className="sticky top-0 z-40 pt-3 px-3 sm:px-5">
         <div className="mx-auto max-w-7xl neo-glass-card px-3 sm:px-4 py-2.5 flex items-center gap-4">
-          {/* Wordmark dropped: the account cluster already shows who is signed in,
-              and the mark alone identifies the app inside the dashboard. */}
-          <div className="flex items-center gap-2.5 min-w-0 group">
+          {/* Logo link: brings user back to home page */}
+          <Link
+            to="/"
+            onClick={playClick}
+            className="flex items-center gap-2.5 min-w-0 group cursor-pointer flex-shrink-0"
+            title="Home"
+            aria-label="Home"
+          >
             <div className="relative flex items-center justify-center flex-shrink-0">
               <span
                 aria-hidden="true"
@@ -115,7 +124,7 @@ export default function AppShell() {
               />
               <LoadingLogo animate={false} />
             </div>
-          </div>
+          </Link>
 
           {/* Horizontal nav from `lg` up; the bottom bar takes over below it.
               The bar is wide, but the links stay packed: the row is `flex-shrink-0`
@@ -146,7 +155,17 @@ export default function AppShell() {
           </nav>
 
           <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-            <SettingsPanel />
+            {/* Preferences Button triggering Lightbox Modal */}
+            <button
+              type="button"
+              onClick={() => { playClick(); setIsPreferencesOpen(true); }}
+              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border border-neutral-200/80 dark:border-white/20 bg-neutral-100/80 dark:bg-white/[0.06] hover:bg-neutral-200/70 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white transition-all shadow-2xs backdrop-blur-md group"
+              aria-label="Preferences"
+              title="Preferences"
+            >
+              <Settings size={14} className="text-neutral-600 dark:text-neutral-300 group-hover:rotate-90 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+            </button>
+
             {/* Shared toggle so the dashboard gets the same 360° spin physics as
                 the landing header, instead of a bare sun/moon swap. */}
             <ThemeToggle darkMode={dark} toggleTheme={toggle} />
@@ -167,6 +186,11 @@ export default function AppShell() {
           </div>
         </div>
       </header>
+
+      <PreferencesModal
+        isOpen={isPreferencesOpen}
+        onClose={() => setIsPreferencesOpen(false)}
+      />
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-10 pb-28 lg:pb-10">
         <Outlet />

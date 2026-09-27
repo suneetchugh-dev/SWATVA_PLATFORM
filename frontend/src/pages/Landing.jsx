@@ -33,6 +33,7 @@ import KineticRollingHeadline from '../components/KineticRollingHeadline'
 import PreferencesModal from '../components/PreferencesModal'
 import ThemeToggle from '../components/ThemeToggle'
 import FooterParticles from '../components/FooterParticles'
+import DragScrollController from '../components/DragScrollController'
 import { playClick } from '../utils/soundFx'
 
 /* ------------------------------------------------------------------ *
@@ -88,11 +89,11 @@ const FAQ_ITEMS = [
  * pausing rather than cutting off mid-word.
  * ------------------------------------------------------------------ */
 
-const TYPING_MIN = 22
-const TYPING_MAX = 42
-const HOLD_MS = 3400
-const ERASE_MS = 14
-const GAP_MS = 120
+const TYPING_MIN = 12
+const TYPING_MAX = 24
+const HOLD_MS = 2000
+const ERASE_MS = 8
+const GAP_MS = 80
 
 function useTypewriter(phrases, active) {
   const [text, setText] = useState('')
@@ -286,7 +287,20 @@ export default function Landing() {
             clusters grow instead makes them absorb the slack, which is what left
             a wide void between the logo and the nav links once the bar floats. */}
         <div className="flex items-center flex-shrink-0 min-w-0">
-          <Link to="/" className="flex items-center gap-2.5 min-w-0 group flex-shrink-0">
+          <Link
+            to="/"
+            onClick={(e) => {
+              playClick();
+              if (window.location.pathname === '/') {
+                if (window.lenis) {
+                  window.lenis.scrollTo(0, { duration: 1.2 });
+                } else {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }
+            }}
+            className="flex items-center gap-2.5 min-w-0 group flex-shrink-0 cursor-pointer"
+          >
             <div className="relative flex items-center justify-center flex-shrink-0">
               <span
                 aria-hidden="true"
@@ -1028,8 +1042,15 @@ export default function Landing() {
           className="footer-scroll-top"
           aria-label="Scroll to top"
           title="Scroll to top"
+          data-sound="click"
         >
-          <ChevronUp size={16} />
+          <img
+            src="/cursors/scroll-up.svg"
+            className="scroll-up-img pointer-events-none"
+            alt="Scroll to top"
+            width="17"
+            height="17"
+          />
         </button>
 
         <div className="flex items-center gap-2.5">
@@ -1047,6 +1068,9 @@ export default function Landing() {
           <a href="#faq" onClick={(e) => scrollToSection(e, 'faq')} className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer">{t('nav.faq')}</a>
         </div>
       </footer>
+
+      {/* Global Draggable Diagonal Scroll Controller */}
+      <DragScrollController />
     </div>
   )
 }

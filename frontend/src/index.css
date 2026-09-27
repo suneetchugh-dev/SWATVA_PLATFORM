@@ -872,6 +872,70 @@ html.lenis, html.lenis body {
   box-shadow: 0 0 16px rgba(245, 158, 11, 0.4), inset 0 0 8px rgba(245, 158, 11, 0.3) !important;
 }
 
+.scroll-up-img {
+  width: 17px;
+  height: 17px;
+  transform: rotate(180deg) translateY(1px);
+  display: block;
+}
+
+:root:not(.dark) .scroll-up-img {
+  filter: invert(1);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Portfolio Custom Cursor Styles (Pure SVG Cursors)
+   ══════════════════════════════════════════════════════════════════════════ */
+html, body {
+  cursor: url('/cursors/default_cursor.svg') 6 3, default;
+}
+
+/* Make sure headings (and anything with a Tailwind cursor-* utility such as
+   cursor-default) still show the custom SVG default cursor instead of the
+   native OS arrow. */
+h1, h2, h3, h4, h5, h6,
+.cursor-default {
+  cursor: url('/cursors/default_cursor.svg') 6 3, default !important;
+}
+
+a, button, [role="button"],
+input[type="button"], input[type="submit"], input[type="checkbox"], input[type="radio"], input[type="file"],
+select, label, [tabindex]:not([tabindex="-1"]), [onclick], .cursor-pointer {
+  cursor: url('/cursors/hand-pointer.svg') 10 2, pointer !important;
+}
+
+/* Custom "grab" cursor for draggable surfaces (always remains cover_hand_grab) */
+.cursor-grab,
+.cursor-grabbing,
+.cursor-grab:active {
+  cursor: url('/cursors/cover_hand_grab.svg') 12 8, grab !important;
+}
+.dark .cursor-grab,
+.dark .cursor-grabbing,
+.dark .cursor-grab:active,
+html.dark .cursor-grab,
+html.dark .cursor-grabbing,
+html.dark .cursor-grab:active,
+body.dark .cursor-grab,
+body.dark .cursor-grabbing,
+body.dark .cursor-grab:active {
+  cursor: url('/cursors/cover_hand_grab_dark.svg') 12 8, grab !important;
+}
+
+/* Custom Modern Minimalist Resizing Cursors */
+.cursor-ns-resize {
+  cursor: url('/cursors/resize-ns.svg') 12 12, ns-resize !important;
+}
+.cursor-ew-resize {
+  cursor: url('/cursors/resize-ew.svg') 12 12, ew-resize !important;
+}
+.cursor-nwse-resize {
+  cursor: url('/cursors/resize-nwse.svg') 12 12, nwse-resize !important;
+}
+.cursor-nesw-resize {
+  cursor: url('/cursors/resize-nesw.svg') 12 12, nesw-resize !important;
+}
+
 
 /* Theme switch easing. Added to <html> by ThemeProvider for ~340ms around a
    light/dark toggle and removed straight after, so it eases the swap without
@@ -883,16 +947,25 @@ html.lenis, html.lenis body {
 html.theme-switching *,
 html.theme-switching *::before,
 html.theme-switching *::after {
-  transition:
-    background-color 260ms ease-in-out,
-    border-color 260ms ease-in-out,
-    color 260ms ease-in-out,
-    fill 260ms ease-in-out,
-    stroke 260ms ease-in-out,
-    box-shadow 260ms ease-in-out,
-    outline-color 260ms ease-in-out !important;
+  /* transition-property, not the `transition` shorthand. The shorthand resets
+     the property list to whatever it names, so using it here silently deleted
+     the transform transition on the theme dial and every other animated
+     element for the length of the switch — which is why the 360° spin appeared
+     to snap instead of rotating. transform and opacity are listed so an
+     element's own animation survives the window. */
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, outline-color, transform, opacity !important;
+  transition-duration: 260ms !important;
+  transition-timing-function: ease-in-out !important;
   transition-delay: 0ms !important;
 }
+
+/* The dial keeps its own spin physics rather than the blanket 260ms above. */
+html.theme-switching .theme-toggle-dial {
+  transition-property: transform !important;
+  transition-duration: 600ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
 
 /* The one exception: a decorative colour wash on the login page sits behind a
    blur filter, and a transitioned filter is expensive enough to drop frames. */
