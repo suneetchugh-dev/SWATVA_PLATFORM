@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, ChevronLeft, ChevronRight, Sparkles, UserRound } from 'lucide-react'
-import { api } from '../api/client'
+import { api, getStoredUser } from '../api/client'
+
 import { INDIAN_STATES } from '../lib/india'
 import {
   Badge,
@@ -260,6 +261,9 @@ export default function Profile() {
   }
 
   const current = STEPS[step]
+  const user = getStoredUser()
+  const displayName = user?.fullName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
+  const initial = (displayName[0] || 'S').toUpperCase()
 
   return (
     <div>
@@ -272,6 +276,37 @@ export default function Profile() {
           </Button>
         }
       />
+
+      {/* Citizen Identity Profile Banner */}
+      <div className="mb-6 p-4 rounded-2xl neo-glass-card flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/20 ring-2 ring-amber-400/80 shadow-[0_0_12px_rgba(245,158,11,0.4)] flex items-center justify-center font-bold text-base uppercase text-neutral-800 dark:text-neutral-200">
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              initial
+            )}
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+              {displayName}
+            </h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+              {user?.email || 'citizen@swatva.in'}
+            </p>
+          </div>
+        </div>
+
+        <div className="text-right flex-shrink-0">
+          <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 block mb-0.5">
+            Profile Health
+          </span>
+          <span className="text-base font-black text-amber-600 dark:text-amber-400">
+            {complete}%
+          </span>
+        </div>
+      </div>
+
 
       {error ? (
         <div className="mb-6">

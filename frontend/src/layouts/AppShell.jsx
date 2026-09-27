@@ -83,10 +83,11 @@ export default function AppShell() {
   const accountMenuRef = useRef(null)
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const user = getStoredUser()
+  const [user, setUser] = useState(() => getStoredUser())
 
   useEffect(() => {
     let cancelled = false
+    setUser(getStoredUser())
     api.user
       .getMe()
       .then((data) => {
@@ -95,7 +96,7 @@ export default function AppShell() {
       })
       .catch(() => {})
     return () => { cancelled = true }
-  }, [])
+  }, [pathname])
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -134,7 +135,8 @@ export default function AppShell() {
     navigate('/', { replace: true })
   }
 
-  const displayName = profileName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
+  const displayName = profileName || user?.fullName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
+  const photoURL = user?.photoURL
   const initial = (displayName[0] || 'S').toUpperCase()
 
   return (
@@ -228,7 +230,11 @@ export default function AppShell() {
                 title={displayName}
               >
                 <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/20 ring-2 ring-amber-400/80 shadow-[0_0_12px_rgba(245,158,11,0.55)] flex items-center justify-center font-bold text-xs uppercase text-neutral-800 dark:text-neutral-200">
-                  {initial}
+                  {photoURL ? (
+                    <img src={photoURL} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    initial
+                  )}
                 </div>
                 <ChevronDown
                   size={12}
@@ -242,7 +248,11 @@ export default function AppShell() {
                   {/* Identity Header */}
                   <div className="flex flex-col items-center text-center px-4 pt-5 pb-4 border-b border-neutral-100 dark:border-white/5">
                     <div className="h-14 w-14 rounded-full overflow-hidden mb-2.5 bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/15 flex items-center justify-center flex-shrink-0 shadow-sm ring-2 ring-amber-400/80 shadow-[0_0_14px_rgba(245,158,11,0.5)] text-lg font-bold uppercase text-neutral-800 dark:text-neutral-200">
-                      {initial}
+                      {photoURL ? (
+                        <img src={photoURL} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        initial
+                      )}
                     </div>
                     <div className="flex items-center justify-center space-x-1.5 min-w-0 max-w-full">
                       <span className="text-sm font-bold text-neutral-900 dark:text-white truncate">
@@ -254,6 +264,7 @@ export default function AppShell() {
                       {user?.email || 'citizen@swatva.in'}
                     </div>
                   </div>
+
 
                   {/* Dropdown Actions */}
                   <div className="py-1">

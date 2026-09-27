@@ -32,6 +32,19 @@ public class AuthService {
         return users.save(user);
     }
 
+    @Transactional
+    public User syncFirebaseUser(String fullName, String email) {
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        return users.findByEmail(normalizedEmail).orElseGet(() -> {
+            User user = new User();
+            String name = (fullName != null && !fullName.isBlank()) ? fullName.trim() : normalizedEmail.split("@")[0];
+            user.setFullName(name);
+            user.setEmail(normalizedEmail);
+            user.setPasswordHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
+            return users.save(user);
+        });
+    }
+
     public String login(String email, String password) {
         User user = users.findByEmail(email.trim().toLowerCase(Locale.ROOT))
                 .filter(User::isActive)
@@ -40,3 +53,4 @@ public class AuthService {
         return jwtService.createToken(user.getEmail());
     }
 }
+
