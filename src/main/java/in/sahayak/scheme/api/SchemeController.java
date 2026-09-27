@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import in.sahayak.scheme.ChecklistService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
+import in.sahayak.transparency.api.SchemeTransparencyInfo;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -58,6 +59,13 @@ public class SchemeController {
         return ResponseEntity.ok(ApiResponse.success(checklist));
     }
 
+    @GetMapping("/{schemeId}/transparency")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<SchemeTransparencyInfo>> getTransparency(@PathVariable UUID schemeId) {
+        Scheme scheme = schemes.findById(schemeId).orElseThrow(() -> new ResourceNotFoundException("Scheme not found with ID: " + schemeId));
+        return ResponseEntity.ok(ApiResponse.success(SchemeTransparencyInfo.from(scheme)));
+    }
+
     public record SchemeSummary(UUID id, String name, GovernmentLevel governmentLevel, String state, String category,
                                 String benefitInformation, String issuingAuthority, String officialSourceUrl,
                                 Instant lastVerifiedAt) {
@@ -69,13 +77,15 @@ public class SchemeController {
 
     public record SchemeDetail(SchemeSummary scheme, java.util.Map<String, Object> eligibilityData,
                                List<String> eligibilityCriteria, List<DocumentRequirement> requiredDocuments,
-                               List<ApplicationStep> applicationSteps, String rawSchemeTextReference) {
+                               List<ApplicationStep> applicationSteps, String rawSchemeTextReference,
+                               SchemeTransparencyInfo transparency) {
         static SchemeDetail from(Scheme scheme) {
             return new SchemeDetail(SchemeSummary.from(scheme), scheme.getEligibilityData(),
                     scheme.getEligibilityRules().stream().map(rule -> rule.getRuleDescription()).toList(),
                     scheme.getDocumentRequirements().stream().map(requirement -> new DocumentRequirement(requirement.getDocumentType().getCode(), requirement.getDocumentType().getName(), requirement.isRequired(), requirement.getNotes())).toList(),
                     scheme.getApplicationSteps().stream().map(step -> new ApplicationStep(step.getStepNumber(), step.getTitle(), step.getInstructions(), step.getOfficialUrl())).toList(),
-                    scheme.getRawSchemeTextReference());
+                    scheme.getRawSchemeTextReference(),
+                    SchemeTransparencyInfo.from(scheme));
         }
     }
     public record DocumentRequirement(String code, String name, boolean required, String notes) { }

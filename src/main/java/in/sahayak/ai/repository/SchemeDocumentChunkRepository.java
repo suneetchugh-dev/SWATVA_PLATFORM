@@ -16,6 +16,8 @@ public interface SchemeDocumentChunkRepository extends JpaRepository<SchemeDocum
 
     List<SchemeDocumentChunk> findByState(String state);
 
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
     void deleteBySchemeId(UUID schemeId);
 
     boolean existsBySchemeId(UUID schemeId);

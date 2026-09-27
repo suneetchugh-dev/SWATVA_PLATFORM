@@ -6,7 +6,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import in.sahayak.common.exception.ResourceNotFoundException;
+import in.sahayak.document.api.SchemeDocumentEvaluation;
 import in.sahayak.document.model.DocumentType;
+import in.sahayak.document.service.DocumentLockerService;
 import in.sahayak.eligibility.EligibilityRuleEvaluator;
 import in.sahayak.scheme.api.ActionChecklist;
 import in.sahayak.scheme.model.Scheme;
@@ -162,5 +164,41 @@ class ChecklistServiceTest {
         assertThat(checklist.schemeName()).isEqualTo("Gruha Jyothi");
         assertThat(checklist.importantConditions()).containsExactly("Must be resident of Karnataka");
         assertThat(checklist.missingUserInformation()).containsExactly("State information is missing");
+    }
+
+    @Test
+    void generatesChecklistWithDocumentReadinessWhenLockerServiceConfigured() {
+        UUID schemeId = UUID.randomUUID();
+        Scheme scheme = new Scheme();
+        scheme.setId(schemeId);
+        scheme.setName("PM-KISAN");
+
+        String email = "farmer@example.com";
+        User user = new User();
+        user.setEmail(email);
+        UUID userId = UUID.randomUUID();
+        user.setId(userId);
+
+        when(schemes.findById(schemeId)).thenReturn(Optional.of(scheme));
+        when(users.findByEmail(email)).thenReturn(Optional.of(user));
+        when(profiles.findByUserId(userId)).thenReturn(Optional.empty());
+
+        DocumentLockerService lockerService = mock(DocumentLockerService.class);
+        SchemeDocumentEvaluation eval = new SchemeDocumentEvaluation(
+                schemeId,
+                "PM-KISAN",
+                List.of(SchemeDocumentEvaluation.DocumentItem.available("AADHAAR", "Aadhaar", true, UUID.randomUUID(), "aadhaar.pdf", null)),
+                List.of(),
+                List.of(),
+                true
+        );
+        when(lockerService.evaluateSchemeDocuments(scheme, userId)).thenReturn(eval);
+
+        ChecklistService serviceWithLocker = new ChecklistService(schemes, users, profiles, evaluator, lockerService);
+        ActionChecklist checklist = serviceWithLocker.getChecklist(schemeId, email);
+
+        assertThat(checklist.documentReadiness()).isNotNull();
+        assertThat(checklist.documentReadiness().fullyReady()).isTrue();
+        assertThat(checklist.documentReadiness().availableDocuments()).hasSize(1);
     }
 }

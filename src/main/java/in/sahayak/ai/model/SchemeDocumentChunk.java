@@ -52,15 +52,13 @@ public class SchemeDocumentChunk extends BaseEntity {
 
     public Document toSpringAiDocument() {
         Map<String, Object> metadata = new HashMap<>();
-        metadata.put("schemeId", schemeId.toString());
-        metadata.put("schemeName", schemeName);
-        metadata.put("governmentLevel", governmentLevel.name());
+        metadata.put("schemeId", schemeId != null ? schemeId.toString() : "");
+        metadata.put("schemeName", schemeName != null ? schemeName : "");
+        metadata.put("governmentLevel", governmentLevel != null ? governmentLevel.name() : "");
         metadata.put("state", state != null ? state : "");
-        metadata.put("category", category);
-        metadata.put("documentType", documentType);
-        if (sourceUrl != null) {
-            metadata.put("sourceUrl", sourceUrl);
-        }
+        metadata.put("category", category != null ? category : "");
+        metadata.put("sourceUrl", sourceUrl != null ? sourceUrl : "");
+        metadata.put("documentType", documentType != null ? documentType : "");
         String docId = pointId != null ? pointId : (getId() != null ? getId().toString() : UUID.randomUUID().toString());
         return new Document(docId, content, metadata);
     }

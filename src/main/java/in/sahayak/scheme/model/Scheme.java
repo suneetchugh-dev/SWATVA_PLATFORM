@@ -36,6 +36,33 @@ public class Scheme extends BaseEntity {
     @JdbcTypeCode(SqlTypes.JSON) @Column(columnDefinition = "jsonb") private java.util.Map<String, Object> eligibilityData;
     @Column(columnDefinition = "text") private String rawSchemeTextReference;
 
+    @Column(nullable = false)
+    private boolean officialApplicationFeeExists = false;
+
+    private Double officialFeeAmount = 0.0;
+
+    @Column(length = 500)
+    private String officialApplicationChannel;
+
+    @Column(length = 1000)
+    private String officialGrievanceUrl;
+
+    public String getTransparencyWarning() {
+        if (!officialApplicationFeeExists || (officialFeeAmount != null && officialFeeAmount == 0.0)) {
+            return "This scheme is free to apply for \u2014 if anyone asks for money, it is illegal.";
+        }
+        return "Official processing fee of \u20B9" + formatFee(officialFeeAmount)
+                + " applies through authorized official channels only. Paying any additional fee or bribe to middlemen is illegal.";
+    }
+
+    private String formatFee(Double fee) {
+        if (fee == null) return "0";
+        if (fee == Math.floor(fee)) {
+            return String.valueOf(fee.intValue());
+        }
+        return String.valueOf(fee);
+    }
+
     @OneToMany(mappedBy = "scheme", orphanRemoval = true) private List<SchemeEligibilityRule> eligibilityRules = new ArrayList<>();
     @OneToMany(mappedBy = "scheme", orphanRemoval = true) private List<SchemeDocumentRequirement> documentRequirements = new ArrayList<>();
     @OneToMany(mappedBy = "scheme", orphanRemoval = true) private List<SchemeApplicationStep> applicationSteps = new ArrayList<>();

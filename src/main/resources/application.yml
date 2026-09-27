@@ -1,10 +1,12 @@
 spring:
   application:
     name: sahayak-ai
+
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/sahayak_ai}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    password: ${DB_PASSWORD:Rishit@5211}
+
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
@@ -13,26 +15,33 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
+
   jackson:
     default-property-inclusion: non_null
 
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY:demo-key}
-      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      api-key: ${OPENAI_API_KEY}
+      base-url: https://openrouter.ai/api
+
       chat:
         options:
-          model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
+          model: openrouter/free
+          temperature: 0.7
+          max-completion-tokens: 10000
+
       embedding:
         options:
-          model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+          model: openai/text-embedding-3-large
+          dimensions: 2048
+
     vectorstore:
       qdrant:
         host: ${QDRANT_HOST:localhost}
         port: ${QDRANT_PORT:6334}
         api-key: ${QDRANT_API_KEY:}
         collection-name: ${QDRANT_COLLECTION_NAME:sahayak_schemes}
-        initialize-schema: ${QDRANT_INITIALIZE_SCHEMA:false}
+        initialize-schema: ${QDRANT_INITIALIZE_SCHEMA:true}
 
 server:
   port: ${SERVER_PORT:8080}
@@ -43,17 +52,28 @@ logging:
   level:
     root: INFO
     in.sahayak: ${APP_LOG_LEVEL:INFO}
+
   pattern:
     console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{36} - %msg%n"
 
 app:
+  storage:
+    s3:
+      endpoint: ${S3_ENDPOINT:http://localhost:9000}
+      bucket: ${S3_BUCKET:sahayak-documents}
+      region: ${S3_REGION:us-east-1}
+      access-key: ${S3_ACCESS_KEY:minioadmin}
+      secret-key: ${S3_SECRET_KEY:minioadmin}
+      path-style-access: ${S3_PATH_STYLE_ACCESS:true}
+
   qdrant:
     host: ${QDRANT_HOST:localhost}
     port: ${QDRANT_PORT:6334}
     api-key: ${QDRANT_API_KEY:}
     collection-name: ${QDRANT_COLLECTION_NAME:sahayak_schemes}
     use-tls: ${QDRANT_USE_TLS:false}
-    initialize-schema: ${QDRANT_INITIALIZE_SCHEMA:false}
+    initialize-schema: ${QDRANT_INITIALIZE_SCHEMA:true}
+
   security:
     jwt:
       # Local-only fallback. Set JWT_SECRET to a distinct 32+ byte secret outside development.

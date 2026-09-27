@@ -92,4 +92,54 @@ class SchemeControllerChecklistTest {
                 .andExpect(jsonPath("$.data.requiredDocuments[0].code").value("BANK_ACCOUNT"))
                 .andExpect(jsonPath("$.data.missingUserInformation[0]").value("Occupation information is missing"));
     }
+
+    @Test
+    void getTransparencyReturnsSchemeTransparencyInfo() throws Exception {
+        UUID schemeId = UUID.randomUUID();
+        in.sahayak.scheme.model.Scheme scheme = new in.sahayak.scheme.model.Scheme();
+        scheme.setId(schemeId);
+        scheme.setName("Gruha Jyothi");
+        scheme.setGovernmentLevel(in.sahayak.scheme.model.enums.GovernmentLevel.STATE);
+        scheme.setState("Karnataka");
+        scheme.setOfficialApplicationFeeExists(false);
+        scheme.setOfficialFeeAmount(0.0);
+        scheme.setOfficialSourceUrl("https://karnataka.gov.in/gruha-jyothi");
+
+        when(schemeRepository.findById(schemeId)).thenReturn(java.util.Optional.of(scheme));
+
+        mockMvc.perform(get("/api/schemes/" + schemeId + "/transparency"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.schemeId").value(schemeId.toString()))
+                .andExpect(jsonPath("$.data.schemeName").value("Gruha Jyothi"))
+                .andExpect(jsonPath("$.data.officialApplicationFeeExists").value(false))
+                .andExpect(jsonPath("$.data.transparencyWarning").value("This scheme is free to apply for \u2014 if anyone asks for money, it is illegal."))
+                .andExpect(jsonPath("$.data.officialGrievanceUrl").value("https://ipgrs.karnataka.gov.in/"))
+                .andExpect(jsonPath("$.data.verifiedOfficialInformation").value(true));
+    }
+
+    @Test
+    void getSchemeDetailIncludesTransparencyInfo() throws Exception {
+        UUID schemeId = UUID.randomUUID();
+        in.sahayak.scheme.model.Scheme scheme = new in.sahayak.scheme.model.Scheme();
+        scheme.setId(schemeId);
+        scheme.setName("PMJJBY");
+        scheme.setCategory("Insurance");
+        scheme.setGovernmentLevel(in.sahayak.scheme.model.enums.GovernmentLevel.CENTRAL);
+        scheme.setIssuingAuthority("Ministry of Finance");
+        scheme.setOfficialApplicationFeeExists(true);
+        scheme.setOfficialFeeAmount(436.0);
+        scheme.setOfficialSourceUrl("https://beta.eshram.gov.in");
+
+        when(schemeRepository.findById(schemeId)).thenReturn(java.util.Optional.of(scheme));
+
+        mockMvc.perform(get("/api/schemes/" + schemeId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.scheme.name").value("PMJJBY"))
+                .andExpect(jsonPath("$.data.transparency.officialApplicationFeeExists").value(true))
+                .andExpect(jsonPath("$.data.transparency.officialFeeAmount").value(436.0))
+                .andExpect(jsonPath("$.data.transparency.transparencyWarning").value(org.hamcrest.Matchers.containsString("Official processing fee of \u20B9436")));
+    }
 }
+

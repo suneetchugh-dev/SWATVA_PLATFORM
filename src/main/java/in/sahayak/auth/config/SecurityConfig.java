@@ -27,10 +27,11 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper objectMapper,
                                             JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         return http
+                .cors(org.springframework.security.config.Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/v1/health", "/api/schemes/**", "/api/auth/**", "/api/ai/scheme-query", "/error").permitAll()
+                        .requestMatchers("/api/v1/health", "/api/schemes/**", "/api/auth/**", "/api/ai/scheme-query", "/api/transparency/**", "/api/benefits/life-event", "/api/chat", "/error").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptions -> exceptions
@@ -46,6 +47,18 @@ public class SecurityConfig {
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+        configuration.setAllowedOriginPatterns(java.util.List.of("http://localhost:*", "http://127.0.0.1:*"));
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(java.util.List.of("*"));
+        configuration.setAllowCredentials(true);
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     private static void writeError(HttpServletResponse response, ObjectMapper objectMapper, HttpStatus status,

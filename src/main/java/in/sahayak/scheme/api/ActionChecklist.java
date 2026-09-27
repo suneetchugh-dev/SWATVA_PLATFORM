@@ -1,5 +1,6 @@
 package in.sahayak.scheme.api;
 
+import in.sahayak.document.api.SchemeDocumentEvaluation;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,8 +12,23 @@ public record ActionChecklist(
         String officialApplicationUrl,
         List<ChecklistStep> applicationSteps,
         List<String> importantConditions,
-        List<String> missingUserInformation
+        List<String> missingUserInformation,
+        SchemeDocumentEvaluation documentReadiness
 ) {
+    public ActionChecklist(
+            UUID schemeId,
+            String schemeName,
+            List<ChecklistDocument> requiredDocuments,
+            String whereToApply,
+            String officialApplicationUrl,
+            List<ChecklistStep> applicationSteps,
+            List<String> importantConditions,
+            List<String> missingUserInformation
+    ) {
+        this(schemeId, schemeName, requiredDocuments, whereToApply, officialApplicationUrl,
+                applicationSteps, importantConditions, missingUserInformation, null);
+    }
+
     public String scheme() { return schemeName; }
     public String officialUrl() { return officialApplicationUrl; }
     public List<ChecklistDocument> documents() { return requiredDocuments; }

@@ -71,6 +71,30 @@ public class MonetaryBenefitEstimator {
             return Optional.of(new EstimatedBenefit(300000L, "ONE_TIME", "₹3,00,000 financial assistance."));
         }
 
+        if ("UP Vridhavastha Pension Yojana".equalsIgnoreCase(schemeName)) {
+            return Optional.of(new EstimatedBenefit(12000L, "MONTHLY", "₹1,000 per month social pension (₹12,000/year)."));
+        }
+
+        if ("UP Nirashrit Mahila Pension Yojana".equalsIgnoreCase(schemeName)) {
+            return Optional.of(new EstimatedBenefit(12000L, "MONTHLY", "₹1,000 per month destitute widow pension (₹12,000/year)."));
+        }
+
+        if ("UP Divyangjan Pension Yojana".equalsIgnoreCase(schemeName)) {
+            return Optional.of(new EstimatedBenefit(12000L, "MONTHLY", "₹1,000 per month disability pension (₹12,000/year)."));
+        }
+
+        if ("UP Shadi Anudan Yojana".equalsIgnoreCase(schemeName)) {
+            return Optional.of(new EstimatedBenefit(20000L, "ONE_TIME", "₹20,000 financial grant for marriage."));
+        }
+
+        if ("UP Mukhyamantri Bal Seva Yojana".equalsIgnoreCase(schemeName)) {
+            return Optional.of(new EstimatedBenefit(48000L, "MONTHLY", "₹4,000 per month maintenance allowance (₹48,000/year)."));
+        }
+
+        if ("Mukhyamantri Kanya Sumangala Yojana".equalsIgnoreCase(schemeName)) {
+            return Optional.of(new EstimatedBenefit(25000L, "ONE_TIME", "Up to ₹25,000 milestone-based financial assistance."));
+        }
+
         // 3. Fallback regex extraction from verified benefitInformation
         String benefitInfo = scheme.getBenefitInformation();
         if (benefitInfo == null || benefitInfo.isBlank()) {

@@ -12,7 +12,11 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import in.sahayak.scheme.LifeEventBenefitDiscoveryService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,11 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class BenefitController {
     private final BenefitDiscoveryService benefitDiscoveryService;
     private final MissedBenefitsService missedBenefitsService;
+    private final LifeEventBenefitDiscoveryService lifeEventBenefitDiscoveryService;
 
     public BenefitController(BenefitDiscoveryService benefitDiscoveryService,
-                             MissedBenefitsService missedBenefitsService) {
+                             MissedBenefitsService missedBenefitsService,
+                             LifeEventBenefitDiscoveryService lifeEventBenefitDiscoveryService) {
         this.benefitDiscoveryService = benefitDiscoveryService;
         this.missedBenefitsService = missedBenefitsService;
+        this.lifeEventBenefitDiscoveryService = lifeEventBenefitDiscoveryService;
     }
 
     @GetMapping("/recommended")
@@ -37,6 +44,15 @@ public class BenefitController {
     @GetMapping("/missed-value")
     public ResponseEntity<ApiResponse<MissedBenefitsResponse>> missedValue(Authentication authentication) {
         MissedBenefitsResponse response = missedBenefitsService.getMissedBenefits(authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/life-event")
+    public ResponseEntity<ApiResponse<LifeEventDiscoveryResponse>> discoverFromLifeEvent(
+            @Valid @RequestBody LifeEventDiscoveryRequest request,
+            Authentication authentication) {
+        String email = authentication != null ? authentication.getName() : null;
+        LifeEventDiscoveryResponse response = lifeEventBenefitDiscoveryService.discoverBenefits(request, email);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -1,5 +1,6 @@
 package in.sahayak.scheme.api;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -24,14 +25,18 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 class BenefitControllerTest {
     private BenefitDiscoveryService service;
     private in.sahayak.scheme.MissedBenefitsService missedBenefitsService;
+    private in.sahayak.scheme.LifeEventBenefitDiscoveryService lifeEventService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         service = mock(BenefitDiscoveryService.class);
         missedBenefitsService = mock(in.sahayak.scheme.MissedBenefitsService.class);
-        BenefitController controller = new BenefitController(service, missedBenefitsService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        lifeEventService = mock(in.sahayak.scheme.LifeEventBenefitDiscoveryService.class);
+        BenefitController controller = new BenefitController(service, missedBenefitsService, lifeEventService);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new in.sahayak.common.exception.GlobalExceptionHandler())
+                .build();
     }
 
     @Test
@@ -116,5 +121,72 @@ class BenefitControllerTest {
                 .andExpect(jsonPath("$.data.breakdown[0].estimatedAnnualBenefit").value(25000))
                 .andExpect(jsonPath("$.data.breakdown[1].schemeName").value("Gruha Lakshmi"))
                 .andExpect(jsonPath("$.data.breakdown[1].estimatedAnnualBenefit").value(17000));
+    }
+
+    @Test
+    void postLifeEventReturnsStructuredDiscoveryResponse() throws Exception {
+        UUID centralId = UUID.randomUUID();
+        in.sahayak.ai.api.LifeEventSignals signals = in.sahayak.ai.api.LifeEventSignals.of(
+                "FARMING_AGRICULTURE", "FATHER", "FARMER", null, "Karnataka", 200000.0,
+                List.of("Father is a farmer", "Family income below \u20B92 lakh")
+        );
+
+        LifeEventSchemeMatch match = new LifeEventSchemeMatch(
+                centralId, "PM-KISAN", "Agriculture", GovernmentLevel.CENTRAL, null,
+                "Income support of \u20B96,000/year", "Ministry of Agriculture", "https://pmkisan.gov.in",
+                EligibilityStatus.ELIGIBLE, 100,
+                "Satisfied scheme criteria: Applicant occupation must be farmer. Matched farming occupation.",
+                List.of("Applicant occupation must be farmer."),
+                List.of(),
+                List.of(),
+                List.of("PM-KISAN income support of \u20B96,000 per year")
+        );
+
+        LifeEventDiscoveryResponse response = LifeEventDiscoveryResponse.of(
+                "My father is a farmer and our family income is below \u20B92 lakh.",
+                signals,
+                List.of(match),
+                List.of()
+        );
+
+        when(lifeEventService.discoverBenefits(any(LifeEventDiscoveryRequest.class), any())).thenReturn(response);
+
+        String json = """
+                {
+                    "description": "My father is a farmer and our family income is below ₹2 lakh."
+                }
+                """;
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/benefits/life-event")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.lifeEventDescription").value("My father is a farmer and our family income is below ₹2 lakh."))
+                .andExpect(jsonPath("$.data.extractedSignals.eventType").value("FARMING_AGRICULTURE"))
+                .andExpect(jsonPath("$.data.extractedSignals.affectedFamilyMember").value("FATHER"))
+                .andExpect(jsonPath("$.data.extractedSignals.occupation").value("FARMER"))
+                .andExpect(jsonPath("$.data.extractedSignals.income").value(200000.0))
+                .andExpect(jsonPath("$.data.totalSurfacedSchemes").value(1))
+                .andExpect(jsonPath("$.data.centralSchemes[0].schemeName").value("PM-KISAN"))
+                .andExpect(jsonPath("$.data.centralSchemes[0].eligibilityStatus").value("ELIGIBLE"))
+                .andExpect(jsonPath("$.data.centralSchemes[0].matchPercentage").value(100))
+                .andExpect(jsonPath("$.data.centralSchemes[0].whySurfaced").isNotEmpty());
+    }
+
+    @Test
+    void postLifeEventWithEmptyDescriptionReturnsBadRequest() throws Exception {
+        String json = """
+                {
+                    "description": ""
+                }
+                """;
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/benefits/life-event")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("VALIDATION_FAILED"));
     }
 }

@@ -68,6 +68,16 @@ public class SchemeChunkingService {
         } else {
             sb.append("Details of the benefits are described on the official government portal.\n");
         }
+        if (scheme.isOfficialApplicationFeeExists()) {
+            sb.append("\nOfficial Application Fee: ₹")
+                    .append(scheme.getOfficialFeeAmount() != null ? scheme.getOfficialFeeAmount() : 0.0)
+                    .append(" (payable through authorized official channels only)\n");
+        } else {
+            sb.append("\nOfficial Application Fee: Free (No application fee)\n");
+        }
+        if (scheme.getTransparencyWarning() != null && !scheme.getTransparencyWarning().isBlank()) {
+            sb.append("Transparency Notice: ").append(scheme.getTransparencyWarning()).append("\n");
+        }
         sb.append("\nOfficial Source: ").append(scheme.getOfficialSourceUrl());
 
         return buildChunk(scheme, ChunkDocumentType.BENEFITS, sb.toString());
@@ -102,7 +112,13 @@ public class SchemeChunkingService {
         sb.append("Scheme Name: ").append(scheme.getName()).append("\n");
         sb.append("Issuing Authority: ").append(scheme.getIssuingAuthority()).append("\n");
         sb.append("Official Application Portal / Where to Apply: ").append(scheme.getOfficialSourceUrl()).append("\n\n");
-        sb.append("Step-by-step Application Process:\n");
+        if (scheme.getOfficialApplicationChannel() != null && !scheme.getOfficialApplicationChannel().isBlank()) {
+            sb.append("Official Application Channel: ").append(scheme.getOfficialApplicationChannel()).append("\n");
+        }
+        if (scheme.getOfficialGrievanceUrl() != null && !scheme.getOfficialGrievanceUrl().isBlank()) {
+            sb.append("Official Grievance Redressal Portal: ").append(scheme.getOfficialGrievanceUrl()).append("\n");
+        }
+        sb.append("\nStep-by-step Application Process:\n");
 
         if (scheme.getApplicationSteps() != null && !scheme.getApplicationSteps().isEmpty()) {
             for (SchemeApplicationStep step : scheme.getApplicationSteps()) {
@@ -164,6 +180,10 @@ public class SchemeChunkingService {
             sb.append("Reference Note: ").append(eligibilityData.get("seedNote")).append("\n");
         }
 
+        if (scheme.getOfficialGrievanceUrl() != null && !scheme.getOfficialGrievanceUrl().isBlank()) {
+            sb.append("Official Grievance Redressal Portal: ").append(scheme.getOfficialGrievanceUrl()).append("\n");
+        }
+
         sb.append("\nFAQs and Official Guidance:\n");
         sb.append("Q: Where can I find the official scheme notification and current terms?\n");
         sb.append("A: Always verify the current terms at ").append(scheme.getOfficialSourceUrl());
@@ -185,7 +205,9 @@ public class SchemeChunkingService {
         chunk.setState(scheme.getState());
         chunk.setCategory(scheme.getCategory());
         chunk.setSourceUrl(scheme.getOfficialSourceUrl());
-        chunk.setPointId(UUID.randomUUID().toString());
+        String seedKey = (scheme.getId() != null ? scheme.getId().toString() : scheme.getName()) + ":" + type.name();
+        String deterministicPointId = UUID.nameUUIDFromBytes(seedKey.getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
+        chunk.setPointId(deterministicPointId);
         return chunk;
     }
 }

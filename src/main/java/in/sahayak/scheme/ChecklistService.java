@@ -1,6 +1,8 @@
 package in.sahayak.scheme;
 
 import in.sahayak.common.exception.ResourceNotFoundException;
+import in.sahayak.document.api.SchemeDocumentEvaluation;
+import in.sahayak.document.service.DocumentLockerService;
 import in.sahayak.eligibility.EligibilityRuleEvaluator;
 import in.sahayak.eligibility.EligibilityRuleEvaluator.Outcome;
 import in.sahayak.scheme.api.ActionChecklist;
@@ -17,6 +19,7 @@ import in.sahayak.user.repository.UserRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,13 +29,22 @@ public class ChecklistService {
     private final UserRepository users;
     private final UserProfileRepository profiles;
     private final EligibilityRuleEvaluator evaluator;
+    private final DocumentLockerService documentLockerService;
 
     public ChecklistService(SchemeRepository schemes, UserRepository users,
                             UserProfileRepository profiles, EligibilityRuleEvaluator evaluator) {
+        this(schemes, users, profiles, evaluator, null);
+    }
+
+    @Autowired
+    public ChecklistService(SchemeRepository schemes, UserRepository users,
+                            UserProfileRepository profiles, EligibilityRuleEvaluator evaluator,
+                            @Autowired(required = false) DocumentLockerService documentLockerService) {
         this.schemes = schemes;
         this.users = users;
         this.profiles = profiles;
         this.evaluator = evaluator;
+        this.documentLockerService = documentLockerService;
     }
 
     @Transactional(readOnly = true)
@@ -41,18 +53,34 @@ public class ChecklistService {
                 .orElseThrow(() -> new ResourceNotFoundException("Scheme not found"));
 
         UserProfile profile = null;
+        UUID userId = null;
         if (userEmail != null && !userEmail.isBlank()) {
             User user = users.findByEmail(userEmail).orElse(null);
             if (user != null) {
+                userId = user.getId();
                 profile = profiles.findByUserId(user.getId()).orElse(null);
             }
         }
 
-        return generateChecklist(scheme, profile);
+        SchemeDocumentEvaluation docEval = null;
+        if (documentLockerService != null && userId != null) {
+            docEval = documentLockerService.evaluateSchemeDocuments(scheme, userId);
+        }
+
+        return generateChecklist(scheme, profile, docEval);
     }
 
     @Transactional(readOnly = true)
     public ActionChecklist generateChecklist(Scheme scheme, UserProfile profile) {
+        SchemeDocumentEvaluation docEval = null;
+        if (documentLockerService != null && profile != null && profile.getUser() != null) {
+            docEval = documentLockerService.evaluateSchemeDocuments(scheme, profile.getUser().getId());
+        }
+        return generateChecklist(scheme, profile, docEval);
+    }
+
+    @Transactional(readOnly = true)
+    public ActionChecklist generateChecklist(Scheme scheme, UserProfile profile, SchemeDocumentEvaluation docEval) {
         List<ChecklistDocument> requiredDocuments = scheme.getDocumentRequirements().stream()
                 .map(req -> new ChecklistDocument(
                         req.getDocumentType() != null ? req.getDocumentType().getCode() : "DOCUMENT",
@@ -91,7 +119,8 @@ public class ChecklistService {
                 scheme.getOfficialSourceUrl(),
                 steps,
                 importantConditions,
-                missingInfo
+                missingInfo,
+                docEval
         );
     }
 
