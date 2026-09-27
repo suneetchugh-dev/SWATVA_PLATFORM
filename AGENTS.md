@@ -1,4 +1,4 @@
-# Swatva AI (sahayak-ai) — Agent Guide
+# Swatva AI (swatva-ai) — Agent Guide
 
 ## Project overview
 
@@ -85,7 +85,7 @@ on. Keep it.
 
 ## Architecture and packages
 
-Use `in.sahayak.<module>`: `auth`, `user`, `scheme`, `eligibility`, `document`,
+Use `in.swatva.<module>`: `auth`, `user`, `scheme`, `eligibility`, `document`,
 `readiness`, `transparency`, `notification`, `ai`, `common`.
 
 - Entities in `<module>.model`, enums in `<module>.model.enums`, repositories in
@@ -161,7 +161,7 @@ to drop earlier Karnataka prototypes.
   ineligibility.
 - `GET /api/eligibility/matches` is protected and evaluates active Central
   schemes plus active State schemes for the authenticated profile's state.
-- Keep evaluator unit tests under `src/test/java/in/sahayak/eligibility` when
+- Keep evaluator unit tests under `src/test/java/in/swatva/eligibility` when
   changing rule semantics.
 - The AI layer must degrade, not fail: provider errors fall back to
   deterministic explanations and keyword retrieval. `DETERMINISTIC_RULE_EVALUATION`
@@ -183,14 +183,14 @@ Node 20. Keep new tests hermetic — the suite must not need a database.
 - `pom.xml` — Java version, `maven.compiler.proc=full` (required for Lombok on
   JDK 23+; harmless on 21)
 - `src/main/resources/application.yml` — datasource, JPA, AI provider, Qdrant, S3, JWT
-- `src/main/java/in/sahayak/auth/config/SecurityConfig.java` — route security, CORS, auth error envelope
-- `src/main/java/in/sahayak/auth/config/JwtProperties.java` — validated JWT secret
-- `src/main/java/in/sahayak/common/api/ApiResponse.java`, `ApiError.java` — response contract
-- `src/main/java/in/sahayak/common/exception/GlobalExceptionHandler.java` — error mapping
-- `src/main/java/in/sahayak/common/persistence/BaseEntity.java` — UUID/audit convention
-- `src/main/java/in/sahayak/scheme/seed/SchemeDataInitializer.java` — catalogue seed
-- `src/main/java/in/sahayak/eligibility/EligibilityRuleEvaluator.java` — deterministic matching
-- `src/main/java/in/sahayak/ai/service/SchemeVectorIndexingService.java` — Qdrant sync, degrades on failure
+- `src/main/java/in/swatva/auth/config/SecurityConfig.java` — route security, CORS, auth error envelope
+- `src/main/java/in/swatva/auth/config/JwtProperties.java` — validated JWT secret
+- `src/main/java/in/swatva/common/api/ApiResponse.java`, `ApiError.java` — response contract
+- `src/main/java/in/swatva/common/exception/GlobalExceptionHandler.java` — error mapping
+- `src/main/java/in/swatva/common/persistence/BaseEntity.java` — UUID/audit convention
+- `src/main/java/in/swatva/scheme/seed/SchemeDataInitializer.java` — catalogue seed
+- `src/main/java/in/swatva/eligibility/EligibilityRuleEvaluator.java` — deterministic matching
+- `src/main/java/in/swatva/ai/service/SchemeVectorIndexingService.java` — Qdrant sync, degrades on failure
 - `frontend/src/api/client.js` — full API client; the UI's contract
 
 ## Changing or adding functionality

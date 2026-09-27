@@ -12,15 +12,15 @@ services:
     container_name: swatva-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME:-sahayak_ai}
+      POSTGRES_DB: ${DB_NAME:-swatva_ai}
       POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-sahayak_dev}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-swatva_dev}
     ports:
       - "5432:5432"
     volumes:
       - swatva-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-sahayak_ai}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-swatva_ai}"]
       interval: 5s
       timeout: 5s
       retries: 10

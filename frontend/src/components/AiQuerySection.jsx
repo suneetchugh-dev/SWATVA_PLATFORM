@@ -44,7 +44,7 @@ export default function AiQuerySection() {
   return (
     <div>
       {/* Re-indexing utility banner */}
-      <div className="card" style={{ background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+      <div className="card" style={{ background: '#FAFAFA', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div>
           <strong>Qdrant Vector Store Management</strong>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -149,7 +149,7 @@ export default function AiQuerySection() {
                 <h4 style={{ marginBottom: '8px' }}>Retrieved Scheme Chunks ({response.retrievedChunks.length})</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {response.retrievedChunks.map((chunk, idx) => (
-                    <div key={idx} style={{ background: '#f8fafc', border: '1px solid var(--border)', borderRadius: '6px', padding: '10px' }}>
+                    <div key={idx} style={{ background: '#FAFAFA', border: '1px solid var(--border)', borderRadius: '6px', padding: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                         <strong>{chunk.schemeName}</strong>
                         <span className="badge badge-gray">{chunk.documentType}</span>
