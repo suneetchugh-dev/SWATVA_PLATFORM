@@ -162,7 +162,6 @@ export default function Auth({ mode: initialMode = 'login' }) {
                   <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-950 dark:bg-white rounded-full" />
                 )}
               </button>
-              <span className="text-neutral-300 dark:text-white/20">•</span>
               <button
                 type="button"
                 onClick={() => switchMode('register')}
