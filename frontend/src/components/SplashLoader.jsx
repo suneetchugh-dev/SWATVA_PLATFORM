@@ -8,18 +8,30 @@ export let isInitialSplashFinished = false;
 export default function SplashLoader() {
   const [isVisible, setIsVisible] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [isReturning, setIsReturning] = useState(false);
 
   useEffect(() => {
-    // 1.0s draw, then start smooth fade out
+    const hasVisited = typeof window !== 'undefined' && sessionStorage.getItem('swatva_has_visited');
+    const returning = Boolean(hasVisited);
+    setIsReturning(returning);
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('swatva_has_visited', 'true');
+    }
+
+    // Returning user: fast (850ms) yet silky smooth
+    // First-time visit: majestic standard (1600ms)
+    const drawDuration = returning ? 850 : 1600;
+    const fadeDuration = returning ? 450 : 550;
+
     const fadeOutTimer = setTimeout(() => {
       setIsFadingOut(true);
       isInitialSplashFinished = true;
-    }, 1000);
+    }, drawDuration);
 
-    // Completely unmount after fade transition finishes (500ms fade)
     const unmountTimer = setTimeout(() => {
       setIsVisible(false);
-    }, 1500);
+    }, drawDuration + fadeDuration);
 
     return () => {
       clearTimeout(fadeOutTimer);
@@ -31,18 +43,36 @@ export default function SplashLoader() {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-porcelain dark:bg-obsidian transition-opacity duration-500 ease-in-out ${
-        isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-porcelain/95 dark:bg-obsidian/95 backdrop-blur-xl transition-all ${
+        isReturning ? 'duration-500' : 'duration-600'
+      } ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        isFadingOut 
+          ? 'opacity-0 scale-[1.02] pointer-events-none' 
+          : 'opacity-100 scale-100'
       }`}
     >
       <div className="relative flex flex-col items-center">
-        {/* Crisp vector logo that draws quickly */}
-        <LoadingLogo size="h-32 w-32 sm:h-40 sm:w-40" animate={true} loop={false} duration={1} hoverable={false} />
+        {/* Subtle radial amber aura in dark mode for luxury depth */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 -m-8 rounded-full bg-amber-500/15 blur-2xl dark:block hidden pointer-events-none"
+        />
+
+        <LoadingLogo 
+          size="h-32 w-32 sm:h-40 sm:w-40" 
+          animate={true} 
+          loop={false} 
+          duration={isReturning ? 0.85 : 1.6} 
+          hoverable={false} 
+        />
         <div 
-          className="mt-6 text-sm font-bold tracking-widest uppercase text-neutral-950 dark:text-white transition-opacity duration-500 delay-500"
-          style={{ opacity: isFadingOut ? 0 : 1 }}
+          className="mt-6 text-xs sm:text-sm font-bold tracking-[0.25em] uppercase text-neutral-900/80 dark:text-white/80 transition-all duration-500"
+          style={{ 
+            opacity: isFadingOut ? 0 : 1,
+            transform: isFadingOut ? 'translateY(6px)' : 'translateY(0)'
+          }}
         >
-          Swatva AI
+          SWATVA
         </div>
       </div>
     </div>
