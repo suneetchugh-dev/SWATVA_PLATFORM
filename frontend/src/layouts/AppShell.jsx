@@ -1,12 +1,14 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
+  Compass,
   FileStack,
-  Landmark,
+  LayoutDashboard,
   LogOut,
   MessageSquare,
   Moon,
   Scale,
+  ShieldCheck,
   Sun,
   UserRound,
   Wallet,
@@ -18,13 +20,22 @@ import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
 
 // Routes are stable; only the labels are translated.
+// Per-scheme readiness (/app/readiness/:id) is deliberately absent: it is a
+// drill-down from a match, not a top-level destination, so it has no nav entry.
 const NAV = [
-  { to: '/app/profile', key: 'profile', icon: UserRound },
+  { to: '/app', key: 'home', icon: LayoutDashboard, end: true },
+  { to: '/app/discover', key: 'discover', icon: Compass },
   { to: '/app/matches', key: 'matches', icon: Scale },
   { to: '/app/benefits', key: 'benefits', icon: Wallet },
   { to: '/app/documents', key: 'documents', icon: FileStack },
+  { to: '/app/transparency', key: 'transparency', icon: ShieldCheck },
   { to: '/app/assistant', key: 'assistant', icon: MessageSquare },
+  { to: '/app/profile', key: 'profile', icon: UserRound },
 ]
+
+// A bottom bar cannot carry eight targets at a legible touch size, so mobile
+// gets the five highest-traffic destinations. The rest stay reachable from Home.
+const MOBILE_NAV = ['home', 'discover', 'matches', 'documents', 'assistant']
 
 export default function AppShell() {
   const { t } = useTranslation()
@@ -41,17 +52,24 @@ export default function AppShell() {
     <div className="min-h-dvh w-full bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">
       <header className="sticky top-0 z-40 pt-3 px-3 sm:px-5">
         <div className="mx-auto max-w-6xl neo-glass-card px-3 sm:px-4 py-2.5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <LoadingLogo animate={false} />
+          <div className="flex items-center gap-2.5 min-w-0 group">
+            <div className="relative flex items-center justify-center flex-shrink-0">
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 -m-1 rounded-full bg-amber-500/[0.08] blur-lg dark:block hidden pointer-events-none transition-opacity duration-500 group-hover:bg-amber-500/[0.15]"
+              />
+              <LoadingLogo animate={false} />
+            </div>
             <span className="font-bold text-sm tracking-tight truncate">Swatva AI</span>
           </div>
 
           {/* Horizontal nav from `lg` up; the bottom bar takes over below it. */}
           <nav className="hidden lg:flex items-center gap-1" aria-label={t('nav.main')}>
-            {NAV.map(({ to, key, icon: Icon }) => (
+            {NAV.map(({ to, key, icon: Icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
+                end={end}
                 className={({ isActive }) =>
                   cx(
                     'inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-medium transition-colors',
@@ -103,10 +121,11 @@ export default function AppShell() {
       {/* Bottom bar on small screens. Respects the home-indicator inset. */}
       <nav className="app-bottom-bar lg:hidden fixed bottom-0 inset-x-0 z-40 px-3 pb-3 pt-2 pb-safe" aria-label={t('nav.main')}>
         <div className="neo-glass-card px-2 py-1.5 flex items-stretch justify-between">
-          {NAV.map(({ to, key, icon: Icon }) => (
+          {NAV.filter((item) => MOBILE_NAV.includes(item.key)).map(({ to, key, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
+              end={end}
               className={({ isActive }) =>
                 cx(
                   'flex-1 flex flex-col items-center gap-1 py-2 rounded-xl text-[10px] font-semibold transition-colors min-h-[44px]',
