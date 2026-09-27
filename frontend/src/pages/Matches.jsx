@@ -220,6 +220,16 @@ export default function Matches() {
                           <Button size="sm" variant="secondary" as={Link} to={`/schemes/${r.schemeId}`}>
                             {t('matches.openScheme')}
                           </Button>
+                          {/* Readiness is the actionable next step: a match only says
+                              "you look eligible", this says what to actually upload. */}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            as={Link}
+                            to={`/app/readiness/${r.schemeId}`}
+                          >
+                            {t('matches.checkReadiness')}
+                          </Button>
                           <Button
                             size="sm"
                             variant="ghost"
