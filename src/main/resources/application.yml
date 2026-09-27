@@ -86,3 +86,16 @@ app:
       # No default on purpose. Set JWT_SECRET in .env (32+ bytes) or the app refuses to start.
       secret: ${JWT_SECRET:}
       expiration-minutes: ${JWT_EXPIRATION_MINUTES:1440}
+
+  cors:
+    # Origins allowed to call this API from a browser. The default covers the
+    # Vite dev server only, so a deployment MUST override this or the browser
+    # blocks every request and the app looks simply broken. Comma-separated.
+    # Patterns, not literals, so a wildcard port is expressible.
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+    allowed-headers: "*"
+    # The client sends a bearer token, but credentials keep cookie-based flows
+    # working. This is why a bare "*" origin is rejected at startup.
+    allow-credentials: true
+    max-age-seconds: 3600

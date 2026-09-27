@@ -50,10 +50,13 @@ Use `in.swatva.<module>` for domain ownership: `auth`, `user`, `scheme`, `eligib
 ## Security rules
 
 - Security is stateless and CSRF is disabled in `auth.config.SecurityConfig`.
-- Only `/api/v1/health`, `/api/schemes/**`, and `/error` are public today. All other routes require authentication.
+- The public permit list is exactly `/api/v1/health`, `/api/schemes/**`, `/api/auth/**`, `/api/ai/scheme-query`, `/api/transparency/**`, `/api/benefits/life-event`, `/api/chat`, and `/error`. All other routes require authentication.
 - Do not open a new endpoint publicly without explicitly adding it to the permit list and confirming that is intended.
 - JWT authentication uses a BCrypt password hash and the email as the authenticated principal. Use `Authentication.getName()` for the current user in protected endpoints.
 - `JWT_SECRET` and `JWT_EXPIRATION_MINUTES` configure token signing and lifetime. Do not expose password hashes or JWT secrets.
+- CORS lives in `common.config.CorsConfig`/`CorsProperties` and is driven by `CORS_ALLOWED_ORIGIN_PATTERNS`, comma-separated. The default is localhost-only, so any deployment that serves a browser client must set it or every request is blocked.
+- These are `allowedOriginPatterns`, not `allowedOrigins`, because credentials are enabled; that is what allows a wildcard port in development. A bare `*` is rejected at startup by the same `CorsProperties` validation style as `JwtProperties`, because reflecting any origin would expose the API to every site.
+- CORS values are trimmed and stripped of a trailing slash, since a trailing slash never matches an `Origin` header and the resulting failure looks like a backend outage.
 
 ## Error handling
 
