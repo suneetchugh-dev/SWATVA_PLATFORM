@@ -35,6 +35,7 @@ const Discover = lazy(() => import('./pages/Discover.jsx'))
 const Transparency = lazy(() => import('./pages/Transparency.jsx'))
 const Assistant = lazy(() => import('./pages/Assistant.jsx'))
 const SchemeDetail = lazy(() => import('./pages/SchemeDetail.jsx'))
+const Team = lazy(() => import('./pages/Team.jsx'))
 
 /** Everything under /app needs a token; bounce to /login and remember where. */
 function RequireAuth({ children }) {
@@ -70,6 +71,7 @@ container.__reactRoot.render(
             <Route path="/login" element={<Auth mode="login" />} />
             <Route path="/register" element={<Auth mode="register" />} />
             <Route path="/schemes/:id" element={<SchemeDetail />} />
+            <Route path="/team" element={<Team />} />
 
             <Route
               path="/app"

@@ -224,6 +224,12 @@
     "savedBody": "Your matches have been recalculated. Nothing here is shared with anyone.",
     "errorTitle": "Could not save",
     "loadError": "Could not load your profile.",
+    "autoFillTitle": "Fill from your documents",
+    "autoFillHint": "We can read your Aadhaar or other uploaded documents to pre-fill age, state, gender, and district for you.",
+    "autoFillBtn": "Auto-fill",
+    "autoFillOk": "Done! Some fields were filled from your documents. Review them and save.",
+    "autoFillNone": "No extractable data found. Try uploading your Aadhaar first.",
+    "autoFillError": "Could not read documents. Try again.",
     "steps": {
       "basicsTitle": "Basics",
       "basicsHint": "Age and state decide the most schemes.",
@@ -362,6 +368,8 @@
     "expires": "Expires",
     "expired": "Expired",
     "issuedBy": "Issued by",
+    "extracting": "Reading document…",
+    "extractingHint": "Extracting fields automatically",
     "types": {
       "AADHAAR": "Aadhaar card",
       "INCOME_CERTIFICATE": "Income certificate",
@@ -575,6 +583,9 @@
     "stateSchemes": "State schemes",
     "viewScheme": "View scheme",
     "officialSource": "Official source",
+    "kbHint": "Press Ctrl + Enter to search.",
+    "historyTitle": "Past searches",
+    "historyClear": "Clear all",
     "conditions": {
       "satisfied": "Matched on",
       "failed": "Does not meet",

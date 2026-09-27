@@ -18,7 +18,11 @@ import {
   Sparkles,
   Download,
   Smartphone,
-  CheckCircle2
+  CheckCircle2,
+  Share,
+  Laptop,
+  Info,
+  ChevronRight
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../lib/theme';
@@ -87,11 +91,50 @@ export default function PreferencesModal({ isOpen, onClose }) {
   const [particlesActive, setParticlesActive] = useState(() => localStorage.getItem('swatva_particles') !== 'off');
   const [waveformsActive, setWaveformsActive] = useState(() => localStorage.getItem('swatva_waveforms') !== 'off');
 
+  // PWA Guide & Platform state
+  const [pwaGuideOpen, setPwaGuideOpen] = useState(false);
+  const [pwaPlatformTab, setPwaPlatformTab] = useState(() => {
+    if (typeof navigator === 'undefined') return 'desktop';
+    const ua = navigator.userAgent || '';
+    if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
+    if (/Android/i.test(ua)) return 'android';
+    if (/Macintosh/i.test(ua)) return 'macos';
+    return 'desktop';
+  });
+
   // Single-group accordion expansion: 'sounds' | 'motion' | null
   const [expandedGroupId, setExpandedGroupId] = useState(null);
 
   // Smooth gear spin on action
   const [gearRotation, setGearRotation] = useState(0);
+
+  const handlePwaAction = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    playClick();
+
+    if (isInstalled || isStandalone) {
+      setPwaGuideOpen((prev) => !prev);
+      return;
+    }
+
+    if (isInstallable) {
+      try {
+        const res = await promptInstall();
+        if (res?.outcome === 'accepted') {
+          setPwaGuideOpen(false);
+        } else if (res?.outcome === 'dismissed' && res?.isManual) {
+          setPwaGuideOpen(true);
+        }
+      } catch {
+        setPwaGuideOpen(true);
+      }
+    } else {
+      setPwaGuideOpen((prev) => !prev);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -553,47 +596,188 @@ export default function PreferencesModal({ isOpen, onClose }) {
           {/* ========================================================
               4. Progressive Web App (PWA) / Device Installation
              ======================================================== */}
-          <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-neutral-50/90 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/15 space-y-2.5">
-            <div className="flex items-center space-x-2.5 sm:space-x-3">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center flex-shrink-0 shadow-xs">
-                <Smartphone size={15} className="text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] sm:text-xs font-semibold text-neutral-950 dark:text-white leading-snug">
-                    {currentLang === 'hi' ? 'प्रोग्रेसिव वेब ऐप (PWA)' : 'Progressive Web App (PWA)'}
-                  </span>
-                  {isInstalled || isStandalone ? (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.2 text-[9px] font-semibold rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                      <CheckCircle2 size={10} />
-                      {currentLang === 'hi' ? 'स्थापित' : 'Installed'}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-1.5 py-0.2 text-[9px] font-semibold rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                      {currentLang === 'hi' ? 'तैयार' : 'Ready'}
-                    </span>
-                  )}
+          <div 
+            onClick={handlePwaAction}
+            className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-neutral-50/90 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/15 hover:bg-neutral-100/70 dark:hover:bg-white/[0.06] transition-all cursor-pointer select-none group"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center space-x-2.5 sm:space-x-3 flex-1 min-w-0">
+                <Smartphone size={15} className="text-neutral-950 dark:text-white flex-shrink-0 transition-transform duration-300 ease-out group-hover:scale-105" />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <div className="text-[11px] sm:text-xs font-semibold text-neutral-950 dark:text-white leading-snug">
+                      {currentLang === 'hi' ? 'ऐप इंस्टॉल करें' : 'Install App'}
+                    </div>
+                    {isInstalled || isStandalone ? (
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-px text-[9px] font-semibold rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                        <CheckCircle2 size={9} />
+                        {currentLang === 'hi' ? 'स्थापित' : 'Installed'}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-1.5 py-px text-[9px] font-semibold rounded-full bg-neutral-200/70 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 border border-neutral-300/60 dark:border-white/15">
+                        {currentLang === 'hi' ? 'तैयार' : 'Ready'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-neutral-400 leading-none mt-0.5 truncate">
+                    {isInstalled || isStandalone
+                      ? (currentLang === 'hi' ? 'ऐप चल रहा है • ऑफ़लाइन सक्षम' : 'Running as installed app • Offline ready')
+                      : (currentLang === 'hi'
+                          ? 'होम स्क्रीन या डेस्कटॉप पर जोड़ें'
+                          : (typeof navigator !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent)
+                              ? 'Add to home screen'
+                              : 'Add to desktop'))}
+                  </div>
                 </div>
-                <div className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">
-                  {currentLang === 'hi'
-                    ? 'ऑफ़लाइन एक्सेस और त्वरित स्टार्टअप के लिए SWATVA को अपने डिवाइस पर इंस्टॉल करें।'
-                    : 'Install SWATVA on your home screen or desktop for offline access & faster launches.'}
-                </div>
               </div>
+
+              {isInstalled || isStandalone ? (
+                <span className="shrink-0 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                  {currentLang === 'hi' ? 'सक्रिय' : 'Active'}
+                </span>
+              ) : isInstallable ? (
+                <button
+                  type="button"
+                  onClick={handlePwaAction}
+                  className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-neutral-950 hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-neutral-950 text-[10px] font-semibold tracking-tight active:scale-[0.98] transition-all cursor-pointer shadow-xs"
+                >
+                  <Download size={11} className="stroke-[2.2]" />
+                  {currentLang === 'hi' ? 'इंस्टॉल करें' : 'Install'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePwaAction}
+                  className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-white/[0.06] hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 text-[10px] font-medium tracking-tight active:scale-[0.98] transition-all cursor-pointer border border-neutral-200 dark:border-white/10 shadow-2xs"
+                >
+                  <Download size={11} className="stroke-[2] text-neutral-500 dark:text-neutral-400" />
+                  {pwaGuideOpen ? (currentLang === 'hi' ? 'बंद करें' : 'Close') : (currentLang === 'hi' ? 'निर्देश' : 'Guide')}
+                </button>
+              )}
             </div>
 
-            {isInstallable && !isInstalled && !isStandalone && (
-              <button
-                type="button"
-                onClick={async () => {
-                  playClick();
-                  await promptInstall();
-                }}
-                className="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold tracking-tight active:scale-[0.99] transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+            {/* Expandable Step-by-Step PWA Installation Guide */}
+            {pwaGuideOpen && (
+              <div 
+                onClick={(e) => e.stopPropagation()}
+                className="mt-3 pt-3 border-t border-neutral-200/80 dark:border-white/10 space-y-2.5"
               >
-                <Download size={13} className="stroke-[2.5]" />
-                <span>{currentLang === 'hi' ? 'ऐप इंस्टॉल करें' : 'Install SWATVA App'}</span>
-              </button>
+                {/* Platform Switcher Tabs */}
+                <div className="flex items-center gap-1 bg-neutral-200/50 dark:bg-black/30 p-0.5 rounded-lg border border-neutral-200/60 dark:border-white/10">
+                  {[
+                    { id: 'desktop', label: currentLang === 'hi' ? 'डेस्कटॉप' : 'Desktop', icon: Laptop },
+                    { id: 'ios', label: 'iPhone / iOS', icon: Share },
+                    { id: 'android', label: 'Android', icon: Smartphone },
+                  ].map((tab) => {
+                    const TabIcon = tab.icon;
+                    const isActive = pwaPlatformTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playClick();
+                          setPwaPlatformTab(tab.id);
+                        }}
+                        className={`flex-1 flex items-center justify-center gap-1 py-1 px-1.5 rounded-md text-[9px] sm:text-[10px] transition-all ${
+                          isActive
+                            ? 'bg-white dark:bg-neutral-800 text-neutral-950 dark:text-white shadow-2xs font-semibold'
+                            : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white font-medium'
+                        }`}
+                      >
+                        <TabIcon size={11} className={isActive ? 'text-neutral-900 dark:text-white' : 'text-neutral-500 dark:text-neutral-400'} />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Instructions by Platform */}
+                <div className="p-2.5 rounded-lg bg-white dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10 text-[10px] text-neutral-600 dark:text-neutral-300 space-y-1.5">
+                  {pwaPlatformTab === 'desktop' && (
+                    <>
+                      <div className="flex items-start gap-1.5">
+                        <span className="font-bold text-neutral-900 dark:text-white">1.</span>
+                        <span>
+                          {currentLang === 'hi' 
+                            ? 'ब्राउज़र एड्रेस बार (URL बार) के दाईं ओर स्थित ' 
+                            : 'Look at the top-right of your browser address bar and click '}
+                          <strong className="text-neutral-950 dark:text-white">
+                            {currentLang === 'hi' ? 'इंस्टॉल आइकन (⊕ या 💻)' : 'Install icon (⊕ or 💻)'}
+                          </strong>.
+                        </span>
+                      </div>
+                      <div className="flex items-start gap-1.5">
+                        <span className="font-bold text-neutral-900 dark:text-white">2.</span>
+                        <span>
+                          {currentLang === 'hi'
+                            ? 'या ब्राउज़र मेन्यू (⋮ / ...) खोलें और '
+                            : 'Or click browser menu (⋮ / ...) and select '}
+                          <strong className="text-neutral-950 dark:text-white">
+                            {currentLang === 'hi' ? '"SWATVA इंस्टॉल करें"' : '"Install SWATVA"'}
+                          </strong>.
+                        </span>
+                      </div>
+                    </>
+                  )}
+
+                  {pwaPlatformTab === 'ios' && (
+                    <>
+                      <div className="flex items-start gap-1.5">
+                        <span className="font-bold text-neutral-900 dark:text-white">1.</span>
+                        <span>
+                          {currentLang === 'hi'
+                            ? 'Safari के नीचे स्थित '
+                            : 'Tap the '}
+                          <strong className="text-neutral-950 dark:text-white">
+                            {currentLang === 'hi' ? 'शेयर बटन (⎋ / Share)' : 'Share button (⎋ / Share)'}
+                          </strong>
+                          {currentLang === 'hi' ? ' दबाएं।' : ' at the bottom of Safari.'}
+                        </span>
+                      </div>
+                      <div className="flex items-start gap-1.5">
+                        <span className="font-bold text-neutral-900 dark:text-white">2.</span>
+                        <span>
+                          {currentLang === 'hi'
+                            ? 'नीचे स्क्रॉल करें और '
+                            : 'Scroll down and tap '}
+                          <strong className="text-neutral-950 dark:text-white">
+                            {currentLang === 'hi' ? '"होम स्क्रीन में जोड़ें (+)"' : '"Add to Home Screen (+)"'}
+                          </strong>
+                          {currentLang === 'hi' ? ' चुनें।' : '.'}
+                        </span>
+                      </div>
+                    </>
+                  )}
+
+                  {pwaPlatformTab === 'android' && (
+                    <>
+                      <div className="flex items-start gap-1.5">
+                        <span className="font-bold text-neutral-900 dark:text-white">1.</span>
+                        <span>
+                          {currentLang === 'hi'
+                            ? 'Chrome में ऊपर दाईं ओर तीन बिंदुओं '
+                            : 'Tap the three dots '}
+                          <strong className="text-neutral-950 dark:text-white">(⋮)</strong>
+                          {currentLang === 'hi' ? ' पर टैप करें।' : ' in the top right of Chrome.'}
+                        </span>
+                      </div>
+                      <div className="flex items-start gap-1.5">
+                        <span className="font-bold text-neutral-900 dark:text-white">2.</span>
+                        <span>
+                          {currentLang === 'hi'
+                            ? 'चुनें '
+                            : 'Tap '}
+                          <strong className="text-neutral-950 dark:text-white">
+                            {currentLang === 'hi' ? '"ऐप इंस्टॉल करें" या "होम स्क्रीन पर जोड़ें"' : '"Install app" or "Add to Home screen"'}
+                          </strong>.
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 

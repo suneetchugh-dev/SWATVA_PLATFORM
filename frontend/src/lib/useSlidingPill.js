@@ -50,12 +50,18 @@ export function useSlidingPill(count, activeIndex, recalcKey) {
 
   useLayoutEffect(() => {
     measure()
+    const rafId = requestAnimationFrame(measure)
+    const timeoutId = setTimeout(measure, 30)
     // offsetWidth is 0 on the first paint if web fonts are still swapping in, so
     // re-measure once the font load settles rather than trusting frame one.
     const fonts = document.fonts?.ready
     if (fonts?.then) fonts.then(measure).catch(() => {})
     window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
+    return () => {
+      cancelAnimationFrame(rafId)
+      clearTimeout(timeoutId)
+      window.removeEventListener('resize', measure)
+    }
   }, [measure, count, recalcKey])
 
   return { trackRef, pill }

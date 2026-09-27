@@ -2,6 +2,11 @@ spring:
   application:
     name: swatva-ai
 
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 30MB
+
   # Loads local, untracked secrets from ./.env so `mvn spring-boot:run` and
   # `docker compose` share one source of truth. Copy .env.example -> .env.
   config:

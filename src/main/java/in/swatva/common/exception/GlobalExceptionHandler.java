@@ -52,6 +52,11 @@ public class GlobalExceptionHandler {
         return response(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Request body is invalid", null);
     }
 
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    ResponseEntity<ApiResponse<Void>> handleMaxUploadSize(org.springframework.web.multipart.MaxUploadSizeExceededException exception) {
+        return response(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE", "Uploaded document exceeds the maximum allowed size (25MB)", null);
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception exception, HttpServletRequest request) {
         log.error("Unhandled error for {} {}", request.getMethod(), request.getRequestURI(), exception);

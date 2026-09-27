@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, ChevronLeft, ChevronRight, UserRound } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Sparkles, UserRound } from 'lucide-react'
 import { api } from '../api/client'
 import { INDIAN_STATES } from '../lib/india'
 import {
@@ -178,6 +178,73 @@ export default function Profile() {
     }
   }
 
+  const [filling, setFilling] = useState(false)
+  const [fillResult, setFillResult] = useState(null) // 'ok' | 'none' | 'error'
+
+  /** Auto-fill profile fields from uploaded documents (Aadhaar preferred) */
+  const fillFromDocuments = async () => {
+    setFilling(true)
+    setFillResult(null)
+    try {
+      const docs = await api.documents.list()
+      if (!docs?.length) { setFillResult('none'); return }
+
+      // Prefer Aadhaar; fall back to first available doc
+      const aadhaar = docs.find((d) => d.documentType === 'AADHAAR') ?? docs[0]
+      const extracted = await api.documents.extract(aadhaar.id)
+      if (!extracted) { setFillResult('none'); return }
+
+      let changed = false
+      setForm((f) => {
+        const next = { ...f }
+
+        // Age from dateOfBirth (YYYY-MM-DD or DD/MM/YYYY)
+        if (extracted.dateOfBirth && !f.age) {
+          try {
+            const raw = extracted.dateOfBirth
+            let year
+            if (raw.includes('/')) {
+              year = parseInt(raw.split('/')[2], 10)
+            } else {
+              year = parseInt(raw.split('-')[0], 10)
+            }
+            const age = new Date().getFullYear() - year
+            if (age > 0 && age < 120) { next.age = String(age); changed = true }
+          } catch { /* skip */ }
+        }
+
+        // Gender
+        if (extracted.gender && !f.gender) {
+          const g = extracted.gender.toUpperCase()
+          if (['MALE', 'FEMALE', 'OTHER'].includes(g)) { next.gender = g; changed = true }
+        }
+
+        // State from address
+        if (extracted.state && !f.state) {
+          // Try to match against INDIAN_STATES list
+          const match = INDIAN_STATES.find(
+            (s) => s.toLowerCase() === extracted.state.toLowerCase()
+          )
+          if (match) { next.state = match; changed = true }
+        }
+
+        // District
+        if (extracted.district && !f.district) {
+          next.district = extracted.district; changed = true
+        }
+
+        return next
+      })
+
+      setSaved(false)
+      setFillResult(changed ? 'ok' : 'none')
+    } catch {
+      setFillResult('error')
+    } finally {
+      setFilling(false)
+    }
+  }
+
   // Completeness is a hint, not a gate — the backend decides eligibility.
   const filled = [
     form.age, form.income, form.state, form.category, form.gender, form.occupation, form.education,
@@ -220,6 +287,37 @@ export default function Profile() {
           </Banner>
         </div>
       ) : null}
+
+      {/* Auto-fill from documents — only show when profile is sparse */}
+      {complete < 60 && (
+        <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-2xl border border-amber-400/30 bg-amber-50 dark:bg-amber-500/[0.08] px-4 py-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+              {t('profile.autoFillTitle')}
+            </p>
+            <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+              {fillResult === 'ok'
+                ? t('profile.autoFillOk')
+                : fillResult === 'none'
+                ? t('profile.autoFillNone')
+                : fillResult === 'error'
+                ? t('profile.autoFillError')
+                : t('profile.autoFillHint')}
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            loading={filling}
+            onClick={fillFromDocuments}
+            className="shrink-0 text-amber-700 dark:text-amber-300 border border-amber-400/40 hover:bg-amber-100 dark:hover:bg-amber-500/10"
+          >
+            <Sparkles size={13} />
+            {t('profile.autoFillBtn')}
+          </Button>
+        </div>
+      )}
 
       {/* Step rail */}
       <ol className="flex items-center gap-1.5 mb-6" aria-label="Profile steps">

@@ -6,21 +6,14 @@
   font-family: 'Playfair Display', 'Georgia', 'Didot', 'Times New Roman', serif;
   font-weight: 400;
   stroke-width: 2.5px;
-  stroke: #171717;
-}
-
-.dark .logo-text {
-  stroke: #FFFFFF;
+  stroke: currentColor;
 }
 
 /* 1. Static State */
 .logo-static {
   stroke-dasharray: 0;
   stroke-dashoffset: 0;
-  fill: #171717;
-}
-.dark .logo-static {
-  fill: #FFFFFF;
+  fill: currentColor;
 }
 
 /* 2. Animated Loop State */
@@ -28,10 +21,7 @@
   fill: transparent;
   stroke-dasharray: 250;
   stroke-dashoffset: 250;
-  animation: draw-and-fill 3.5s ease-in-out infinite;
-}
-.dark .logo-animated-loop {
-  animation: draw-and-fill-dark 3.5s ease-in-out infinite;
+  animation: draw-and-fill 2.4s ease-in-out infinite;
 }
 
 /* 3. Animated Once State */
@@ -42,30 +32,19 @@
   /* both keeps it invisible before the animation (delay) and filled after */
   animation: draw-and-fill-once 2.8s ease-in-out both;
 }
-.dark .logo-animated-once {
-  animation: draw-and-fill-once-dark 2.8s ease-in-out both;
-}
 
 @keyframes draw-and-fill {
   0% { stroke-dashoffset: 250; fill: transparent; }
-  30% { stroke-dashoffset: 0; fill: transparent; }
-  45% { stroke-dashoffset: 0; fill: #171717; }
-  85% { stroke-dashoffset: 0; fill: #171717; }
-  100% { stroke-dashoffset: 250; fill: transparent; }
-}
-
-@keyframes draw-and-fill-dark {
-  0% { stroke-dashoffset: 250; fill: transparent; }
-  30% { stroke-dashoffset: 0; fill: transparent; }
-  45% { stroke-dashoffset: 0; fill: #FFFFFF; }
-  85% { stroke-dashoffset: 0; fill: #FFFFFF; }
+  35% { stroke-dashoffset: 0; fill: transparent; }
+  50% { stroke-dashoffset: 0; fill: currentColor; }
+  80% { stroke-dashoffset: 0; fill: currentColor; }
   100% { stroke-dashoffset: 250; fill: transparent; }
 }
 
 @keyframes draw-and-fill-once {
   0% { stroke-dashoffset: 250; fill: transparent; }
   60% { stroke-dashoffset: 0; fill: transparent; }
-  100% { stroke-dashoffset: 0; fill: #171717; }
+  100% { stroke-dashoffset: 0; fill: currentColor; }
 }
 
 @keyframes draw-and-fill-once-dark {

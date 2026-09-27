@@ -294,10 +294,11 @@ export default function Landing() {
             a wide void between the logo and the nav links once the bar floats. */}
         <div className="flex items-center flex-shrink-0 min-w-0">
           <Link
-            to="/"
+            to={isAuthed ? '/app' : '/'}
             onClick={(e) => {
               playClick();
-              if (window.location.pathname === '/') {
+              if (!isAuthed && window.location.pathname === '/') {
+                e.preventDefault();
                 if (window.lenis) {
                   window.lenis.scrollTo(0, { duration: 1.2 });
                 } else {

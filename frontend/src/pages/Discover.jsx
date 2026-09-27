@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowRight,
+  Clock,
   Compass,
   Search,
   Sparkles,
+  Trash2,
   TriangleAlert,
 } from 'lucide-react'
 import { api } from '../api/client'
@@ -24,6 +26,25 @@ import {
   cx,
 } from '../components/ui'
 
+const HISTORY_KEY = 'swatva_discover_history'
+const MAX_HISTORY = 10
+
+function loadHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]')
+  } catch {
+    return []
+  }
+}
+
+function pushToHistory(query, result = null) {
+  const trimmed = query.trim()
+  if (!trimmed) return
+  const prev = loadHistory().filter((h) => h.query !== trimmed)
+  const updated = [{ query: trimmed, ts: Date.now(), result }, ...prev].slice(0, MAX_HISTORY)
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(updated))
+}
+
 /**
  * Life-event discovery: describe a situation in plain language and see which
  * schemes surface, with the reason each one appeared.
@@ -39,6 +60,9 @@ export default function Discover() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [data, setData] = useState(null)
+  const [history, setHistory] = useState(loadHistory)
+
+  const refreshHistory = useCallback(() => setHistory(loadHistory()), [])
 
   const submit = async (e) => {
     e.preventDefault()
@@ -46,11 +70,34 @@ export default function Discover() {
     setError(null)
     setData(null)
     try {
-      setData(await api.benefits.discoverLifeEvent(description))
+      const res = await api.benefits.discoverLifeEvent(description)
+      setData(res)
+      pushToHistory(description, res)
+      refreshHistory()
     } catch (err) {
       setError(err?.message || t('discover.failed'))
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSelectHistory = (item) => {
+    setDescription(item.query)
+    if (item.result) {
+      setData(item.result)
+      setError(null)
+    } else {
+      // Re-run if no cached result
+      setLoading(true)
+      api.benefits
+        .discoverLifeEvent(item.query)
+        .then((res) => {
+          setData(res)
+          pushToHistory(item.query, res)
+          refreshHistory()
+        })
+        .catch((err) => setError(err?.message || t('discover.failed')))
+        .finally(() => setLoading(false))
     }
   }
 
@@ -77,11 +124,21 @@ export default function Discover() {
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && description.trim().length >= 5 && !loading) {
+                e.preventDefault()
+                e.target.form?.requestSubmit()
+              }
+            }}
             placeholder={t('discover.placeholder')}
             required
             minLength={5}
             maxLength={2000}
+            aria-describedby="discover-kb-hint"
           />
+          <p id="discover-kb-hint" className="mt-1 text-[11px] text-neutral-400 dark:text-neutral-500">
+            {t('discover.kbHint')}
+          </p>
         </Field>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -117,6 +174,19 @@ export default function Discover() {
           </ul>
         </div>
       </Card>
+
+      {/* Past searches — shown when history exists */}
+      {history.length > 0 && !data ? (
+        <PastSearches
+          history={history}
+          onSelect={handleSelectHistory}
+          onClear={() => {
+            localStorage.removeItem(HISTORY_KEY)
+            setHistory([])
+          }}
+          t={t}
+        />
+      ) : null}
 
       {error ? <Banner tone="error" title={t('discover.failedTitle')}>{error}</Banner> : null}
 
@@ -299,5 +369,76 @@ function ConditionList({ satisfied = [], failed = [], missing = [] }) {
         </div>
       ))}
     </div>
+  )
+}
+
+/** Relative time formatter — keeps the UI lightweight without a date library. */
+function relTime(ts) {
+  const diff = Date.now() - ts
+  const m = Math.floor(diff / 60_000)
+  const h = Math.floor(diff / 3_600_000)
+  const d = Math.floor(diff / 86_400_000)
+  if (m < 1) return 'just now'
+  if (m < 60) return `${m}m ago`
+  if (h < 24) return `${h}h ago`
+  return `${d}d ago`
+}
+
+/** Past searches panel shown below the search form. */
+function PastSearches({ history, onSelect, onClear, t }) {
+  if (!history.length) return null
+  return (
+    <Card className="p-5">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Clock size={14} className="text-neutral-400 dark:text-neutral-500" aria-hidden="true" />
+          <h2 className="text-sm font-bold tracking-tight">{t('discover.historyTitle')}</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClear}
+          aria-label={t('discover.historyClear')}
+          className="flex items-center gap-1 text-[11px] text-neutral-400 dark:text-neutral-500 hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer"
+        >
+          <Trash2 size={12} />
+          {t('discover.historyClear')}
+        </button>
+      </div>
+      <ul className="space-y-1.5">
+        {history.map((h, i) => {
+          const schemeCount = h.result
+            ? (h.result.totalSurfacedSchemes ?? ((h.result.centralSchemes?.length || 0) + (h.result.stateSchemes?.length || 0)))
+            : null
+          return (
+            <li key={i}>
+              <button
+                type="button"
+                onClick={() => onSelect(h)}
+                className="group w-full flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-left bg-neutral-50/70 dark:bg-white/[0.03] hover:bg-neutral-100 dark:hover:bg-white/[0.06] border border-neutral-200/60 dark:border-white/5 transition-all cursor-pointer"
+              >
+                <div className="min-w-0 flex-1">
+                  <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200 group-hover:text-neutral-950 dark:group-hover:text-white transition-colors line-clamp-1">
+                    {h.query}
+                  </span>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    {schemeCount !== null ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-2 py-0.2 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                        ⚡ {schemeCount} schemes found
+                      </span>
+                    ) : null}
+                    <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500">
+                      {relTime(h.ts)}
+                    </span>
+                  </div>
+                </div>
+                <div className="shrink-0 flex items-center text-neutral-400 group-hover:text-neutral-950 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
+                  <ArrowRight size={14} />
+                </div>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </Card>
   )
 }

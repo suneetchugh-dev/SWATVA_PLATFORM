@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileStack, Plus, RefreshCw, Trash2, Upload } from 'lucide-react'
+import { FileStack, Plus, Trash2, Upload } from 'lucide-react'
 import { api } from '../api/client'
 import {
   Badge,
@@ -28,6 +28,28 @@ const DOC_TYPES = [
   'EDUCATION_CERTIFICATE', 'OFFICIAL_ID', 'OTHER',
 ]
 
+/**
+ * Per-document-type field visibility rules.
+ * showIssue  — whether to show the "Issue date" field
+ * showExpiry — whether to show the "Expiry date" field
+ * showAuthority — whether to show "Issuing authority"
+ *
+ * Aadhaar never expires under UIDAI rules (as of 2023); Ration Cards and Bank
+ * passbooks do not have a formal expiry; Electricity bills are point-in-time.
+ */
+const DOC_FIELD_CONFIG = {
+  AADHAAR:               { showIssue: true,  showExpiry: false, showAuthority: true  },
+  INCOME_CERTIFICATE:    { showIssue: true,  showExpiry: true,  showAuthority: true  },
+  CASTE_CERTIFICATE:     { showIssue: true,  showExpiry: true,  showAuthority: true  },
+  RATION_CARD:           { showIssue: true,  showExpiry: false, showAuthority: true  },
+  RESIDENCE_PROOF:       { showIssue: true,  showExpiry: true,  showAuthority: true  },
+  BANK_ACCOUNT:          { showIssue: false, showExpiry: false, showAuthority: true  },
+  ELECTRICITY_CONNECTION:{ showIssue: true,  showExpiry: false, showAuthority: true  },
+  EDUCATION_CERTIFICATE: { showIssue: true,  showExpiry: false, showAuthority: true  },
+  OFFICIAL_ID:           { showIssue: true,  showExpiry: true,  showAuthority: true  },
+  OTHER:                 { showIssue: true,  showExpiry: true,  showAuthority: true  },
+}
+
 const STATUS_STYLES = {
   ACTIVE: 'text-amber-700 dark:text-amber-400 border-amber-500/30 bg-amber-500/10',
   EXPIRED: 'text-neutral-600 dark:text-neutral-300 border-neutral-300 dark:border-white/20 bg-neutral-500/10',
@@ -47,6 +69,17 @@ const isExpired = (d) => {
   return !Number.isNaN(dt.getTime()) && dt.getTime() < Date.now()
 }
 
+/** Convert a date string like "DD/MM/YYYY" or ISO to YYYY-MM-DD for input[type=date]. */
+function toInputDate(raw) {
+  if (!raw) return ''
+  // Already ISO
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10)
+  // DD/MM/YYYY
+  const m = raw.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})/)
+  if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`
+  return ''
+}
+
 export default function Documents() {
   const { t } = useTranslation()
   const [docs, setDocs] = useState(null)
@@ -63,6 +96,16 @@ export default function Documents() {
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef(null)
 
+  // When doc type changes, clear dates/authority that don't apply
+  const handleDocTypeChange = (newType) => {
+    setDocType(newType)
+    const cfg = DOC_FIELD_CONFIG[newType] ?? DOC_FIELD_CONFIG.OTHER
+    if (!cfg.showIssue) setIssueDate('')
+    if (!cfg.showExpiry) setExpiryDate('')
+  }
+
+  const fieldCfg = DOC_FIELD_CONFIG[docType] ?? DOC_FIELD_CONFIG.OTHER
+
   const load = () => {
     setLoading(true)
     api.documents
@@ -73,6 +116,28 @@ export default function Documents() {
   }
 
   useEffect(load, [])
+
+  /** When a file is chosen, infer the doc type from the filename and pre-fill the display name.
+   *  Actual upload happens only when the user clicks "Save document" so they can review first. */
+  const handleFileChange = () => {
+    const file = fileRef.current?.files?.[0]
+    if (!file) return
+
+    // Auto-fill display name from filename (strip extension)
+    if (!filename) {
+      setFilename(file.name.replace(/\.[^.]+$/, ''))
+    }
+
+    // Infer document type from filename keywords
+    const lc = file.name.toLowerCase()
+    if (lc.includes('aadhaar') || lc.includes('aadhar')) handleDocTypeChange('AADHAAR')
+    else if (lc.includes('income')) handleDocTypeChange('INCOME_CERTIFICATE')
+    else if (lc.includes('caste')) handleDocTypeChange('CASTE_CERTIFICATE')
+    else if (lc.includes('ration')) handleDocTypeChange('RATION_CARD')
+    else if (lc.includes('bank') || lc.includes('passbook')) handleDocTypeChange('BANK_ACCOUNT')
+    else if (lc.includes('electric')) handleDocTypeChange('ELECTRICITY_CONNECTION')
+    else if (lc.includes('edu') || lc.includes('marksheet') || lc.includes('degree')) handleDocTypeChange('EDUCATION_CERTIFICATE')
+  }
 
   const register = async (event) => {
     event.preventDefault()
@@ -293,32 +358,66 @@ export default function Documents() {
           </div>
 
           <form onSubmit={register} className="mt-5 grid gap-4 sm:grid-cols-2 min-w-0">
+            {/* Document type — changing this updates placeholder + visible fields */}
             <Field label={t('documents.type')} htmlFor="docType" required>
-              <Select id="docType" value={docType} onChange={(e) => setDocType(e.target.value)}>
+              <Select id="docType" value={docType} onChange={(e) => handleDocTypeChange(e.target.value)}>
                 {DOC_TYPES.map((v) => <option key={v} value={v}>{t(`documents.types.${v}`)}</option>)}
               </Select>
             </Field>
+
+            {/* File — infers type+name from filename on selection */}
             <Field label={t('documents.file')} htmlFor="docFile" hint={t('documents.fileHint')}>
               <input
                 id="docFile"
                 ref={fileRef}
                 type="file"
                 accept="application/pdf,image/*"
+                onChange={handleFileChange}
                 className="w-full text-xs text-neutral-600 dark:text-neutral-300 file:mr-3 file:rounded-full file:border-0 file:bg-neutral-100 dark:file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-800 dark:file:text-neutral-100 cursor-pointer"
               />
             </Field>
+
+            {/* Display name — placeholder reflects the selected document type */}
             <Field label={t('documents.displayName')} htmlFor="filename" hint={t('common.optional')}>
-              <Input id="filename" value={filename} onChange={(e) => setFilename(e.target.value)} placeholder={t('documents.types.AADHAAR')} />
+              <Input
+                id="filename"
+                value={filename}
+                onChange={(e) => setFilename(e.target.value)}
+                placeholder={t(`documents.types.${docType}`)}
+              />
             </Field>
-            <Field label={t('documents.authority')} htmlFor="authority" hint={t('common.optional')}>
-              <Input id="authority" value={authority} onChange={(e) => setAuthority(e.target.value)} placeholder="UIDAI" />
-            </Field>
-            <Field label={t('documents.issueDate')} htmlFor="issueDate">
-              <Input id="issueDate" type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
-            </Field>
-            <Field label={t('documents.expiryDate')} htmlFor="expiryDate" hint={t('documents.expiryHint')}>
-              <Input id="expiryDate" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
-            </Field>
+
+            {/* Issuing authority */}
+            {fieldCfg.showAuthority && (
+              <Field label={t('documents.authority')} htmlFor="authority" hint={t('common.optional')}>
+                <Input
+                  id="authority"
+                  value={authority}
+                  onChange={(e) => setAuthority(e.target.value)}
+                  placeholder={
+                    docType === 'AADHAAR' ? 'UIDAI'
+                    : docType === 'INCOME_CERTIFICATE' || docType === 'CASTE_CERTIFICATE' ? 'District Magistrate'
+                    : docType === 'EDUCATION_CERTIFICATE' ? 'Board / University'
+                    : 'Issuing authority'
+                  }
+                />
+              </Field>
+            )}
+
+            {/* Issue date — hidden for Bank Account (no formal issue date) */}
+            {fieldCfg.showIssue && (
+              <Field label={t('documents.issueDate')} htmlFor="issueDate" hint={t('common.optional')}>
+                <Input id="issueDate" type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+              </Field>
+            )}
+
+            {/* Expiry date — hidden for Aadhaar, Ration Card, Bank Account, Electricity, Education */}
+            {fieldCfg.showExpiry && (
+              <Field label={t('documents.expiryDate')} htmlFor="expiryDate" hint={t('documents.expiryHint')}>
+                <Input id="expiryDate" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
+              </Field>
+            )}
+
             <div className="sm:col-span-2 flex items-center gap-3 pt-2">
               <Button type="submit" variant="accent" loading={uploading}>
                 <Upload size={15} />

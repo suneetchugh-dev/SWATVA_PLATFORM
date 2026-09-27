@@ -1,7 +1,10 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
+  Bell,
+  ChevronDown,
+  ChevronRight,
   Compass,
   FileStack,
   LayoutDashboard,
@@ -9,26 +12,23 @@ import {
   MessageSquare,
   Scale,
   Settings,
+  ShieldCheck,
+  Users2,
 } from 'lucide-react'
 import { api, getStoredUser } from '../api/client'
 import { useTheme } from '../lib/theme'
 import { PILL_TRANSITION, useSlidingPill } from '../lib/useSlidingPill'
 import PreferencesModal from '../components/PreferencesModal'
+import MeetTeamModal from '../components/MeetTeamModal'
+import NotificationBadge from '../components/NotificationBadge'
+import NotificationsPopover from '../components/NotificationsPopover'
+import GuidedTour from '../components/GuidedTour'
 import ThemeToggle from '../components/ThemeToggle'
 import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
 import { playClick } from '../utils/soundFx'
 
 // Routes are stable; only the labels are translated.
-// Per-scheme readiness (/app/readiness/:id) is deliberately absent: it is a
-// drill-down from a match, not a top-level destination, so it has no nav entry.
-//
-// The app has one job — find the schemes you qualify for, then apply — so the
-// nav is that journey and nothing else: Home, Discover, Matches, Documents,
-// Assistant. Per-scheme readiness, profile, benefits and transparency stay off
-// the bar: readiness is a drill-down, profile and benefits are account/aggregate
-// views, transparency is a trust showcase. All four remain routed and are one
-// tap from Home, which links each of them, so no screen is orphaned.
 const NAV = [
   { to: '/app', key: 'home', icon: LayoutDashboard, end: true },
   { to: '/app/discover', key: 'discover', icon: Compass },
@@ -37,27 +37,22 @@ const NAV = [
   { to: '/app/assistant', key: 'assistant', icon: MessageSquare },
 ]
 
-// Mirrors NavLink's own matching so the pill and the router never disagree about
-// which item is current. `end` items match only the exact path, otherwise a
-// prefix match — `/app` would otherwise swallow every child route.
 const isNavItemActive = ({ to, end }, pathname) =>
   end ? pathname === to : pathname === to || pathname.startsWith(`${to}/`)
 
-// Shared by both bars so the two rows can never drift apart.
 const renderNavItem = ({ to, key, icon: Icon, end }, t, cx, index, variant) =>
   (
     <NavLink
       key={to}
       to={to}
       end={end}
+      data-tour={`nav-${key}`}
       data-pill-idx={index}
       className={({ isActive }) =>
         cx(
           variant === 'bar'
             ? 'relative flex-1 flex flex-col items-center gap-1 py-2 rounded-xl text-[10px] font-semibold transition-colors min-h-[44px]'
             : 'relative inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-medium transition-colors',
-          // No background here: the travelling pill is the only thing that paints
-          // the fill, otherwise two highlights show at once mid-transition.
           isActive
             ? variant === 'bar'
               ? 'text-white dark:text-neutral-950'
@@ -79,16 +74,50 @@ export default function AppShell() {
   const { t, i18n } = useTranslation()
   const { dark, toggle } = useTheme()
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false)
+  const [isTeamOpen, setIsTeamOpen] = useState(false)
+  const [isNotifOpen, setIsNotifOpen] = useState(false)
+  const [isAccountOpen, setIsAccountOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(4)
+  const [profileName, setProfileName] = useState('')
+
+  const accountMenuRef = useRef(null)
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const user = getStoredUser()
 
-  // The pill is driven by the location rather than by NavLink's own render, so
-  // the highlight and the router can never disagree about which item is current.
+  useEffect(() => {
+    let cancelled = false
+    api.user
+      .getMe()
+      .then((data) => {
+        if (cancelled) return
+        if (data?.fullName) setProfileName(data.fullName)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) {
+        setIsAccountOpen(false)
+      }
+    }
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsAccountOpen(false)
+    }
+
+    if (isAccountOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isAccountOpen])
+
   const activeIndex = NAV.findIndex((item) => isNavItemActive(item, pathname))
-  // Both bars track together, so the phone and desktop highlights stay in step.
-  // The language is a dependency because switching it relabels every item, which
-  // changes their widths and leaves the pill the size of the previous language.
   const { trackRef: topTrackRef, pill: topPill } = useSlidingPill(
     NAV.length,
     activeIndex,
@@ -105,17 +134,21 @@ export default function AppShell() {
     navigate('/', { replace: true })
   }
 
+  const displayName = profileName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
+  const initial = (displayName[0] || 'S').toUpperCase()
+
   return (
     <div className="min-h-dvh w-full bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">
       <header className="sticky top-0 z-40 pt-3 px-3 sm:px-5">
         <div className="mx-auto max-w-7xl neo-glass-card px-3 sm:px-4 py-2.5 flex items-center gap-4">
-          {/* Logo link: brings user back to home page */}
+          {/* Logo link: takes logged-in users to dashboard home */}
           <Link
-            to="/"
+            to="/app"
+            data-tour="brand"
             onClick={playClick}
             className="flex items-center gap-2.5 min-w-0 group cursor-pointer flex-shrink-0"
-            title="Home"
-            aria-label="Home"
+            title="Dashboard"
+            aria-label="Dashboard home"
           >
             <div className="relative flex items-center justify-center flex-shrink-0">
               <span
@@ -126,13 +159,7 @@ export default function AppShell() {
             </div>
           </Link>
 
-          {/* Horizontal nav from `lg` up; the bottom bar takes over below it.
-              The bar is wide, but the links stay packed: the row is `flex-shrink-0`
-              with a plain `gap-1` instead of a `flex-1 justify-between` track,
-              which used to hand every one of the five items an equal slice of the
-              slack and opened ~110px holes between short labels. The leftover
-              width collects in one place, before the account cluster, which is
-              what `ml-auto` below is for. */}
+          {/* Center Navigation Bar */}
           <nav
             ref={topTrackRef}
             className="hidden lg:flex flex-shrink-0 items-center gap-1 ml-4 relative"
@@ -154,35 +181,150 @@ export default function AppShell() {
             {NAV.map((item, index) => renderNavItem(item, t, cx, index, 'pill'))}
           </nav>
 
-          <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-            {/* Preferences Button triggering Lightbox Modal */}
-            <button
-              type="button"
-              onClick={() => { playClick(); setIsPreferencesOpen(true); }}
-              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border border-neutral-200/80 dark:border-white/20 bg-neutral-100/80 dark:bg-white/[0.06] hover:bg-neutral-200/70 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white transition-all shadow-2xs backdrop-blur-md group"
-              aria-label="Preferences"
-              title="Preferences"
-            >
-              <Settings size={14} className="text-neutral-600 dark:text-neutral-300 group-hover:rotate-90 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-            </button>
+          {/* Right side Navbar Actions (SAHNIRMAAN Style) */}
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0 ml-auto">
+            {/* Notification Bell with Badge & Popover */}
+            <div className="relative">
+              <button
+                type="button"
+                data-tour="notifications"
+                onClick={() => {
+                  playClick()
+                  setIsNotifOpen((prev) => !prev)
+                }}
+                className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border border-neutral-200/80 dark:border-white/20 bg-neutral-100/80 dark:bg-white/[0.06] hover:bg-neutral-200/70 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white transition-all shadow-2xs backdrop-blur-md focus:outline-none group"
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <NotificationBadge count={unreadCount} ping={unreadCount > 0}>
+                  <Bell size={14} className="text-neutral-700 dark:text-neutral-200 group-hover:text-neutral-950 dark:group-hover:text-white transition-all duration-200" />
+                </NotificationBadge>
+              </button>
 
-            {/* Shared toggle so the dashboard gets the same 360° spin physics as
-                the landing header, instead of a bare sun/moon swap. */}
+              <NotificationsPopover
+                isOpen={isNotifOpen}
+                onClose={() => setIsNotifOpen(false)}
+                onUnreadChange={setUnreadCount}
+              />
+            </div>
+
+            {/* Theme toggle */}
             <ThemeToggle darkMode={dark} toggleTheme={toggle} />
-            <span
-              className="hidden sm:inline mono-badge text-neutral-500 dark:text-neutral-400 max-w-[10rem] truncate"
-              title={user?.email}
-            >
-              {user?.email}
-            </span>
-            <button
-              type="button"
-              onClick={signOut}
-              className="h-9 px-3 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer inline-flex items-center gap-1.5"
-            >
-              <LogOut size={13} />
-              <span className="hidden sm:inline">{t('common.signOut')}</span>
-            </button>
+
+            {/* Hairline Divider */}
+            <div aria-hidden="true" className="h-6 w-px bg-neutral-300/80 dark:bg-white/20 flex-shrink-0" />
+
+            {/* Profile Avatar Trigger with Glowing Ring & Dropdown */}
+            <div className="relative" ref={accountMenuRef}>
+              <button
+                type="button"
+                data-tour="profile"
+                onClick={() => {
+                  playClick()
+                  setIsAccountOpen((prev) => !prev)
+                }}
+                className="flex items-center gap-1.5 rounded-full cursor-pointer border border-neutral-200/80 dark:border-white/15 bg-neutral-100/80 dark:bg-white/[0.06] hover:bg-neutral-200/70 dark:hover:bg-white/15 p-0.5 pr-1.5 transition-all shadow-2xs backdrop-blur-md focus:outline-none group"
+                aria-label="User Account"
+                title={displayName}
+              >
+                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/20 ring-2 ring-amber-400/80 shadow-[0_0_12px_rgba(245,158,11,0.55)] flex items-center justify-center font-bold text-xs uppercase text-neutral-800 dark:text-neutral-200">
+                  {initial}
+                </div>
+                <ChevronDown
+                  size={12}
+                  className={`text-neutral-700 dark:text-neutral-200 transition-transform duration-200 ${isAccountOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {/* Profile Dropdown Card Popover */}
+              {isAccountOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-white dark:bg-[#151618] border border-neutral-200 dark:border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 font-sans">
+                  {/* Identity Header */}
+                  <div className="flex flex-col items-center text-center px-4 pt-5 pb-4 border-b border-neutral-100 dark:border-white/5">
+                    <div className="h-14 w-14 rounded-full overflow-hidden mb-2.5 bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/15 flex items-center justify-center flex-shrink-0 shadow-sm ring-2 ring-amber-400/80 shadow-[0_0_14px_rgba(245,158,11,0.5)] text-lg font-bold uppercase text-neutral-800 dark:text-neutral-200">
+                      {initial}
+                    </div>
+                    <div className="flex items-center justify-center space-x-1.5 min-w-0 max-w-full">
+                      <span className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+                        {displayName}
+                      </span>
+                      <ShieldCheck size={14} className="text-amber-500 flex-shrink-0 hover:scale-125 transition-transform duration-300 cursor-default" />
+                    </div>
+                    <div className="text-[11px] text-neutral-400 dark:text-neutral-500 truncate max-w-full mt-0.5">
+                      {user?.email || 'citizen@swatva.in'}
+                    </div>
+                  </div>
+
+                  {/* Dropdown Actions */}
+                  <div className="py-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playClick()
+                        setIsAccountOpen(false)
+                        setIsPreferencesOpen(true)
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition cursor-pointer text-left group"
+                    >
+                      <span className="flex items-center space-x-3 min-w-0">
+                        <Settings 
+                          size={15} 
+                          className="flex-shrink-0 text-neutral-400 dark:text-neutral-500 origin-center transform-gpu transition-transform duration-300 ease-out group-hover:rotate-45 group-hover:text-neutral-950 dark:group-hover:text-white" 
+                        />
+                        <span className="text-xs font-medium text-neutral-700 dark:text-neutral-200 group-hover:text-neutral-950 dark:group-hover:text-white transition-colors truncate">
+                          {i18n.language === 'hi' ? 'प्राथमिकताएं एवं सेटिंग्स' : 'Preferences'}
+                        </span>
+                      </span>
+                      <ChevronRight size={14} className="text-neutral-300 dark:text-neutral-600 flex-shrink-0 group-hover:translate-x-0.5 group-hover:text-neutral-900 dark:group-hover:text-white transition-all duration-200" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playClick()
+                        setIsAccountOpen(false)
+                        navigate('/team')
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition cursor-pointer text-left group"
+                    >
+                      <span className="flex items-center space-x-3 min-w-0">
+                        <Users2 
+                          size={15} 
+                          className="flex-shrink-0 text-neutral-400 dark:text-neutral-500 origin-center transform-gpu transition-transform duration-300 ease-out group-hover:scale-110 group-hover:text-neutral-950 dark:group-hover:text-white" 
+                        />
+                        <span className="text-xs font-medium text-neutral-700 dark:text-neutral-200 group-hover:text-neutral-950 dark:group-hover:text-white transition-colors truncate">
+                          Meet TheQuirkies
+                        </span>
+                      </span>
+                      <ChevronRight size={14} className="text-neutral-300 dark:text-neutral-600 flex-shrink-0 group-hover:translate-x-0.5 group-hover:text-neutral-900 dark:group-hover:text-white transition-all duration-200" />
+                    </button>
+
+                    <div className="my-1 h-px bg-neutral-100 dark:bg-white/5" />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playClick()
+                        setIsAccountOpen(false)
+                        signOut()
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-red-50/70 dark:hover:bg-red-500/[0.08] transition cursor-pointer text-left group"
+                    >
+                      <span className="flex items-center space-x-3 min-w-0">
+                        <LogOut 
+                          size={15} 
+                          className="flex-shrink-0 text-red-500 dark:text-red-400 origin-center transform-gpu transition-all duration-300 ease-out group-hover:translate-x-0.5 group-hover:text-red-600 dark:group-hover:text-red-300" 
+                        />
+                        <span className="text-xs font-medium text-red-600 dark:text-red-400 group-hover:text-red-700 dark:group-hover:text-red-300 transition-colors truncate">
+                          {t('common.signOut')}
+                        </span>
+                      </span>
+                      <ChevronRight size={14} className="text-neutral-300 dark:text-neutral-600 flex-shrink-0 group-hover:translate-x-0.5 group-hover:text-red-500 dark:group-hover:text-red-400 transition-all duration-200" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -192,16 +334,18 @@ export default function AppShell() {
         onClose={() => setIsPreferencesOpen(false)}
       />
 
+      <MeetTeamModal
+        isOpen={isTeamOpen}
+        onClose={() => setIsTeamOpen(false)}
+      />
+
+      <GuidedTour />
+
       <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-10 pb-28 lg:pb-10">
         <Outlet />
       </main>
 
-      {/* Bottom bar on phones only. Respects the home-indicator inset.
-          `flex-1` on every item gives each one an identical share of the track,
-          so the spacing is equal by construction rather than by a fixed gap.
-          Five targets is the whole nav, so there is a single row and no
-          breakpoint variant to keep in sync. The highlight travels here for the
-          same reason it does on the top bar. */}
+      {/* Bottom bar on phones only */}
       <nav className="app-bottom-bar lg:hidden fixed bottom-0 inset-x-0 z-40 px-3 pb-3 pt-2 pb-safe" aria-label={t('nav.main')}>
         <div className="neo-glass-card px-2 py-1.5">
           <div ref={bottomTrackRef} className="relative flex items-stretch">
