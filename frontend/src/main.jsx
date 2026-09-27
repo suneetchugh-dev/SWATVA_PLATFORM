@@ -6,6 +6,7 @@ import './lib/i18n'
 
 import { getToken } from './api/client'
 import { ThemeProvider } from './lib/theme'
+import SplashLoader from './components/SplashLoader'
 
 import App from './App.jsx' // the original developer console, kept at /console
 import AppShell from './layouts/AppShell.jsx'
@@ -28,6 +29,7 @@ function RequireAuth({ children }) {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider>
+      <SplashLoader />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />

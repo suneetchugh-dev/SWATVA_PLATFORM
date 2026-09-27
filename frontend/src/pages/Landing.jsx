@@ -19,6 +19,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '../lib/theme'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import LoadingLogo from '../components/LoadingLogo'
+import { isInitialSplashFinished } from '../components/SplashLoader'
 
 /* ------------------------------------------------------------------ *
  * Copy. Kept in one place so the English/Hindi pass (i18next) is a
@@ -202,9 +204,7 @@ export default function Landing() {
       <header className="fixed top-0 inset-x-0 z-50 pt-3 px-3 sm:px-5">
         <nav className="mx-auto max-w-6xl neo-glass-card px-3 sm:px-4 py-2.5 flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2.5 min-w-0">
-            <span className="h-8 w-8 flex items-center justify-center rounded-lg bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex-shrink-0">
-              <Landmark size={16} strokeWidth={2.2} />
-            </span>
+            <LoadingLogo animate={true} loop={false} delay={isInitialSplashFinished ? 0 : 1400} />
             <span className="font-bold text-sm tracking-tight truncate">{t('common.appName')}</span>
           </Link>
 
@@ -450,9 +450,7 @@ export default function Landing() {
       <footer className="border-t border-neutral-200 dark:border-white/10 pt-safe pb-safe">
         <div className="mx-auto max-w-6xl px-6 py-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <span className="h-7 w-7 flex items-center justify-center rounded-lg bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
-              <Landmark size={14} strokeWidth={2.2} />
-            </span>
+            <LoadingLogo size="h-7 w-7" animate={false} />
             <span className="text-xs font-bold tracking-tight">Swatva AI</span>
           </div>
           <p className="text-[11px] text-neutral-500 dark:text-neutral-400 max-w-md">{t('landing.footer.note')}</p>

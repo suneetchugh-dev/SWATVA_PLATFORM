@@ -47,7 +47,7 @@ export default function App() {
       {/* Top Header */}
       <header className="app-header">
         <div className="brand-title">
-          <LoadingLogo size="h-6 w-6" />
+          <LoadingLogo size="h-6 w-6" animate={false} />
           <span>Swatva AI — Backend Test Console</span>
         </div>
 
