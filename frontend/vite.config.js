@@ -25,7 +25,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      injectRegister: null,
       includeAssets: [
         'favicon.svg',
         'icons.svg',
@@ -153,9 +153,6 @@ export default defineConfig({
             },
           },
         ],
-      },
-      devOptions: {
-        enabled: true,
       },
     }),
   ],
