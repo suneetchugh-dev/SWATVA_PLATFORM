@@ -1,103 +1,109 @@
-# Swatva AI backend
+# Swatva AI — Backend Service
 
-Foundation for Swatva AI, a personalized government-benefit discovery platform for Indian citizens. It is a single Spring Boot modular monolith: domain packages are separated in code while the service is deployed as one application.
+The core backend service for **SWATVA AI**, a personalized government-benefit discovery platform for Indian citizens. This repository branch is dedicated exclusively to the backend service: a Java 21 / Spring Boot modular monolith powered by PostgreSQL and Qdrant.
 
-## Technology
+> **Note on Branching**: This `backend` branch contains only the Spring Boot service code. For the UI, see the `frontend` branch. For the integrated full platform, see `develop` and `main`. Detailed workflow: [`BRANCHES.md`](BRANCHES.md).
 
-- Java 21, Spring Boot, Spring Web, Spring Security
-- Spring Data JPA, PostgreSQL, Bean Validation
-- Maven and Lombok (available for future boilerplate reduction)
+---
 
-The foundation provides module boundaries for `auth`, `user`, `scheme`, `eligibility`, `document`, `readiness`, `transparency`, `notification`, `ai`, and `common`. It contains no business features, vector database integration, LLM integration, or frontend.
+## Technology Stack
 
-## Prerequisites
+- **Runtime**: Java 21, Maven 3.9+
+- **Framework**: Spring Boot 3.5.7, Spring Security (Stateless JWT), Spring Data JPA
+- **Databases**:
+  - PostgreSQL 15+ (Structured scheme rules, citizen profiles, documents, transparency reports)
+  - Qdrant (Vector embeddings for scheme RAG retrieval & semantic Q&A)
+- **Validation & Serialization**: Bean Validation, Hibernate `jsonb` mapping, Jackson
 
-- JDK 21
-- Maven 3.9+
-- PostgreSQL 15+ (or compatible)
+---
 
-Create the local database:
+## Module Boundaries
+
+The backend service is structured into modular packages under `in.swatva`:
+- `auth`: BCrypt hashing, JWT issuance and stateless authentication filter.
+- `user`: Progressive citizen profile, demographic criteria, and family members.
+- `scheme`: Verified Central and State schemes catalogue, seeders, and action checklist.
+- `eligibility`: Deterministic rule evaluator (evaluates `MIN_AGE`, `MAX_AGE`, `MAX_INCOME`, `STATE`, `OCCUPATION`, `CATEGORY`, `GENDER`, `DISABILITY_STATUS`).
+- `readiness`: Application readiness engine computing red/yellow/green traffic-light status based on required documents.
+- `document`: Citizen document locker, OCR metadata extraction, and state-specific validity rules.
+- `ai`: Qdrant vector indexing, scheme chunking, semantic RAG search, and multi-turn chat assistant.
+- `transparency`: Citizen transparency reports, fee tracking, and grievance statistics.
+- `common`: Cross-cutting API envelope (`ApiResponse<T>`), base entity with audit timestamps, global exception handling.
+
+---
+
+## Prerequisites & Setup
+
+### 1. Database Setup
+
+Create the local PostgreSQL database:
 
 ```sql
 CREATE DATABASE swatva_ai;
 ```
 
-## Configure and run
+### 2. Environment Configuration
 
-Set secrets through the environment; do not commit credentials:
+```bash
+# PostgreSQL
+export DB_URL="jdbc:postgresql://localhost:5432/swatva_ai"
+export DB_USERNAME="postgres"
+export DB_PASSWORD="your-password"
+export JPA_DDL_AUTO="update"
 
-```powershell
-$env:DB_URL = "jdbc:postgresql://localhost:5432/swatva_ai"
-$env:DB_USERNAME = "postgres"
-$env:DB_PASSWORD = "your-password"
-$env:JPA_DDL_AUTO = "validate"
+# Security
+export JWT_SECRET="a-long-random-secret-with-at-least-32-bytes"
+export JWT_EXPIRATION_MINUTES="1440"
+
+# Qdrant Vector DB & AI
+export QDRANT_HOST="localhost"
+export QDRANT_PORT="6334"
+export QDRANT_COLLECTION_NAME="swatva_schemes"
+export OPENAI_API_KEY="demo-key"
 ```
 
-Start the service:
+### 3. Build & Run
 
-```powershell
+```bash
+# Run locally with Maven
 mvn spring-boot:run
-```
 
-Or build and run the JAR:
-
-```powershell
-mvn clean package
+# Or package into an executable JAR
+mvn clean package -DskipTests
 java -jar target/swatva-ai-0.0.1-SNAPSHOT.jar
 ```
 
-Verify the public foundation endpoint:
-
-```powershell
-Invoke-RestMethod http://localhost:8080/api/v1/health
+Verify health:
+```bash
+curl http://localhost:8080/api/v1/health
 ```
 
-All API responses use a shared envelope: `success`, `data`, `error`, and UTC `timestamp`. Errors have a stable `code`, safe `message`, and validation `fieldErrors` where relevant.
+---
 
-## Configuration
+## Seeded Scheme Catalogue (20 Verified Schemes)
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `DB_URL` | `jdbc:postgresql://localhost:5432/swatva_ai` | JDBC connection URL |
-| `DB_USERNAME` | `postgres` | Database user |
-| `DB_PASSWORD` | `postgres` | Database password |
-| `JPA_DDL_AUTO` | `validate` | Hibernate schema policy |
-| `SERVER_PORT` | `8080` | HTTP port |
-| `APP_LOG_LEVEL` | `INFO` | Application log level |
-| `QDRANT_HOST` | `localhost` | Qdrant vector database hostname |
-| `QDRANT_PORT` | `6334` | Qdrant gRPC port |
-| `QDRANT_API_KEY` | (empty) | Qdrant API key |
-| `QDRANT_COLLECTION_NAME` | `swatva_schemes` | Qdrant vector collection name |
-| `OPENAI_API_KEY` | `demo-key` | OpenAI API key for embeddings and LLM |
+On startup, `SchemeDataInitializer` seeds a verified catalogue of **20 real government schemes**:
+- **6 Central Government schemes**: PM-KISAN, AB-PMJAY, PMJDY, PMJJBY, PMSBY, PM Vishwakarma
+- **14 Uttar Pradesh Government schemes**: Mukhyamantri Kanya Sumangala, UP Vridhavastha Pension, UP Nirashrit Mahila Pension, UP Divyangjan Pension, UP Shadi Anudan, UP Post-Matric Scholarship, UP Gopalak Yojana, UP Krishak Durghatna Kalyan, Mukhyamantri Abhyudaya, DigiShakti, UP Bal Seva Yojana, UP Vishwakarma Shram Samman, ODOP Margin Money, UP Gramodyog Rozgar
 
-When adding the first entities, introduce versioned migrations. `JPA_DDL_AUTO=update` may be used only for local, short-lived development schemas.
+For complete rule definitions and official government sources, refer to [`DATASET.md`](DATASET.md).
 
-## Seeded scheme catalogue (20 Verified Schemes)
+---
 
-On startup, the service idempotently seeds a verified demo catalogue of **20 real government schemes**:
-- **6 Central Government schemes** (PM-KISAN, AB-PMJAY, PMJDY, PMJJBY, PMSBY, PM Vishwakarma)
-- **14 Uttar Pradesh Government schemes** (Mukhyamantri Kanya Sumangala, UP Vridhavastha Pension, UP Nirashrit Mahila Pension, UP Divyangjan Pension, UP Shadi Anudan, UP Post-Matric Scholarship, UP Gopalak Yojana, UP Krishak Durghatna Kalyan, Mukhyamantri Abhyudaya, DigiShakti, UP Bal Seva Yojana, UP Vishwakarma Shram Samman, ODOP Margin Money, UP Gramodyog Rozgar)
+## API Reference
 
-For full details, official sources, and eligibility criteria, see [`DATASET.md`](DATASET.md).
+All responses use the shared API envelope: `ApiResponse<T>` (`success`, `data`, `error`, `timestamp`).
 
-The public catalogue endpoints are:
-
+### Public Catalogue & Health
 ```text
-GET /api/schemes
-GET /api/schemes/{id}
-GET /api/schemes?level=CENTRAL
-GET /api/schemes?level=STATE&state=Uttar%20Pradesh
+GET  /api/v1/health
+GET  /api/schemes
+GET  /api/schemes/{id}
+GET  /api/schemes?level=CENTRAL
+GET  /api/schemes?level=STATE&state=Uttar%20Pradesh
 ```
 
-## Authentication and profile
-
-JWT authentication uses BCrypt password hashes. Set a distinct secret outside local development:
-
-```powershell
-$env:JWT_SECRET = "a-long-random-secret-with-at-least-32-bytes"
-$env:JWT_EXPIRATION_MINUTES = "1440"
-```
-
+### Authentication & Profile
 ```text
 POST /api/auth/register
 POST /api/auth/login
@@ -105,74 +111,35 @@ GET  /api/users/me
 PUT  /api/users/me/profile
 ```
 
-Send `Authorization: Bearer <accessToken>` to the protected user endpoints. Profile updates are incremental: omit a field to leave it unchanged. Supplying `familyMembers` replaces that list; omitting it leaves the stored family information unchanged.
-
-## Eligibility matches
-
+### Eligibility & Benefits
 ```text
-GET /api/eligibility/matches
+GET  /api/eligibility/matches           # Deterministic rule evaluation
+GET  /api/benefits/recommended          # Recommended schemes by level
+GET  /api/benefits/missed-value         # Estimated annual monetary benefit
+POST /api/benefits/life-event           # Life-event based discovery
+GET  /api/schemes/{id}/checklist        # Action checklist for scheme
+GET  /api/readiness/scheme/{schemeId}   # Readiness score (RED/YELLOW/GREEN)
 ```
 
-This JWT-protected endpoint evaluates active Central schemes and State schemes for the user's recorded state. It returns deterministic results from persisted structured rules, including satisfied, failed, and missing conditions. Missing profile data is reported as missing information, not as automatic ineligibility.
-
-## Personalized Benefits & Missed Value
-
+### Document Locker & AI Layer
 ```text
-GET /api/benefits/recommended
-GET /api/benefits/missed-value
+GET  /api/documents                     # List stored documents
+POST /api/documents                     # Register/upload document
+POST /api/documents/{id}/validate       # Validate document against rules
+POST /api/ai/scheme-query               # Semantic RAG search across scheme docs
+POST /api/ai/scheme/{id}/explanation    # AI-grounded explanation of match
+POST /api/ai/index                      # Index chunks to Qdrant
+POST /api/chat                          # Conversational assistance
+POST /api/transparency/reports          # Anonymous report submission
+GET  /api/transparency/summary          # Aggregate transparency statistics
 ```
 
-- **Recommended Benefits (`GET /api/benefits/recommended`)**: Returns personalized scheme matches separated into Central and State benefits along with an Action Checklist for each scheme.
-- **Missed Benefits Value (`GET /api/benefits/missed-value`)**: Calculates the estimated total annual monetary benefit from verified scheme data for unclaimed, potentially eligible schemes (`totalEstimatedAnnualBenefit`, `central`, `state`, per-scheme `breakdown`). Schemes with non-monetary or unknown values are excluded without inventing numbers. Clearly disclaims financial guarantees.
- 
-## AI & RAG Layer
+---
 
-```text
-POST /api/ai/scheme-query
-POST /api/ai/scheme/{id}/explanation
-POST /api/ai/index
+## Running Tests
+
+Unit and integration tests are under `src/test/java`:
+
+```bash
+mvn test
 ```
-
-- **Semantic Q&A (`POST /api/ai/scheme-query`)**: Publicly answers questions grounded strictly in retrieved scheme chunks (eligibility, benefits, required documents, application process, important conditions, and FAQs). If retrieved context is insufficient, explicitly states that verified information is lacking.
-- **Personalized Explanation (`POST /api/ai/scheme/{id}/explanation`)**: JWT-protected endpoint providing a plain-language explanation of why a scheme matched the user based on the deterministic eligibility engine result and retrieved scheme facts. The LLM does NOT decide eligibility.
-- **Vector Indexing (`POST /api/ai/index`)**: Indexes scheme document chunks into PostgreSQL and Qdrant with metadata (`schemeId`, `governmentLevel`, `state`, `category`, `documentType`, `sourceUrl`).
-
-## Testing Frontend (React + Vite)
-
-A minimal test console is provided under `frontend/` to test all real backend APIs end-to-end against PostgreSQL and Qdrant without mock data.
-
-### 1. How to start the backend
-
-```powershell
-# From project root:
-mvn spring-boot:run
-```
-
-### 2. How to start the frontend
-
-```powershell
-# From project root:
-cd frontend
-npm install
-npm run dev
-```
-
-### 3. URLs
-
-- **Backend Base URL**: `http://localhost:8080` (Health: `http://localhost:8080/api/v1/health`)
-- **Frontend URL**: `http://localhost:5173`
-
-### 4. Available Screens in Testing Console
-
-1. **Auth (`POST /api/auth/register`, `POST /api/auth/login`)**: Register citizen accounts, login, view JWT token, and logout.
-2. **User Profile (`GET /api/users/me`, `PUT /api/users/me/profile`)**: View and update demographics and family members.
-3. **Schemes Catalogue (`GET /api/schemes`, `GET /api/schemes/{id}`)**: Browse verified 20 schemes (Central + Uttar Pradesh), filter by level/state, and inspect required documents, steps, and transparency info.
-4. **Eligibility Matches (`GET /api/eligibility/matches`)**: Deterministic evaluation showing satisfied conditions, failed conditions, missing profile information, and AI explanation (`POST /api/ai/scheme/{id}/explanation`).
-5. **Benefits & Missed Value (`GET /api/benefits/recommended`, `GET /api/benefits/missed-value`, `POST /api/benefits/life-event`)**: Central vs State breakdown, estimated annual missed benefit with non-guarantee disclaimer, and life event signal extraction.
-6. **Action Checklist & Readiness Score (`GET /api/schemes/{id}/checklist`, `GET /api/readiness/scheme/{schemeId}`)**: Action checklists and deterministic traffic light readiness score (RED/YELLOW/GREEN).
-7. **Document Locker (`GET /api/documents`, `POST /api/documents`, `POST /api/documents/{id}/validate`)**: Document upload/registration, validity check against state rules, and manual date fallbacks.
-8. **RAG / AI Query (`POST /api/ai/scheme-query`, `POST /api/ai/index`)**: Semantic Q&A grounded strictly in Qdrant vectors and vector store re-indexing.
-9. **Conversational Assistant (`POST /api/chat`)**: Multi-turn chat in English, Hindi, and Kannada.
-10. **Transparency Layer (`POST /api/transparency/reports`, `GET /api/transparency/summary`)**: Submit anonymous corruption/fee reports and view aggregate statistics.
-
-
