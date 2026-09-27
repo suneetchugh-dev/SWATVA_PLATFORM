@@ -1,5 +1,5 @@
 /**
- * Centralized API Client for Swatva AI Backend.
+ * Centralized API Client for SWATVA Backend.
  * Direct communication: Frontend -> Real Backend API -> Real Database -> Real Response.
  */
 
