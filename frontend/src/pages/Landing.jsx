@@ -549,7 +549,7 @@ export default function Landing() {
             <span className="relative inline-block max-w-fit group cursor-default whitespace-nowrap font-black text-[clamp(1.35rem,6.6vw,4rem)] leading-[1.18] bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 via-neutral-800 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400">
               <CurvyArrow 
                 direction="top-left" 
-                className="-left-8 sm:-left-20 -top-8 sm:-top-10"
+                className="-left-12 sm:-left-24 -top-8 sm:-top-10"
                 label={t('landing.arrowTags.citizenEmpowerment')}
 
               />
