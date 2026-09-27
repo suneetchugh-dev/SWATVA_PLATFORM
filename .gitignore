@@ -12,8 +12,12 @@ frontend/node_modules/
 dist/
 frontend/dist/
 dist-ssr/
-.vite/
 frontend/dist-ssr/
+dist-smoke/
+frontend/dist-smoke/
+dev-dist/
+frontend/dev-dist/
+.vite/
 *.local
 
 # Logs
