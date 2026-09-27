@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, ChevronLeft, ChevronRight, UserRound } from 'lucide-react'
 import { api } from '../api/client'
 import { INDIAN_STATES } from '../lib/india'

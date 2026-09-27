@@ -11,7 +11,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { api } from '../api/client'
-import { INDIAN_STATES, LIFE_EVENT_TYPES, REPORT_CATEGORIES } from '../lib/india'
+import { INDIAN_STATES, REPORT_CATEGORIES } from '../lib/india'
 import {
   Badge,
   Banner,

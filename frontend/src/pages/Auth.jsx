@@ -27,7 +27,7 @@ const MODE_KEYS = {
 export default function Auth({ mode = 'login' }) {
   const { t } = useTranslation()
   const copy = MODE_KEYS[mode] ?? MODE_KEYS.login
-  const [dark, setDark] = useTheme()
+  const { dark, toggle } = useTheme()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -67,7 +67,7 @@ export default function Auth({ mode = 'login' }) {
         <LanguageSwitcher />
         <button
           type="button"
-          onClick={() => setDark(!dark)}
+          onClick={toggle}
           aria-label={dark ? t('common.switchToLight') : t('common.switchToDark')}
           aria-pressed={dark}
           className="h-9 w-9 flex items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200/70 dark:hover:bg-white/10 transition-colors cursor-pointer"
