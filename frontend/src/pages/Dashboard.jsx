@@ -178,18 +178,22 @@ export default function Dashboard() {
           )}
         </Loadable>
 
-        <Loadable load={() => api.user.getMe()} onRetry={t('common.retry')}>
-          {(profile) => (
-            <Tile
-              icon={UserCog}
-              label={t('dashboard.profileLabel')}
-              value={profile?.profile?.age ? t('dashboard.profileAge', { age: profile.profile.age }) : '—'}
-              hint={profile?.profile?.state || t('dashboard.profileHint')}
-              to="/app/profile"
-              cta={t('dashboard.ctaUpdate')}
-            />
-          )}
-        </Loadable>
+        {/* The header already needs the signed-in user for the greeting, so the
+            profile tile reads that same fetch rather than issuing a second one. */}
+        <Tile
+          icon={UserCog}
+          label={t('dashboard.profileLabel')}
+          value={
+            user?.profile?.age
+              ? t('dashboard.profileAge', { age: user.profile.age })
+              : user
+                ? '—'
+                : <Spinner />
+          }
+          hint={user?.profile?.state || t('dashboard.profileHint')}
+          to="/app/profile"
+          cta={t('dashboard.ctaUpdate')}
+        />
 
         <Tile
           icon={Sparkles}
