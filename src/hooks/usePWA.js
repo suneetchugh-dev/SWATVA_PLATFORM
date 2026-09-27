@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * usePWA Hook
  * Manages PWA installation prompt, standalone detection, offline status,
- * and service worker lifecycle with seamless background caching & updates.
+ * and service worker lifecycle with background caching & update alerts.
  */
 export function usePWA() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -13,6 +12,8 @@ export function usePWA() {
   const [isOffline, setIsOffline] = useState(() =>
     typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' ? !navigator.onLine : false,
   );
+  const [needRefresh, setNeedRefresh] = useState(false);
+  const registrationRef = useRef(null);
 
   // Detect standalone mode (already launched as an installed PWA or TWA)
   const isStandalone =
@@ -21,25 +22,73 @@ export function usePWA() {
       (typeof window.navigator !== 'undefined' && Boolean(window.navigator?.standalone)) ||
       (typeof document !== 'undefined' && typeof document.referrer === 'string' && document.referrer.includes('android-app://')));
 
-  // Service worker registration and update hook from vite-plugin-pwa
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegistered(r) {
-      if (r) {
-        // Check for updates periodically (every 1 hour)
-        setInterval(() => {
-          r.update().catch(() => {});
-        }, 60 * 60 * 1000);
+  // Register and manage service worker updates natively
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+      return;
+    }
+
+    let refreshing = false;
+    const handleControllerChange = () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
       }
-    },
-    onRegisterError(error) {
-      console.warn('PWA service worker registration error:', error);
-    },
-  });
+    };
+
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        registrationRef.current = reg;
+
+        // If there is already a waiting service worker, prompt update
+        if (reg.waiting) {
+          setNeedRefresh(true);
+        }
+
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                setNeedRefresh(true);
+              }
+            });
+          }
+        });
+
+        // Periodic check for SW updates (every 1 hour)
+        const intervalId = setInterval(() => {
+          reg.update().catch(() => {});
+        }, 60 * 60 * 1000);
+
+        return () => clearInterval(intervalId);
+      })
+      .catch((err) => {
+        // Dev mode without build or restricted context
+        console.debug('PWA ServiceWorker registration note:', err?.message || err);
+      });
+
+    return () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+    };
+  }, []);
+
+  const updateServiceWorker = useCallback((reloadPage = true) => {
+    const reg = registrationRef.current;
+    if (reg && reg.waiting) {
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    if (reloadPage && typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     // 1. Capture beforeinstallprompt event for custom install triggers
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
@@ -67,9 +116,11 @@ export function usePWA() {
     window.addEventListener('offline', handleOffline);
 
     // Initial check
-    if (localStorage.getItem('swatva_pwa_installed') === 'true' || isStandalone) {
-      setIsInstalled(true);
-    }
+    try {
+      if (localStorage.getItem('swatva_pwa_installed') === 'true' || isStandalone) {
+        setIsInstalled(true);
+      }
+    } catch {}
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
