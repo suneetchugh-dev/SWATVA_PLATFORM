@@ -182,19 +182,19 @@ export default function BenefitsSection() {
               </div>
 
               <div className="grid-3" style={{ marginBottom: '16px' }}>
-                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                <div style={{ background: '#FAFAFA', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
                   <label>Total Annual Estimated Benefit</label>
                   <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary)' }}>
                     ₹{missed.totalEstimatedAnnualBenefit?.toLocaleString()}
                   </div>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                <div style={{ background: '#FAFAFA', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
                   <label>Central Government Share</label>
                   <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary)' }}>
                     ₹{missed.central?.toLocaleString()}
                   </div>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                <div style={{ background: '#FAFAFA', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
                   <label>State Government Share</label>
                   <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--success)' }}>
                     ₹{missed.state?.toLocaleString()}
@@ -264,7 +264,7 @@ export default function BenefitsSection() {
             <div>
               {/* Extracted signals */}
               {lifeEventResult.signals && (
-                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '6px', marginBottom: '14px', border: '1px solid var(--border)' }}>
+                <div style={{ background: '#FAFAFA', padding: '12px', borderRadius: '6px', marginBottom: '14px', border: '1px solid var(--border)' }}>
                   <strong>Extracted Life Event Signals:</strong>
                   <div className="grid-3" style={{ marginTop: '8px', fontSize: '12px' }}>
                     <div><strong>Event Type:</strong> {lifeEventResult.signals.eventType || 'N/A'}</div>

@@ -1,0 +1,99 @@
+.logo-svg {
+  overflow: visible;
+}
+
+.logo-text {
+  font-family: 'Playfair Display', 'Georgia', 'Didot', 'Times New Roman', serif;
+  font-weight: 400;
+  stroke-width: 2.5px;
+  stroke: #171717;
+}
+
+.dark .logo-text {
+  stroke: #FFFFFF;
+}
+
+/* 1. Static State */
+.logo-static {
+  stroke-dasharray: 0;
+  stroke-dashoffset: 0;
+  fill: #171717;
+}
+.dark .logo-static {
+  fill: #FFFFFF;
+}
+
+/* 2. Animated Loop State */
+.logo-animated-loop {
+  fill: transparent;
+  stroke-dasharray: 250;
+  stroke-dashoffset: 250;
+  animation: draw-and-fill 3.5s ease-in-out infinite;
+}
+.dark .logo-animated-loop {
+  animation: draw-and-fill-dark 3.5s ease-in-out infinite;
+}
+
+/* 3. Animated Once State */
+.logo-animated-once {
+  fill: transparent;
+  stroke-dasharray: 250;
+  stroke-dashoffset: 250;
+  /* both keeps it invisible before the animation (delay) and filled after */
+  animation: draw-and-fill-once 2s ease-in-out both;
+}
+.dark .logo-animated-once {
+  animation: draw-and-fill-once-dark 2s ease-in-out both;
+}
+
+@keyframes draw-and-fill {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  30% { stroke-dashoffset: 0; fill: transparent; }
+  45% { stroke-dashoffset: 0; fill: #171717; }
+  85% { stroke-dashoffset: 0; fill: #171717; }
+  100% { stroke-dashoffset: 250; fill: transparent; }
+}
+
+@keyframes draw-and-fill-dark {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  30% { stroke-dashoffset: 0; fill: transparent; }
+  45% { stroke-dashoffset: 0; fill: #FFFFFF; }
+  85% { stroke-dashoffset: 0; fill: #FFFFFF; }
+  100% { stroke-dashoffset: 250; fill: transparent; }
+}
+
+@keyframes draw-and-fill-once {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  60% { stroke-dashoffset: 0; fill: transparent; }
+  100% { stroke-dashoffset: 0; fill: #171717; }
+}
+
+@keyframes draw-and-fill-once-dark {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  60% { stroke-dashoffset: 0; fill: transparent; }
+  100% { stroke-dashoffset: 0; fill: #FFFFFF; }
+}
+
+/* 4. Hover Active State */
+.logo-hover-active {
+  fill: transparent;
+  stroke-dasharray: 250;
+  stroke-dashoffset: 250;
+  animation: draw-and-fill-hover 2s ease-in-out forwards;
+}
+.dark .logo-hover-active {
+  animation: draw-and-fill-hover-dark 2s ease-in-out forwards;
+}
+
+@keyframes draw-and-fill-hover {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  60% { stroke-dashoffset: 0; fill: transparent; }
+  100% { stroke-dashoffset: 0; fill: #171717; }
+}
+
+@keyframes draw-and-fill-hover-dark {
+  0% { stroke-dashoffset: 250; fill: transparent; }
+  60% { stroke-dashoffset: 0; fill: transparent; }
+  100% { stroke-dashoffset: 0; fill: #FFFFFF; }
+}
+

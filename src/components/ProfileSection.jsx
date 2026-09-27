@@ -295,7 +295,7 @@ export default function ProfileSection() {
             </div>
           )}
 
-          <div className="grid-3" style={{ background: '#f8fafc', padding: '12px', borderRadius: '6px', marginBottom: '12px' }}>
+          <div className="grid-3" style={{ background: '#FAFAFA', padding: '12px', borderRadius: '6px', marginBottom: '12px' }}>
             <input
               type="text"
               placeholder="Member Full Name"

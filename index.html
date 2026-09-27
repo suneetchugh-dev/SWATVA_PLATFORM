@@ -3,8 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Swatva AI finds every Indian government benefit scheme you qualify for, and tells you exactly what to do next."
+    />
+    <title>Swatva AI — Every scheme you qualify for</title>
+    <script>
+      // Applied before first paint so the canvas never flashes the wrong theme.
+      try {
+        if (localStorage.getItem('swatva_theme') === 'dark') {
+          document.documentElement.classList.add('dark')
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
