@@ -25,6 +25,7 @@
     "switchToLight": "Switch to light mode",
     "switchToDark": "Switch to dark mode",
     "close": "Close",
+    "dismiss": "Dismiss",
     "retry": "Retry",
     "open": "Open",
     "submitting": "Submitting…",
@@ -578,5 +579,16 @@
       "failed": "Does not meet",
       "missing": "Still needed"
     }
+  },
+  "pwa": {
+    "installTitle": "Install SWATVA App",
+    "installDesc": "Instant access, offline rules & verified schemes on your device.",
+    "installAction": "Install",
+    "installing": "Installing...",
+    "installed": "Installed",
+    "updateAvailable": "New Version Available",
+    "updatePrompt": "Reload to update SWATVA with the latest rules.",
+    "reload": "Reload",
+    "offlineNotice": "You are currently offline. SWATVA is serving cached benefit rules and offline records."
   }
 }

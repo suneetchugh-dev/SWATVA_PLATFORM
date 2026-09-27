@@ -1,0 +1,186 @@
+import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicDir = path.resolve(__dirname, '../public');
+
+// Standard icon SVG (512x512)
+const standardSvg = `
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1c1917" />
+      <stop offset="70%" stop-color="#0c0a09" />
+      <stop offset="100%" stop-color="#050505" />
+    </radialGradient>
+    <radialGradient id="amberGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#d97706" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7" />
+      <stop offset="35%" stop-color="#f59e0b" />
+      <stop offset="85%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.6" />
+      <stop offset="50%" stop-color="#d97706" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#78350f" stop-opacity="0.5" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGlow)"/>
+  
+  <!-- Subtle Amber Radial Bloom -->
+  <circle cx="256" cy="256" r="220" fill="url(#amberGlow)" />
+
+  <!-- Inner Architectural Accent Border -->
+  <rect x="24" y="24" width="464" height="464" rx="88" stroke="url(#ringGrad)" stroke-width="3" fill="none"/>
+  
+  <!-- Subtle geometric corner crosshairs -->
+  <line x1="56" y1="46" x2="56" y2="66" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="2"/>
+  <line x1="46" y1="56" x2="66" y2="56" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="2"/>
+  <line x1="456" y1="46" x2="456" y2="66" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="2"/>
+  <line x1="446" y1="56" x2="466" y2="56" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="2"/>
+  <line x1="56" y1="446" x2="56" y2="466" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="2"/>
+  <line x1="46" y1="456" x2="66" y2="456" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="2"/>
+  <line x1="456" y1="446" x2="456" y2="466" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="2"/>
+  <line x1="446" y1="456" x2="466" y2="456" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="2"/>
+
+  <!-- Iconic Stylized Serif Monogram 'S' -->
+  <text 
+    x="256" 
+    y="278" 
+    font-family="'Playfair Display', 'Georgia', 'Times New Roman', serif" 
+    font-size="310" 
+    font-weight="700" 
+    text-anchor="middle" 
+    dominant-baseline="central" 
+    fill="url(#amberGrad)"
+    stroke="#ffffff"
+    stroke-width="2"
+    stroke-opacity="0.15"
+  >S</text>
+
+  <!-- Citizen Star Emblem at top right of S -->
+  <circle cx="340" cy="155" r="7" fill="#fef3c7"/>
+  <circle cx="340" cy="155" r="14" fill="#f59e0b" fill-opacity="0.3"/>
+</svg>
+`;
+
+// Maskable icon SVG (full bleed background, content strictly inside 80% safe zone)
+const maskableSvg = `
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="mBgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1c1917" />
+      <stop offset="60%" stop-color="#0c0a09" />
+      <stop offset="100%" stop-color="#000000" />
+    </radialGradient>
+    <radialGradient id="mAmberGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#d97706" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="mAmberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7" />
+      <stop offset="35%" stop-color="#f59e0b" />
+      <stop offset="85%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+  </defs>
+
+  <!-- Full bleed background for adaptive icon masking -->
+  <rect width="512" height="512" fill="url(#mBgGlow)"/>
+  
+  <!-- Safe zone ambient glow (within radius 180) -->
+  <circle cx="256" cy="256" r="175" fill="url(#mAmberGlow)" />
+
+  <!-- Inner border within safe zone -->
+  <circle cx="256" cy="256" r="175" stroke="#f59e0b" stroke-opacity="0.35" stroke-width="3" fill="none" stroke-dasharray="6 4"/>
+
+  <!-- Centered safe-zone scaled S -->
+  <text 
+    x="256" 
+    y="272" 
+    font-family="'Playfair Display', 'Georgia', 'Times New Roman', serif" 
+    font-size="240" 
+    font-weight="700" 
+    text-anchor="middle" 
+    dominant-baseline="central" 
+    fill="url(#mAmberGrad)"
+    stroke="#ffffff"
+    stroke-width="1.5"
+    stroke-opacity="0.2"
+  >S</text>
+
+  <!-- Citizen Star Emblem -->
+  <circle cx="320" cy="180" r="6" fill="#fef3c7"/>
+  <circle cx="320" cy="180" r="12" fill="#f59e0b" fill-opacity="0.4"/>
+</svg>
+`;
+
+async function generate() {
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+
+  // 1. Generate standard icons
+  const standardBuffer = Buffer.from(standardSvg);
+  const maskableBuffer = Buffer.from(maskableSvg);
+
+  console.log('Generating PWA icons with sharp...');
+
+  await sharp(standardBuffer)
+    .resize(64, 64)
+    .png()
+    .toFile(path.join(publicDir, 'pwa-64x64.png'));
+
+  await sharp(standardBuffer)
+    .resize(192, 192)
+    .png()
+    .toFile(path.join(publicDir, 'pwa-192x192.png'));
+
+  await sharp(standardBuffer)
+    .resize(512, 512)
+    .png()
+    .toFile(path.join(publicDir, 'pwa-512x512.png'));
+
+  await sharp(maskableBuffer)
+    .resize(512, 512)
+    .png()
+    .toFile(path.join(publicDir, 'maskable-icon-512x512.png'));
+
+  await sharp(standardBuffer)
+    .resize(180, 180)
+    .png()
+    .toFile(path.join(publicDir, 'apple-touch-icon.png'));
+
+  await sharp(standardBuffer)
+    .resize(32, 32)
+    .png()
+    .toFile(path.join(publicDir, 'favicon-32x32.png'));
+
+  // Also write the master SVG assets
+  fs.writeFileSync(path.join(publicDir, 'pwa-icon.svg'), standardSvg.trim());
+  fs.writeFileSync(path.join(publicDir, 'maskable-icon.svg'), maskableSvg.trim());
+
+  console.log('Successfully generated all PWA icons:');
+  console.log('- public/pwa-64x64.png');
+  console.log('- public/pwa-192x192.png');
+  console.log('- public/pwa-512x512.png');
+  console.log('- public/maskable-icon-512x512.png');
+  console.log('- public/apple-touch-icon.png');
+  console.log('- public/favicon-32x32.png');
+  console.log('- public/pwa-icon.svg');
+  console.log('- public/maskable-icon.svg');
+}
+
+generate().catch((err) => {
+  console.error('Failed to generate icons:', err);
+  process.exit(1);
+});

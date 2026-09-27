@@ -20,6 +20,9 @@ initGlobalClickSound()
 import AppShell from './layouts/AppShell.jsx'
 import Landing from './pages/Landing.jsx'
 import Auth from './pages/Auth.jsx'
+import PWAInstallBanner from './components/PWAInstallBanner'
+import PWAUpdateToast from './components/PWAUpdateToast'
+import OfflineBanner from './components/OfflineBanner'
 
 const App = lazy(() => import('./App.jsx')) // the original developer console, kept at /console
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
@@ -51,6 +54,8 @@ function RouteFallback() {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider>
+      <OfflineBanner />
+      <PWAUpdateToast />
       <SplashLoader />
       <BrowserRouter>
         <ScrollToTop />
@@ -87,6 +92,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
+        <PWAInstallBanner />
       </BrowserRouter>
     </ThemeProvider>
   </StrictMode>,

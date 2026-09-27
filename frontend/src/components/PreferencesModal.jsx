@@ -11,16 +11,19 @@ import {
   MousePointer, 
   Activity, 
   Bell, 
-  BellOff, 
   Waves, 
   Compass, 
   Sun, 
   Moon,
-  Sparkles
+  Sparkles,
+  Download,
+  Smartphone,
+  CheckCircle2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../lib/theme';
 import { playClick } from '../utils/soundFx';
+import { usePWA } from '../hooks/usePWA';
 import CurvyArrow from './CurvyArrow';
 import ThemeToggle from './ThemeToggle';
 
@@ -70,8 +73,9 @@ function ToggleSwitch({ checked, onChange, disabled = false, size = 'md', ariaLa
 }
 
 export default function PreferencesModal({ isOpen, onClose }) {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const { dark, setDark } = useTheme();
+  const { isInstallable, isInstalled, isStandalone, promptInstall } = usePWA();
 
   // State sync
   const [soundsActive, setSoundsActive] = useState(() => localStorage.getItem('swatva_sound') !== 'off');
@@ -547,7 +551,54 @@ export default function PreferencesModal({ isOpen, onClose }) {
           </div>
 
           {/* ========================================================
-              4. Interactive Platform Guided Tour Action
+              4. Progressive Web App (PWA) / Device Installation
+             ======================================================== */}
+          <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-neutral-50/90 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/15 space-y-2.5">
+            <div className="flex items-center space-x-2.5 sm:space-x-3">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center flex-shrink-0 shadow-xs">
+                <Smartphone size={15} className="text-amber-600 dark:text-amber-400 stroke-[2.2]" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] sm:text-xs font-semibold text-neutral-950 dark:text-white leading-snug">
+                    {currentLang === 'hi' ? 'प्रोग्रेसिव वेब ऐप (PWA)' : 'Progressive Web App (PWA)'}
+                  </span>
+                  {isInstalled || isStandalone ? (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.2 text-[9px] font-semibold rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <CheckCircle2 size={10} />
+                      {currentLang === 'hi' ? 'स्थापित' : 'Installed'}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-1.5 py-0.2 text-[9px] font-semibold rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      {currentLang === 'hi' ? 'तैयार' : 'Ready'}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">
+                  {currentLang === 'hi'
+                    ? 'ऑफ़लाइन एक्सेस और त्वरित स्टार्टअप के लिए SWATVA को अपने डिवाइस पर इंस्टॉल करें।'
+                    : 'Install SWATVA on your home screen or desktop for offline access & faster launches.'}
+                </div>
+              </div>
+            </div>
+
+            {isInstallable && !isInstalled && !isStandalone && (
+              <button
+                type="button"
+                onClick={async () => {
+                  playClick();
+                  await promptInstall();
+                }}
+                className="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold tracking-tight active:scale-[0.99] transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <Download size={13} className="stroke-[2.5]" />
+                <span>{currentLang === 'hi' ? 'ऐप इंस्टॉल करें' : 'Install SWATVA App'}</span>
+              </button>
+            )}
+          </div>
+
+          {/* ========================================================
+              5. Interactive Platform Guided Tour Action
              ======================================================== */}
           <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-neutral-50/90 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/15 space-y-2.5">
             <div className="flex items-center space-x-2.5 sm:space-x-3">
