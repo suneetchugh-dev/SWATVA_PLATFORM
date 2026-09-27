@@ -3,9 +3,11 @@ import { initReactI18next } from 'react-i18next'
 import en from '../locales/en.json'
 import hi from '../locales/hi.json'
 
+// `monogram` and `short` drive the preferences cards; `native` is what the
+// reader actually wants to see on the button.
 export const LANGUAGES = [
-  { code: 'en', label: 'English', native: 'English' },
-  { code: 'hi', label: 'Hindi', native: 'हिन्दी' },
+  { code: 'en', label: 'English', native: 'English', monogram: 'En', short: 'EN' },
+  { code: 'hi', label: 'Hindi', native: 'हिन्दी', monogram: 'अ', short: 'हि' },
 ]
 
 const STORAGE_KEY = 'swatva_lang'

@@ -23,7 +23,8 @@
     "english": "English",
     "hindi": "हिन्दी",
     "switchToLight": "Switch to light mode",
-    "switchToDark": "Switch to dark mode"
+    "switchToDark": "Switch to dark mode",
+    "close": "Close"
   },
   "nav": {
     "platform": "Platform",
@@ -363,5 +364,11 @@
     "verifyBody": "Everything above is mirrored from the official source. Open it and confirm the current rules before you hand over a document or a payment.",
     "openOfficial": "Open the official page",
     "checkQualify": "Check if you qualify"
+  },
+  "settings": {
+    "title": "Preferences",
+    "preferences": "Preferences",
+    "language": "Language",
+    "languageDesc": "Choose the language used across the app."
   }
 }

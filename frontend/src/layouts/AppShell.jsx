@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { api, getStoredUser } from '../api/client'
 import { useTheme } from '../lib/theme'
-import LanguageSwitcher from '../components/LanguageSwitcher'
+import SettingsPanel from '../components/SettingsPanel'
 import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
 
@@ -42,7 +42,7 @@ export default function AppShell() {
       <header className="sticky top-0 z-40 pt-3 px-3 sm:px-5">
         <div className="mx-auto max-w-6xl neo-glass-card px-3 sm:px-4 py-2.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 min-w-0">
-            <LoadingLogo />
+            <LoadingLogo animate={false} />
             <span className="font-bold text-sm tracking-tight truncate">Swatva AI</span>
           </div>
 
@@ -68,7 +68,7 @@ export default function AppShell() {
           </nav>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            <LanguageSwitcher className="hidden sm:inline-flex" />
+            <SettingsPanel />
             <button
               type="button"
               onClick={toggle}
