@@ -40,14 +40,24 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(new AuthResponse(token, "Bearer", null, request.email().trim())));
     }
 
+    @PostMapping("/firebase")
+    public ResponseEntity<ApiResponse<AuthResponse>> firebaseLogin(@Valid @RequestBody FirebaseLoginRequest request) {
+        User user = authService.syncFirebaseUser(request.fullName(), request.email());
+        String token = jwtService.createToken(user.getEmail());
+        return ResponseEntity.ok(ApiResponse.success(new AuthResponse(token, "Bearer", user.getId(), user.getEmail())));
+    }
+
     public record RegisterRequest(@NotBlank @Size(max = 100) String fullName,
                                   @NotBlank @Email @Size(max = 120) String email,
                                   @NotBlank @Size(min = 8, max = 72) String password) { }
     public record LoginRequest(@NotBlank @Email @Size(max = 120) String email,
                                @NotBlank @Size(max = 72) String password) { }
+    public record FirebaseLoginRequest(String fullName,
+                                       @NotBlank @Email @Size(max = 120) String email) { }
     public record AuthResponse(String accessToken, String tokenType, UUID userId, String email) {
         static AuthResponse from(User user, String token) {
             return new AuthResponse(token, "Bearer", user.getId(), user.getEmail());
         }
     }
 }
+

@@ -50,10 +50,13 @@ Use `in.swatva.<module>` for domain ownership: `auth`, `user`, `scheme`, `eligib
 ## Security rules
 
 - Security is stateless and CSRF is disabled in `auth.config.SecurityConfig`.
-- Only `/api/v1/health`, `/api/schemes/**`, and `/error` are public today. All other routes require authentication.
+- The public permit list is exactly `/api/v1/health`, `/api/schemes/**`, `/api/auth/**`, `/api/ai/scheme-query`, `/api/transparency/**`, `/api/benefits/life-event`, `/api/chat`, and `/error`. All other routes require authentication.
 - Do not open a new endpoint publicly without explicitly adding it to the permit list and confirming that is intended.
 - JWT authentication uses a BCrypt password hash and the email as the authenticated principal. Use `Authentication.getName()` for the current user in protected endpoints.
 - `JWT_SECRET` and `JWT_EXPIRATION_MINUTES` configure token signing and lifetime. Do not expose password hashes or JWT secrets.
+- CORS lives in `common.config.CorsConfig`/`CorsProperties` and is driven by `CORS_ALLOWED_ORIGIN_PATTERNS`, comma-separated. The default is localhost-only, so any deployment that serves a browser client must set it or every request is blocked.
+- These are `allowedOriginPatterns`, not `allowedOrigins`, because credentials are enabled; that is what allows a wildcard port in development. A bare `*` is rejected at startup by the same `CorsProperties` validation style as `JwtProperties`, because reflecting any origin would expose the API to every site.
+- CORS values are trimmed and stripped of a trailing slash, since a trailing slash never matches an `Origin` header and the resulting failure looks like a backend outage.
 
 ## Error handling
 
@@ -77,22 +80,56 @@ Use `in.swatva.<module>` for domain ownership: `auth`, `user`, `scheme`, `eligib
 
 ## Build and test
 
+Backend:
+
 ```powershell
-mvn clean verify
-mvn spring-boot:run
+./mvnw -B clean verify
+./mvnw spring-boot:run
 ```
 
-Use PostgreSQL before starting the application; startup creates/updates the local schema and runs the seed initializer. Add focused tests alongside new behavior under `src/test/java`; none currently exist.
+Prefer the wrapper over a bare `mvn` so everyone builds with the same Maven version.
+
+Frontend (see `BRANCHES.md` for the branch layout — the SPA lives in `frontend/` on `main` and `develop`, and at the repository root on the isolated `frontend` branch):
+
+```powershell
+cd frontend
+npm install
+npm run dev
+npm run build
+```
+
+Use PostgreSQL before starting the application; startup creates/updates the local schema and runs the seed initializer. Backend tests live under `src/test/java` and run as part of `verify`.
+
+## Local development
+
+`docker-compose.yml` brings up the infrastructure the backend expects:
+
+```powershell
+cp .env.example .env
+docker compose up -d
+./mvnw spring-boot:run
+```
+
+- Only PostgreSQL and Qdrant are required to boot. MinIO is behind a `storage` profile, so the app starts without it; document uploads then fail with a server error until `docker compose --profile storage up -d` is used.
+- `JwtProperties` is `@Validated` and refuses to start on a blank or too-short `JWT_SECRET`. That is deliberate — do not add a fallback default in code. `.env.example` ships a throwaway local placeholder purely so the first run works.
+- Keep `QDRANT_INITIALIZE_SCHEMA=false` unless `OPENAI_EMBEDDING_MODEL` points at a real embeddings model. When it is `true`, Spring AI calls the embeddings API during context startup to discover the vector dimension, so a chat-only provider aborts the whole application rather than just the AI feature. Groq serves no embeddings endpoint at all.
+- `.env` is gitignored and must never be committed. Only `.env.example` is tracked.
 
 ## Important files
 
 - `pom.xml` — Java version and dependencies
+- `mvnw` / `mvnw.cmd` / `.mvn/` — pinned Maven wrapper
+- `docker-compose.yml` — PostgreSQL, Qdrant, and the optional MinIO profile
+- `.env.example` — the only tracked environment file
 - `src/main/resources/application.yml` — datasource, JPA, server, logging configuration
 - `src/main/java/in/swatva/auth/config/SecurityConfig.java` — route security and auth error responses
 - `src/main/java/in/swatva/common/api/ApiResponse.java` and `ApiError.java` — response contract
 - `src/main/java/in/swatva/common/exception/GlobalExceptionHandler.java` — error mapping
 - `src/main/java/in/swatva/common/persistence/BaseEntity.java` — UUID/audit convention
 - `src/main/java/in/swatva/scheme/seed/SchemeDataInitializer.java` — catalogue seed data
+- `frontend/src/api/client.js` — the frontend's view of the API contract
+- `frontend/src/locales/{en,hi}.json` — UI copy; keep the two catalogues at parity
+- `frontend/tailwind.config.js` — the design-system token source; it deliberately removes the blue/green/teal/slate families so banned classes fail to compile
 
 ## Changing or adding functionality
 
