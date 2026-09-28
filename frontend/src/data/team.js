@@ -24,8 +24,7 @@ export const TEAM_MEMBERS = [
     avatar: '/team/Devanshu.webp',
     fallbackAvatar: 'https://github.com/ks-devanshu.png',
     tags: ['Java 21', 'Spring Boot', 'PostgreSQL', 'REST APIs', 'Spring Security'],
-    github: 'https://github.com/ks-devanshu',
-    linkedin: 'https://in.linkedin.com/in/devanshu-ks-417281432'
+    github: 'https://github.com/ks-devanshu'
   },
   {
     id: 'rishit',

@@ -476,7 +476,11 @@
     "messagesCount": "{{count}} संदेश",
     "messagesCount_one": "{{count}} संदेश",
     "messagesCount_other": "{{count}} संदेश",
-    "justNow": "अभी"
+    "justNow": "अभी",
+    "copy": "संदेश कॉपी करें",
+    "copied": "कॉपी हो गया!",
+    "export": "चैट निर्यात करें",
+    "exportSuccess": "चैट निर्यात की गई"
   },
   "scheme": {
     "back": "वापस",

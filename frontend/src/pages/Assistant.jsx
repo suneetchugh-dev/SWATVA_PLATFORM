@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  Check,
   Clock,
+  Copy,
+  Download,
   ExternalLink,
   MessageSquare,
   Mic,
@@ -125,6 +128,7 @@ export default function Assistant() {
   const [sawUngrounded, setSawUngrounded] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [activeSpeakingIndex, setActiveSpeakingIndex] = useState(null)
+  const [copiedIndex, setCopiedIndex] = useState(null)
   const [voiceNotice, setVoiceNotice] = useState(null)
 
   // History Drawer state
@@ -297,6 +301,59 @@ export default function Assistant() {
     }
   }
 
+  const handleCopy = (index, textToCopy) => {
+    if (!textToCopy) return
+    playClick()
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopiedIndex(index)
+      setTimeout(() => setCopiedIndex(null), 2000)
+    }).catch((err) => {
+      console.warn('Failed to copy to clipboard:', err)
+    })
+  }
+
+  const handleExportChat = () => {
+    if (messages.length === 0) return
+    playClick()
+    const title = 'SWATVA Welfare Assistant - Consultation Export'
+    const dateStr = new Date().toLocaleString(i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN')
+    let markdown = `# ${title}\n*Export Date: ${dateStr}*\n\n---\n\n`
+
+    messages.forEach((m, idx) => {
+      const isUser = m.role === 'user'
+      const speaker = isUser ? '👤 Citizen / User' : '🤖 SWATVA Welfare Assistant'
+      markdown += `### ${idx + 1}. ${speaker}\n\n${m.content}\n\n`
+
+      if (m.readiness) {
+        markdown += `> **Application Readiness:** ${m.readiness.readinessPercentage}% (${m.readiness.completedDocuments}/${m.readiness.totalRequired} documents ready)\n\n`
+      }
+
+      if (m.benefits && m.benefits.length > 0) {
+        markdown += `**Matched Schemes Surfaced:**\n`
+        m.benefits.forEach((b) => {
+          markdown += `- **${b.schemeName}** (${b.matchStatus}, ${b.matchPercentage}% match)${b.officialSourceUrl ? ` - [Official Portal](${b.officialSourceUrl})` : ''}\n`
+        })
+        markdown += '\n'
+      }
+
+      if (m.citations && m.citations.length > 0) {
+        markdown += `*Official Sources / Citations:* ${m.citations.join(' · ')}\n\n`
+      }
+
+      markdown += '---\n\n'
+    })
+
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `swatva-consultation-${new Date().toISOString().slice(0, 10)}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const send = async (raw) => {
     const message = (raw ?? text).trim()
     if (!message || sending) return
@@ -437,6 +494,19 @@ export default function Assistant() {
         className="mb-4"
         actions={
           <div className="flex items-center gap-2">
+            {messages.length > 0 && (
+              <button
+                type="button"
+                onClick={handleExportChat}
+                aria-label={t('assistant.export')}
+                title={t('assistant.export')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs"
+              >
+                <Download size={13} />
+                <span>{t('assistant.export')}</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => {
@@ -511,7 +581,20 @@ export default function Assistant() {
           <div className="flex flex-col gap-4">
             {messages.map((m, i) =>
               m.role === 'user' ? (
-                <div key={i} className="flex justify-end">
+                <div key={i} className="flex justify-end items-start gap-1.5 group">
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(i, m.content)}
+                    aria-label={copiedIndex === i ? t('assistant.copied') : t('assistant.copy')}
+                    title={copiedIndex === i ? t('assistant.copied') : t('assistant.copy')}
+                    className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 mt-1 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-200/60 dark:hover:bg-white/10 transition-all duration-150 cursor-pointer select-none"
+                  >
+                    {copiedIndex === i ? (
+                      <Check size={13} className="text-emerald-500" />
+                    ) : (
+                      <Copy size={13} />
+                    )}
+                  </button>
                   <p className="max-w-[85%] rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
                     {m.content}
                   </p>
@@ -530,9 +613,35 @@ export default function Assistant() {
                     >
                       {m.content}
 
-                      {/* TTS Speak / Stop Button for assistant message */}
-                      {ttsAvailable && !m.error ? (
-                        <div className="mt-2.5 pt-2 border-t border-neutral-100 dark:border-white/5 flex items-center justify-end">
+                      {/* Assistant Message Actions: Copy + TTS */}
+                      <div className="mt-2.5 pt-2 border-t border-neutral-100 dark:border-white/5 flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(i, m.content)}
+                          aria-label={copiedIndex === i ? t('assistant.copied') : t('assistant.copy')}
+                          title={copiedIndex === i ? t('assistant.copied') : t('assistant.copy')}
+                          className={cx(
+                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs transition-all duration-200 cursor-pointer select-none',
+                            copiedIndex === i
+                              ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/35 font-semibold'
+                              : 'text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 font-medium'
+                          )}
+                        >
+                          {copiedIndex === i ? (
+                            <>
+                              <Check size={13} className="text-emerald-500" />
+                              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">{t('assistant.copied')}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={13} />
+                              <span className="text-[11px]">{t('assistant.copy')}</span>
+                            </>
+                          )}
+                        </button>
+
+                        {/* TTS Speak / Stop Button for assistant message */}
+                        {ttsAvailable && !m.error ? (
                           <button
                             type="button"
                             onClick={() => handleToggleSpeak(i, m.content)}
@@ -562,8 +671,8 @@ export default function Assistant() {
                               </>
                             )}
                           </button>
-                        </div>
-                      ) : null}
+                        ) : null}
+                      </div>
                     </div>
 
                     {m.readiness ? (

@@ -117,14 +117,14 @@ export function Badge({ children, className = '', dot = true }) {
   return (
     <span
       className={cx(
-        'inline-flex items-center gap-1.5 rounded-full border border-neutral-200/90 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium leading-none text-neutral-600 dark:text-neutral-300',
+        'inline-flex items-center gap-1.5 rounded-full border border-neutral-200/90 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium leading-none text-neutral-600 dark:text-neutral-300 transition-all duration-300 hover:border-amber-500/40 hover:bg-amber-500/[0.06] hover:text-neutral-900 dark:hover:text-white group select-none',
         className,
       )}
     >
       {dot ? (
         <span
           aria-hidden="true"
-          className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500/70"
+          className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500/70 group-hover:scale-125 group-hover:bg-amber-500 transition-all duration-300"
         />
       ) : null}
       {children}

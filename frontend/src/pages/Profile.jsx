@@ -86,8 +86,76 @@ function useOptionLabels() {
   }
 }
 
+function ProfileHealthGauge({ percentage = 0, isHindi = false }) {
+  const radius = 20
+  const stroke = 3.5
+  const normalizedRadius = radius - stroke / 2
+  const circumference = normalizedRadius * 2 * Math.PI
+  const strokeDashoffset = circumference - (percentage / 100) * circumference
+
+  const statusLabel =
+    percentage === 100
+      ? (isHindi ? 'पूर्ण प्रोफ़ाइल' : 'Complete')
+      : percentage >= 60
+      ? (isHindi ? 'मजबूत' : 'Strong')
+      : percentage > 0
+      ? (isHindi ? 'प्रगति पर' : 'In Progress')
+      : (isHindi ? 'शुरू नहीं' : 'Not Started')
+
+  return (
+    <div className="flex items-center gap-3 select-none">
+      <div className="text-right hidden sm:block">
+        <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 block leading-tight">
+          {isHindi ? 'प्रोफ़ाइल स्वास्थ्य' : 'Profile Health'}
+        </span>
+        <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+          {statusLabel}
+        </span>
+      </div>
+
+      <div className="relative inline-flex items-center justify-center shrink-0">
+        <svg height={radius * 2 + stroke} width={radius * 2 + stroke} className="rotate-[-90deg]">
+          {/* Background Track */}
+          <circle
+            stroke="currentColor"
+            fill="transparent"
+            strokeWidth={stroke}
+            r={normalizedRadius}
+            cx={radius + stroke / 2}
+            cy={radius + stroke / 2}
+            className="text-neutral-200 dark:text-white/10"
+          />
+          {/* Progress Indicator */}
+          <circle
+            stroke="currentColor"
+            fill="transparent"
+            strokeWidth={stroke}
+            strokeDasharray={`${circumference} ${circumference}`}
+            style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
+            strokeLinecap="round"
+            r={normalizedRadius}
+            cx={radius + stroke / 2}
+            cy={radius + stroke / 2}
+            className={
+              percentage === 100
+                ? 'text-emerald-500'
+                : percentage >= 60
+                ? 'text-amber-500'
+                : 'text-amber-600'
+            }
+          />
+        </svg>
+        <span className="absolute font-mono text-[10px] font-bold text-neutral-900 dark:text-white tracking-tight">
+          {percentage}%
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function Profile() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const isHindi = i18n.language === 'hi'
   const label = useOptionLabels()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -302,14 +370,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <div className="text-right flex-shrink-0">
-          <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 block mb-0.5">
-            Profile Health
-          </span>
-          <span className="text-base font-black text-amber-600 dark:text-amber-400">
-            {complete}%
-          </span>
-        </div>
+        <ProfileHealthGauge percentage={complete} isHindi={isHindi} />
       </div>
 
 

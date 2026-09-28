@@ -476,7 +476,11 @@
     "messagesCount": "{{count}} messages",
     "messagesCount_one": "{{count}} message",
     "messagesCount_other": "{{count}} messages",
-    "justNow": "Just now"
+    "justNow": "Just now",
+    "copy": "Copy message",
+    "copied": "Copied!",
+    "export": "Export Chat",
+    "exportSuccess": "Chat exported"
   },
   "scheme": {
     "back": "Back",
