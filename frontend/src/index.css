@@ -754,7 +754,7 @@ pre.code-view {
   transform: translateX(-50%);
   width: 100%;
   max-width: 100%;
-  padding: 0.85rem 1.15rem;
+  padding: 0.75rem 1rem;
   border-radius: 0px;
   border: 1px solid transparent;
   border-bottom: 1px solid rgba(226, 232, 240, 0.4);
@@ -763,6 +763,7 @@ pre.code-view {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-sizing: border-box;
   transition:
     background-color 0.45s ease,
     border-color 0.45s ease,
@@ -792,10 +793,10 @@ pre.code-view {
 }
 
 .team-header.scrolled {
-  top: 0.85rem;
-  width: 90%;
+  top: 0.75rem;
+  width: calc(100% - 1.25rem);
   max-width: 680px;
-  padding: 0.45rem 1rem;
+  padding: 0.4rem 0.85rem;
   border-radius: 9999px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);

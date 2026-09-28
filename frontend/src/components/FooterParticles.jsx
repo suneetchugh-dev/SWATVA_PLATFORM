@@ -318,10 +318,10 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
   }, [text, darkMode]);
 
   return (
-    <div className="w-full flex items-center justify-center relative overflow-hidden select-none cursor-default py-6">
+    <div className="w-full flex items-center justify-center relative overflow-hidden select-none cursor-default py-6 touch-pan-y">
       <canvas 
         ref={canvasRef} 
-        className="block mx-auto max-w-full touch-none"
+        className="block mx-auto max-w-full pointer-events-none"
         aria-label={text}
       />
     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
@@ -99,6 +99,38 @@ export default function Team() {
     setLightboxTilt({ x: 0, y: 0 });
   };
 
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
+
+  const handleLightboxTouchStart = (e) => {
+    if (e.touches && e.touches[0]) {
+      touchStartXRef.current = e.touches[0].clientX;
+      touchStartYRef.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleLightboxTouchEnd = (e) => {
+    if (!lightboxMember || !e.changedTouches || !e.changedTouches[0]) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+
+    // Check for horizontal swipe with low vertical displacement
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaY) < 60) {
+      const idx = TEAM_MEMBERS.findIndex((m) => m.id === lightboxMember.id);
+      if (idx !== -1) {
+        playClick();
+        if (deltaX < 0) {
+          // Swipe left -> Next member
+          setLightboxMember(TEAM_MEMBERS[(idx + 1) % TEAM_MEMBERS.length]);
+        } else {
+          // Swipe right -> Prev member
+          setLightboxMember(TEAM_MEMBERS[(idx - 1 + TEAM_MEMBERS.length) % TEAM_MEMBERS.length]);
+        }
+        setLightboxTilt({ x: 0, y: 0 });
+      }
+    }
+  };
+
   const handleBack = () => {
     playClick();
     if (getToken()) {
@@ -109,7 +141,7 @@ export default function Team() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300 relative bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">
+    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300 relative bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white overflow-x-hidden">
       {/* Monumental Background Watermark */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center select-none z-0 overflow-hidden">
         <span className="text-[18vw] font-black tracking-tighter text-neutral-950/[0.03] dark:text-white/[0.04] leading-none font-mono">
@@ -496,12 +528,14 @@ export default function Team() {
           <div
             onMouseMove={handleLightboxMouseMove}
             onMouseLeave={handleLightboxMouseLeave}
+            onTouchStart={handleLightboxTouchStart}
+            onTouchEnd={handleLightboxTouchEnd}
             style={{
               transform: `perspective(900px) rotateX(${lightboxTilt.y}deg) rotateY(${lightboxTilt.x}deg) scale3d(1.015, 1.015, 1.015)`,
               transition: lightboxTilt.x === 0 && lightboxTilt.y === 0 ? 'transform 0.4s ease-out' : 'transform 0.08s ease-out',
               willChange: 'transform',
             }}
-            className="relative max-w-sm sm:max-w-md w-full rounded-3xl overflow-hidden bg-white/95 dark:bg-[#121316] border-2 border-amber-500/60 dark:border-amber-400/50 shadow-2xl shadow-amber-500/25 dark:shadow-[0_0_60px_rgba(245,158,11,0.35)] backdrop-blur-2xl animate-in zoom-in-95 duration-200"
+            className="relative max-w-sm sm:max-w-md w-full max-h-[92vh] flex flex-col rounded-3xl overflow-hidden bg-white/95 dark:bg-[#121316] border-2 border-amber-500/60 dark:border-amber-400/50 shadow-2xl shadow-amber-500/25 dark:shadow-[0_0_60px_rgba(245,158,11,0.35)] backdrop-blur-2xl animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top Close Button */}

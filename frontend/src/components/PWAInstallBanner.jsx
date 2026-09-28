@@ -4,7 +4,6 @@ import { Download, X, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePWA } from '../hooks/usePWA';
 import { playClick } from '../utils/soundFx';
-import LoadingLogo from './LoadingLogo';
 
 const AUTO_DISMISS_MS = 7500; // Automatically fade away after 7.5 seconds
 
@@ -117,7 +116,7 @@ export default function PWAInstallBanner() {
 
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/15 flex items-center justify-center flex-shrink-0 shadow-xs relative overflow-hidden">
-            <LoadingLogo size="h-6 w-6" animate={false} hoverable={false} />
+            <img src="/pwa-64x64.png" alt="SWATVA Logo" className="w-6 h-6 object-contain" />
           </div>
 
           <div className="min-w-0 flex-1">
