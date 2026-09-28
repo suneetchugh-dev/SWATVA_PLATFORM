@@ -76,9 +76,17 @@ export async function request(path, options = {}) {
       setToken(null);
     }
     const errorObj = payload.error || {};
+    let errorMsg = errorObj.message || payload.message || response.statusText || 'An error occurred';
+    if (errorObj.fieldErrors && typeof errorObj.fieldErrors === 'object' && Object.keys(errorObj.fieldErrors).length > 0) {
+      const firstField = Object.keys(errorObj.fieldErrors)[0];
+      const fieldDetail = errorObj.fieldErrors[firstField];
+      if (fieldDetail && (!errorObj.message || errorObj.message === 'Request validation failed')) {
+        errorMsg = `${firstField}: ${fieldDetail}`;
+      }
+    }
     const error = {
       code: errorObj.code || `HTTP_${response.status}`,
-      message: errorObj.message || payload.message || response.statusText || 'An error occurred',
+      message: errorMsg,
       status: response.status,
       fieldErrors: errorObj.fieldErrors || null,
     };
