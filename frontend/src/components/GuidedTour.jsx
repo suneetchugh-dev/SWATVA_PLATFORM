@@ -680,6 +680,20 @@ export default function GuidedTour() {
                 {isHindi ? 'दौरा छोड़ें' : 'Skip'}
               </button>
             </div>
+
+            {/* Keyboard shortcut hint — desktop only (hidden on touch/small screens) */}
+            <div className="hidden sm:flex items-center justify-center gap-3 mt-3 pt-2.5 border-t border-neutral-100 dark:border-white/5">
+              <span className="flex items-center gap-1 text-[10px] text-neutral-400 dark:text-neutral-500">
+                <kbd className="inline-flex items-center justify-center w-5 h-5 rounded border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.04] font-mono text-[9px] text-neutral-500 dark:text-neutral-400 shadow-sm">←</kbd>
+                <kbd className="inline-flex items-center justify-center w-5 h-5 rounded border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.04] font-mono text-[9px] text-neutral-500 dark:text-neutral-400 shadow-sm">→</kbd>
+                <span className="ml-0.5">{isHindi ? 'नेविगेट करें' : 'navigate'}</span>
+              </span>
+              <span className="w-px h-3 bg-neutral-200 dark:bg-white/10" aria-hidden="true" />
+              <span className="flex items-center gap-1 text-[10px] text-neutral-400 dark:text-neutral-500">
+                <kbd className="inline-flex items-center justify-center px-1.5 h-5 rounded border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.04] font-mono text-[9px] text-neutral-500 dark:text-neutral-400 shadow-sm">Esc</kbd>
+                <span>{isHindi ? 'छोड़ें' : 'to skip'}</span>
+              </span>
+            </div>
           </div>
         </div>
       )}

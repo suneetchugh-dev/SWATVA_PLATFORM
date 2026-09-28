@@ -50,7 +50,7 @@ function Tile({ icon: Icon, label, value, hint, to, cta, tone = 'default', statu
         {value == null ? (
           <div className="mt-1.5 h-7 w-20 rounded bg-neutral-100 dark:bg-white/[0.06] animate-pulse" />
         ) : (
-          <p className="mt-1 text-2xl font-black tracking-tight tabular-nums">{value}</p>
+          <span className="mt-1 text-2xl font-black tracking-tight tabular-nums block">{value}</span>
         )}
         {hint ? (
           <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{hint}</p>
@@ -212,7 +212,7 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card className="p-5">
           <h2 className="text-sm font-bold tracking-tight">{t('dashboard.whyTitle')}</h2>
           <p className="mt-1.5 text-sm text-neutral-600 dark:text-neutral-300">

@@ -704,14 +704,16 @@ pre.code-view {
   .portfolio-header {
     padding: 1.15rem 4rem;
   }
+  /* Visual balance offset on desktop: keeps optical alignment with right CTA cluster */
+  .portfolio-header.scrolled {
+    margin-left: 1.5rem;
+  }
 }
 
 .portfolio-header.scrolled {
   top: 0.85rem;
   width: 90%;
   max-width: 720px;
-  /* Visual balance offset: keeps optical alignment with right actions when floating */
-  margin-left: 1.5rem;
   padding: 0.45rem 0.85rem;
   border-radius: 9999px;
   backdrop-filter: blur(16px);

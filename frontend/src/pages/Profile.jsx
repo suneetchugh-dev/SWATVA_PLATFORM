@@ -519,7 +519,7 @@ export default function Profile() {
       />
 
       {/* Citizen Identity Profile Banner */}
-      <div data-tour="profile-avatar" className="mb-6 p-4 rounded-2xl neo-glass-card flex items-center justify-between gap-4">
+      <div data-tour="profile-avatar" className="mb-6 p-4 rounded-2xl neo-glass-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
           {/* Interactive Avatar with Refined Round Ring & Inner Pencil Edit Badge */}
           <div
