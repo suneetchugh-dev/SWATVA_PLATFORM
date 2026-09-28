@@ -18,6 +18,12 @@ export default function PWAInstallBanner() {
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef(null);
 
+  const isExcludedRoute =
+    location.pathname === '/login' ||
+    location.pathname === '/register' ||
+    location.pathname === '/app' ||
+    location.pathname === '/app/';
+
   useEffect(() => {
     try {
       const isDismissed = sessionStorage.getItem('swatva_pwa_banner_dismissed');
@@ -29,7 +35,7 @@ export default function PWAInstallBanner() {
 
   // Automatically fade out and dismiss after a few seconds unless hovered
   useEffect(() => {
-    const isVisible = isInstallable && !isInstalled && !dismissed && !scrolledAway;
+    const isVisible = !isExcludedRoute && isInstallable && !isInstalled && !dismissed && !scrolledAway;
     if (!isVisible || isHovered || installing || installedSuccess) {
       if (timerRef.current) clearTimeout(timerRef.current);
       return;
@@ -67,6 +73,8 @@ export default function PWAInstallBanner() {
       }
     };
   }, [location.pathname, dismissed, scrolledAway]);
+
+  if (isExcludedRoute) return null;
 
   const isVisible = isInstallable && !isInstalled && !dismissed && !scrolledAway;
 
