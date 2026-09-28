@@ -29,7 +29,8 @@
     "retry": "पुनः प्रयास करें",
     "open": "खोलें",
     "submitting": "भेजा जा रहा है…",
-    "searching": "खोजा जा रहा है…"
+    "searching": "खोजा जा रहा है…",
+    "notDetected": "पहचान नहीं हुई"
   },
   "nav": {
     "platform": "मंच",

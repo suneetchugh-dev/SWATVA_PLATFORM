@@ -608,16 +608,6 @@ export default function Profile() {
           </Button>
         </div>
       </Card>
-
-      <Card accent className="mt-4 p-5 flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <p className="text-sm font-semibold tracking-tight">{t('profile.completeness')}</p>
-          <p className="text-xs text-neutral-600 dark:text-neutral-300 mt-0.5">
-            {t('profile.completenessHint', { count: complete, n: complete })}
-          </p>
-        </div>
-        <span className="mono-badge text-amber-700 dark:text-amber-400">{complete}%</span>
-      </Card>
     </div>
   )
 }

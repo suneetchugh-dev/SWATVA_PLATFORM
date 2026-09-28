@@ -29,7 +29,8 @@
     "retry": "Retry",
     "open": "Open",
     "submitting": "Submitting…",
-    "searching": "Searching…"
+    "searching": "Searching…",
+    "notDetected": "Not detected"
   },
   "nav": {
     "platform": "Platform",
