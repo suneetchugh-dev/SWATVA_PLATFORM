@@ -393,31 +393,24 @@ export default function Profile() {
       {/* Citizen Identity Profile Banner */}
       <div className="mb-6 p-4 rounded-2xl neo-glass-card flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
-          {/* Interactive Avatar with Pencil Badge & Camera Hover Overlay */}
+          {/* Interactive Avatar with Round Big Ring & Inner Pencil Edit Badge */}
           <div
             className="relative group/avatar cursor-pointer shrink-0"
             onClick={() => avatarInputRef.current?.click()}
             title={isHindi ? 'प्रोफ़ाइल फ़ोटो बदलें' : 'Change profile photo'}
           >
-            <div className="w-13 h-13 rounded-full overflow-hidden bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/20 ring-2 ring-amber-400/80 shadow-[0_0_12px_rgba(245,158,11,0.4)] flex items-center justify-center font-bold text-base uppercase text-neutral-800 dark:text-neutral-200 relative transition-transform duration-200 group-hover/avatar:scale-105">
+            <div className="w-15 h-15 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/20 ring-[3px] ring-offset-3 ring-offset-white dark:ring-offset-[#121216] ring-amber-400 shadow-[0_0_18px_rgba(245,158,11,0.45)] flex items-center justify-center font-bold text-lg uppercase text-neutral-800 dark:text-neutral-200 relative transition-transform duration-200 group-hover/avatar:scale-105">
               {currentUser?.photoURL ? (
                 <img src={currentUser.photoURL} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               ) : (
                 initial
               )}
-              {/* Camera Hover Overlay */}
-              <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition-opacity duration-200">
-                <Camera size={16} className="text-white drop-shadow-sm" />
+
+              {/* Bottom inner shade with small pencil icon inside the pic */}
+              <div className="absolute inset-x-0 bottom-0 py-1 bg-black/50 backdrop-blur-[2px] flex items-center justify-center transition-all duration-200 group-hover/avatar:bg-black/70">
+                <Pencil size={10} className="text-white drop-shadow-sm stroke-[2.2]" />
               </div>
             </div>
-
-            {/* Pencil edit badge */}
-            <span
-              className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center shadow-xs border border-white/20 dark:border-black/20 group-hover/avatar:scale-110 transition-transform"
-              title={isHindi ? 'प्रोफ़ाइल फ़ोटो बदलें' : 'Change profile photo'}
-            >
-              <Pencil size={10} className="stroke-[2.5]" />
-            </span>
 
             <input
               ref={avatarInputRef}
