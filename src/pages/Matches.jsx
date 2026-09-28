@@ -112,53 +112,55 @@ export default function Matches() {
       ) : (
         <>
           {/* Filter Pills with smooth sliding background pill */}
-          <div className="p-1 rounded-full neo-glass-card inline-flex items-center mb-6 max-w-full overflow-x-auto">
-            <div ref={filterTrackRef} className="relative flex items-center gap-1" role="tablist" aria-label="Filter matches">
-              {filterPill ? (
-                <span
-                  aria-hidden="true"
-                  className="absolute z-0 rounded-full bg-neutral-950 dark:bg-white pointer-events-none"
-                  style={{
-                    transform: `translateX(${filterPill.x}px)`,
-                    width: `${filterPill.w}px`,
-                    height: `${filterPill.h}px`,
-                    top: `${filterPill.y}px`,
-                    transition: PILL_TRANSITION,
-                  }}
-                />
-              ) : null}
-              {FILTER_IDS.map((id, index) => {
-                const n = id === 'ALL' ? (results?.length ?? 0) : counts[id]
-                const isActive = filter === id
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    role="tab"
-                    data-pill-idx={index}
-                    aria-selected={isActive}
-                    onClick={() => { playClick(); setFilter(id); }}
-                    className={cx(
-                      'relative z-10 shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5 select-none',
-                      isActive
-                        ? filterPill
-                          ? 'text-white dark:text-neutral-950'
-                          : 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
-                        : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white',
-                    )}
-                  >
-                    <span>{t(`matches.filters.${id}`)}</span>
-                    <span className={cx(
-                      'mono-badge text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold',
-                      isActive
-                        ? 'bg-white/20 dark:bg-black/20 text-white dark:text-neutral-950'
-                        : 'bg-neutral-200/70 dark:bg-white/10 text-neutral-600 dark:text-neutral-300'
-                    )}>
-                      {n}
-                    </span>
-                  </button>
-                )
-              })}
+          <div className="w-full max-w-full overflow-x-auto no-scrollbar pb-1 mb-6">
+            <div className="p-1 rounded-full neo-glass-card inline-flex items-center">
+              <div ref={filterTrackRef} className="relative flex items-center gap-1" role="tablist" aria-label="Filter matches">
+                {filterPill ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute z-0 rounded-full bg-neutral-950 dark:bg-white pointer-events-none"
+                    style={{
+                      transform: `translateX(${filterPill.x}px)`,
+                      width: `${filterPill.w}px`,
+                      height: `${filterPill.h}px`,
+                      top: `${filterPill.y}px`,
+                      transition: PILL_TRANSITION,
+                    }}
+                  />
+                ) : null}
+                {FILTER_IDS.map((id, index) => {
+                  const n = id === 'ALL' ? (results?.length ?? 0) : counts[id]
+                  const isActive = filter === id
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      role="tab"
+                      data-pill-idx={index}
+                      aria-selected={isActive}
+                      onClick={() => { playClick(); setFilter(id); }}
+                      className={cx(
+                        'relative z-10 shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5 select-none',
+                        isActive
+                          ? filterPill
+                            ? 'text-white dark:text-neutral-950'
+                            : 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
+                          : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white',
+                      )}
+                    >
+                      <span>{t(`matches.filters.${id}`)}</span>
+                      <span className={cx(
+                        'mono-badge text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold',
+                        isActive
+                          ? 'bg-white/20 dark:bg-black/20 text-white dark:text-neutral-950'
+                          : 'bg-neutral-200/70 dark:bg-white/10 text-neutral-600 dark:text-neutral-300'
+                      )}>
+                        {n}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
