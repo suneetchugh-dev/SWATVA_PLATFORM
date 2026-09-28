@@ -9,7 +9,6 @@ import {
   FileStack,
   LayoutDashboard,
   LogOut,
-  MessageSquare,
   Scale,
   Settings,
   ShieldCheck,
@@ -26,6 +25,7 @@ import GuidedTour from '../components/GuidedTour'
 import ThemeToggle from '../components/ThemeToggle'
 import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
+import AIOrbIcon from '../components/AIOrbIcon'
 import { playClick } from '../utils/soundFx'
 
 // Routes are stable; only the labels are translated.
@@ -34,7 +34,7 @@ const NAV = [
   { to: '/app/discover', key: 'discover', icon: Compass },
   { to: '/app/matches', key: 'matches', icon: Scale },
   { to: '/app/documents', key: 'documents', icon: FileStack },
-  { to: '/app/assistant', key: 'assistant', icon: MessageSquare },
+  { to: '/app/assistant', key: 'assistant', icon: AIOrbIcon },
 ]
 
 const isNavItemActive = ({ to, end }, pathname) =>
