@@ -5,10 +5,12 @@
  * here — the palette in tailwind.config.js does not define those families, so
  * a banned colour cannot even be spelled.
  */
+import { useState, useRef, useEffect, useMemo, Children } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Check, Search } from 'lucide-react'
 import CurvyArrow from './CurvyArrow'
 import LoadingLogo from './LoadingLogo'
+import { playClick } from '../utils/soundFx'
 
 const cx = (...parts) => parts.filter(Boolean).join(' ')
 
@@ -191,22 +193,247 @@ export function Input({ className = '', ...rest }) {
   return <input className={cx(CONTROL_BASE, className)} {...rest} />
 }
 
-export function Select({ className = '', children, ...rest }) {
+function extractSelectOptions(children, directOptions) {
+  if (Array.isArray(directOptions) && directOptions.length > 0) {
+    return directOptions.map((opt) =>
+      typeof opt === 'string'
+        ? { value: opt, label: opt, disabled: false }
+        : {
+            value: opt.value !== undefined ? String(opt.value) : '',
+            label: opt.label !== undefined ? opt.label : String(opt.value ?? ''),
+            disabled: Boolean(opt.disabled),
+          }
+    )
+  }
+
+  const options = []
+  const traverse = (nodes) => {
+    Children.forEach(nodes, (child) => {
+      if (!child) return
+      if (child.type === 'option' || (child.props && child.props.value !== undefined)) {
+        options.push({
+          value: child.props.value !== undefined ? String(child.props.value) : '',
+          label: child.props.children ?? child.props.value ?? '',
+          disabled: Boolean(child.props.disabled),
+        })
+      } else if (child.props && child.props.children) {
+        traverse(child.props.children)
+      }
+    })
+  }
+  traverse(children)
+  return options
+}
+
+export function Select({
+  className = '',
+  children,
+  options: directOptions,
+  value,
+  defaultValue,
+  onChange,
+  placeholder,
+  disabled = false,
+  required = false,
+  id,
+  name,
+  searchable,
+  ...rest
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const containerRef = useRef(null)
+  const searchInputRef = useRef(null)
+
+  const rawOptions = useMemo(
+    () => extractSelectOptions(children, directOptions),
+    [children, directOptions]
+  )
+
+  const currentValue = value !== undefined ? String(value) : (defaultValue !== undefined ? String(defaultValue) : '')
+
+  // Close when clicking outside or pressing Escape
+  useEffect(() => {
+    if (!isOpen) return
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false)
+        setSearchTerm('')
+      }
+    }
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false)
+        setSearchTerm('')
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen])
+
+  // Focus search when dropdown opens
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 50)
+    }
+  }, [isOpen])
+
+  const isSearchEnabled = searchable ?? rawOptions.length > 6
+
+  const filteredOptions = useMemo(() => {
+    if (!searchTerm.trim()) return rawOptions
+    const q = searchTerm.toLowerCase().trim()
+    return rawOptions.filter((opt) => {
+      const labelText = typeof opt.label === 'string' ? opt.label : String(opt.value)
+      return labelText.toLowerCase().includes(q) || opt.value.toLowerCase().includes(q)
+    })
+  }, [rawOptions, searchTerm])
+
+  const selectedOption = rawOptions.find((opt) => opt.value === currentValue)
+  const displayLabel = selectedOption
+    ? selectedOption.label
+    : (placeholder || (rawOptions[0]?.value === '' ? rawOptions[0]?.label : 'Select an option'))
+
+  const handleSelect = (optVal, optDisabled) => {
+    if (optDisabled || disabled) return
+    playClick()
+    if (onChange) {
+      const syntheticEvent = {
+        target: { value: optVal, name: name || id, id },
+        currentTarget: { value: optVal, name: name || id, id },
+        stopPropagation: () => {},
+        preventDefault: () => {},
+      }
+      onChange(syntheticEvent)
+    }
+    setIsOpen(false)
+    setSearchTerm('')
+  }
+
   return (
-    <div className="relative w-full">
+    <div ref={containerRef} className={cx('relative w-full select-none', className)}>
+      {/* Hidden native select for standard form accessibility / tests */}
       <select
-        className={cx(
-          CONTROL_BASE,
-          'appearance-none pr-9 cursor-pointer font-medium shadow-2xs',
-          className
-        )}
+        id={id}
+        name={name}
+        value={currentValue}
+        required={required}
+        disabled={disabled}
+        aria-hidden="true"
+        tabIndex={-1}
+        className="sr-only"
+        onChange={onChange}
         {...rest}
       >
-        {children}
+        {rawOptions.map((opt, idx) => (
+          <option key={`${opt.value}-${idx}`} value={opt.value} disabled={opt.disabled}>
+            {typeof opt.label === 'string' ? opt.label : opt.value}
+          </option>
+        ))}
       </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-400 dark:text-neutral-500">
-        <ChevronDown size={14} className="stroke-[2.2]" />
-      </div>
+
+      {/* Stylized Trigger Button */}
+      <button
+        type="button"
+        id={id ? `${id}-btn` : undefined}
+        disabled={disabled}
+        onClick={() => {
+          if (disabled) return
+          playClick()
+          setIsOpen((prev) => !prev)
+          setSearchTerm('')
+        }}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        className={cx(
+          CONTROL_BASE,
+          'flex items-center justify-between text-left cursor-pointer font-medium shadow-2xs group',
+          isOpen ? 'border-amber-500/70 ring-2 ring-amber-500/25 bg-white dark:bg-[#161616]' : '',
+          disabled ? 'opacity-50 cursor-not-allowed' : ''
+        )}
+      >
+        <span className={cx('truncate', !selectedOption || selectedOption.value === '' ? 'text-neutral-400 dark:text-neutral-500' : 'text-neutral-900 dark:text-white')}>
+          {displayLabel}
+        </span>
+        <ChevronDown
+          size={15}
+          className={cx(
+            'flex-shrink-0 ml-2 text-neutral-400 dark:text-neutral-500 transition-transform duration-200 stroke-[2.2] group-hover:text-neutral-700 dark:group-hover:text-neutral-300',
+            isOpen ? 'rotate-180 text-amber-600 dark:text-amber-400' : ''
+          )}
+        />
+      </button>
+
+      {/* Floating Popover List */}
+      {isOpen && (
+        <div
+          role="listbox"
+          className={cx(
+            'absolute left-0 right-0 top-full mt-1.5 z-50 overflow-hidden',
+            'rounded-2xl border border-neutral-200/90 dark:border-white/15',
+            'bg-white/95 dark:bg-[#121212]/95 backdrop-blur-xl',
+            'shadow-[0_12px_36px_-6px_rgba(0,0,0,0.18),0_0_24px_-4px_rgba(245,158,11,0.08)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.8),0_0_30px_rgba(245,158,11,0.1)]',
+            'p-1.5 animate-in fade-in-50 zoom-in-[0.98] duration-150'
+          )}
+        >
+          {/* Optional Search Filter for long lists (e.g. 36 Indian States) */}
+          {isSearchEnabled && (
+            <div className="p-1 pb-1.5 border-b border-neutral-100 dark:border-white/10 mb-1">
+              <div className="relative flex items-center">
+                <Search size={14} className="absolute left-2.5 text-neutral-400 dark:text-neutral-500 pointer-events-none" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Type to filter..."
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-neutral-100/80 dark:bg-white/[0.06] border border-neutral-200 dark:border-white/10 rounded-lg text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Options Scrollable Container */}
+          <div className="max-h-60 overflow-y-auto space-y-0.5 custom-scrollbar pr-0.5">
+            {filteredOptions.length === 0 ? (
+              <div className="py-4 text-center text-xs text-neutral-400 dark:text-neutral-500 font-medium">
+                No matching options
+              </div>
+            ) : (
+              filteredOptions.map((opt, idx) => {
+                const isSelected = opt.value === currentValue
+                return (
+                  <button
+                    key={`${opt.value}-${idx}`}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    disabled={opt.disabled}
+                    onClick={() => handleSelect(opt.value, opt.disabled)}
+                    className={cx(
+                      'w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-left transition-all duration-150 cursor-pointer',
+                      isSelected
+                        ? 'bg-amber-500/15 text-amber-900 dark:text-amber-200 font-semibold border border-amber-500/30 shadow-2xs'
+                        : 'text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/[0.07] hover:text-neutral-950 dark:hover:text-white',
+                      opt.disabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''
+                    )}
+                  >
+                    <span className="truncate">{opt.label}</span>
+                    {isSelected && (
+                      <Check size={14} className="flex-shrink-0 ml-2 text-amber-600 dark:text-amber-400 stroke-[2.5]" />
+                    )}
+                  </button>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
