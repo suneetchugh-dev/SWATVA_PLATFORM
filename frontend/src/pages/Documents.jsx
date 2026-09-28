@@ -393,9 +393,10 @@ export default function Documents() {
                     playClick()
                     setIsClearModalOpen(true)
                   }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/25 bg-red-500/10 hover:bg-red-500/20 active:scale-95 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+                  aria-label={t('documents.removeAll') || 'Remove all documents'}
+                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-300/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 active:scale-[0.98] text-xs font-medium shadow-2xs transition-all duration-200 cursor-pointer"
                 >
-                  <Trash2 size={13} className="stroke-[2.2]" />
+                  <Trash2 size={13} className="stroke-[2.2] shrink-0 text-neutral-400 dark:text-neutral-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
                   <span>{t('documents.removeAll') || 'Remove all documents'}</span>
                 </button>
               </div>

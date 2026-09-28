@@ -153,6 +153,36 @@ export default function Dashboard() {
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" data-tour="dashboard-tiles">
+        {/* The header already needs the signed-in user for the greeting, so the
+            profile tile reads that same fetch rather than issuing a second one. */}
+        <Tile
+          icon={UserCog}
+          label={t('dashboard.profileLabel')}
+          value={
+            user?.profile?.age
+              ? t('dashboard.profileAge', { age: user.profile.age })
+              : user
+                ? '—'
+                : <Spinner />
+          }
+          hint={user?.profile?.state || t('dashboard.profileHint')}
+          to="/app/profile"
+          cta={t('dashboard.ctaUpdate')}
+        />
+
+        <Loadable load={() => api.documents.list()} onRetry={t('common.retry')}>
+          {(docs) => (
+            <Tile
+              icon={FileStack}
+              label={t('dashboard.documentsLabel')}
+              value={(docs ?? []).length}
+              hint={t('dashboard.documentsHint')}
+              to="/app/documents"
+              cta={t('dashboard.ctaOpen')}
+            />
+          )}
+        </Loadable>
+
         <Loadable load={() => api.eligibility.getMatches()} onRetry={t('common.retry')}>
           {(matches) => {
             const list = matches ?? []
@@ -170,36 +200,6 @@ export default function Dashboard() {
             )
           }}
         </Loadable>
-
-        <Loadable load={() => api.documents.list()} onRetry={t('common.retry')}>
-          {(docs) => (
-            <Tile
-              icon={FileStack}
-              label={t('dashboard.documentsLabel')}
-              value={(docs ?? []).length}
-              hint={t('dashboard.documentsHint')}
-              to="/app/documents"
-              cta={t('dashboard.ctaOpen')}
-            />
-          )}
-        </Loadable>
-
-        {/* The header already needs the signed-in user for the greeting, so the
-            profile tile reads that same fetch rather than issuing a second one. */}
-        <Tile
-          icon={UserCog}
-          label={t('dashboard.profileLabel')}
-          value={
-            user?.profile?.age
-              ? t('dashboard.profileAge', { age: user.profile.age })
-              : user
-                ? '—'
-                : <Spinner />
-          }
-          hint={user?.profile?.state || t('dashboard.profileHint')}
-          to="/app/profile"
-          cta={t('dashboard.ctaUpdate')}
-        />
 
         <Tile
           icon={Compass}
