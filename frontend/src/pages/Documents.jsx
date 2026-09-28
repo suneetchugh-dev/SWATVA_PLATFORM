@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { AlertTriangle, FileStack, Plus, Trash2, Upload } from 'lucide-react'
 import { api } from '../api/client'
 import DocumentReviewModal from '../components/DocumentReviewModal'
+import ClearDocumentsModal from '../components/ClearDocumentsModal'
 import {
   Badge,
   Banner,
@@ -111,6 +112,8 @@ export default function Documents() {
   const [activeTab, setActiveTab] = useState('locker') // 'locker' | 'add'
   const [selectedReviewDoc, setSelectedReviewDoc] = useState(null)
   const [selectedFile, setSelectedFile] = useState(null)
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false)
+  const [clearingAll, setClearingAll] = useState(false)
 
   const [docType, setDocType] = useState('AADHAAR')
   const [filename, setFilename] = useState('')
@@ -245,6 +248,21 @@ export default function Documents() {
     }
   }
 
+  const handleRemoveAll = async () => {
+    if (!docs || docs.length === 0) return
+    setError(null)
+    setClearingAll(true)
+    try {
+      await Promise.all(docs.map((d) => api.documents.delete(d.id)))
+      setIsClearModalOpen(false)
+      load()
+    } catch (err) {
+      setError(err?.message || t('documents.deleteError'))
+    } finally {
+      setClearingAll(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24 text-neutral-500 dark:text-neutral-400">
@@ -329,7 +347,25 @@ export default function Documents() {
               }
             />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3 px-1">
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                  {t('documents.uploadedCount', { count: docCount })}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick()
+                    setIsClearModalOpen(true)
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors cursor-pointer"
+                >
+                  <Trash2 size={13} className="stroke-[2.2]" />
+                  <span>{t('documents.removeAll') || 'Remove all documents'}</span>
+                </button>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
               {docs.map((d) => {
                 const expired = isExpired(d.expiryDate)
                 const style = STATUS_STYLES[d.status] ?? STATUS_STYLES.ACTIVE
@@ -404,6 +440,7 @@ export default function Documents() {
                   </Card>
                 )
               })}
+              </div>
             </div>
           )}
         </div>
@@ -522,6 +559,15 @@ export default function Documents() {
           }
           setActiveTab('add')
         }}
+      />
+
+      {/* Clear All Documents Modal */}
+      <ClearDocumentsModal
+        isOpen={isClearModalOpen}
+        count={docCount}
+        onClose={() => setIsClearModalOpen(false)}
+        onConfirm={handleRemoveAll}
+        loading={clearingAll}
       />
     </div>
   )
