@@ -373,6 +373,7 @@
     "fileHint": "Required. PDF or image (PNG, JPG, WebP) up to 10MB.",
     "fileRequired": "A document file is required. Please choose a PDF or image file before saving.",
     "fileTooLarge": "File size exceeds the 10MB limit.",
+    "invalidFileType": "Invalid file format. Only PDF and image files (JPG, PNG, WebP) are supported.",
     "reviewModalTitle": "Document Review Details",
     "reviewModalSubtitle": "Issues identified during automated verification",
     "reviewDetectedIssue": "Issue detected",

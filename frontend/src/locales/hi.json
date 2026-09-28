@@ -373,6 +373,7 @@
     "fileHint": "अनिवार्य। 10MB तक की PDF या चित्र (PNG, JPG, WebP)।",
     "fileRequired": "दस्तावेज़ फ़ाइल आवश्यक है। सहेजने से पहले कृपया एक PDF या चित्र फ़ाइल चुनें।",
     "fileTooLarge": "फ़ाइल का आकार 10MB की सीमा से अधिक है।",
+    "invalidFileType": "अमान्य फ़ाइल प्रारूप। केवल पीडीएफ और छवि फ़ाइलें (JPG, PNG, WebP) समर्थित हैं।",
     "reviewModalTitle": "दस्तावेज़ समीक्षा विवरण",
     "reviewModalSubtitle": "स्वचालित सत्यापन के दौरान पहचानी गई समस्याएँ",
     "reviewDetectedIssue": "पाई गई समस्या",
