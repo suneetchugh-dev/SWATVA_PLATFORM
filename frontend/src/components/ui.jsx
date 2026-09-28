@@ -242,8 +242,22 @@ export function Select({
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [openUpwards, setOpenUpwards] = useState(false)
   const containerRef = useRef(null)
   const searchInputRef = useRef(null)
+
+  // Smart placement: check available space below vs above to keep dropdown inside card/viewport
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      const spaceBelow = window.innerHeight - rect.bottom
+      if (spaceBelow < 220 && rect.top > spaceBelow) {
+        setOpenUpwards(true)
+      } else {
+        setOpenUpwards(false)
+      }
+    }
+  }, [isOpen])
 
   const rawOptions = useMemo(
     () => extractSelectOptions(children, directOptions),
@@ -368,12 +382,13 @@ export function Select({
         />
       </button>
 
-      {/* Floating Popover List (Floats above card boundaries) */}
+      {/* Floating Popover List with Smart Up/Down Auto-Placement */}
       {isOpen && (
         <div
           role="listbox"
           className={cx(
-            'absolute left-0 right-0 top-full mt-1.5 z-[100] overflow-hidden',
+            'absolute left-0 right-0 z-[100] overflow-hidden',
+            openUpwards ? 'bottom-full mb-1.5 origin-bottom' : 'top-full mt-1.5 origin-top',
             'rounded-2xl border border-neutral-200/90 dark:border-white/15',
             'bg-white/95 dark:bg-[#121212]/95 backdrop-blur-xl',
             'shadow-[0_12px_36px_-6px_rgba(0,0,0,0.18),0_0_24px_-4px_rgba(245,158,11,0.08)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.8),0_0_30px_rgba(245,158,11,0.1)]',
@@ -399,7 +414,7 @@ export function Select({
           )}
 
           {/* Options Scrollable Container */}
-          <div className="max-h-60 overflow-y-auto space-y-0.5 custom-scrollbar pr-0.5">
+          <div className="max-h-48 overflow-y-auto space-y-0.5 custom-scrollbar pr-0.5">
             {filteredOptions.length === 0 ? (
               <div className="py-4 text-center text-xs text-neutral-400 dark:text-neutral-500 font-medium">
                 No matching options

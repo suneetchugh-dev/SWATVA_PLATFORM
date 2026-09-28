@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Camera, Check, ChevronLeft, ChevronRight, Pencil, Sparkles, Trash2, UserRound } from 'lucide-react'
+import { Camera, Check, ChevronLeft, ChevronRight, Pencil, Sparkles, Trash2, UserRound, X } from 'lucide-react'
 import { api, getStoredUser, setStoredUser } from '../api/client'
+import { playClick } from '../utils/soundFx'
 
 import { INDIAN_STATES } from '../lib/india'
 import {
@@ -163,6 +164,15 @@ export default function Profile() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [saved, setSaved] = useState(false)
+  const [saveToast, setSaveToast] = useState(false)
+  const toastTimerRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    }
+  }, [])
+
   const [form, setForm] = useState({
     age: '', income: '', state: '', district: '', occupation: '', education: '',
     category: '', gender: '', disabilityStatus: '',
@@ -281,11 +291,18 @@ export default function Profile() {
   )
 
   const save = async () => {
+    if (saving) return
+    playClick()
     setError(null)
     setSaving(true)
     try {
       await api.user.updateProfile(payload)
       setSaved(true)
+      setSaveToast(true)
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+      toastTimerRef.current = setTimeout(() => {
+        setSaveToast(false)
+      }, 4000)
     } catch (err) {
       setError(err?.message || t('profile.loadError'))
     } finally {
@@ -485,13 +502,6 @@ export default function Profile() {
         <div className="mb-6">
           <Banner tone="error" title={t('profile.errorTitle')}>
             {error}
-          </Banner>
-        </div>
-      ) : null}
-      {saved ? (
-        <div className="mb-6">
-          <Banner tone="info" title={t('profile.savedTitle')}>
-            {t('profile.savedBody')}
           </Banner>
         </div>
       ) : null}
@@ -698,7 +708,7 @@ export default function Profile() {
               onClick={save}
               disabled={saving}
               className={cx(
-                'inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer select-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm',
+                'inline-flex items-center justify-center gap-2 h-10 px-5 min-w-[105px] rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer select-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm',
                 saved
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 border border-emerald-500/50 ring-2 ring-emerald-500/30'
                   : 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-100 border border-neutral-800/80 dark:border-white/20 ring-1 ring-amber-400/50 hover:ring-amber-400/90 shadow-amber-500/10'
@@ -728,6 +738,35 @@ export default function Profile() {
           </div>
         </div>
       </Card>
+
+      {/* Disappearing Floating Profile Saved Toast */}
+      {saveToast && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm sm:max-w-md bg-neutral-950 dark:bg-[#18191c] text-white p-4 rounded-2xl shadow-2xl border border-neutral-800 dark:border-white/15 flex items-start gap-3.5 backdrop-blur-xl animate-in slide-in-from-bottom-5 fade-in duration-300 pointer-events-auto">
+          <div className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
+            <Check size={16} className="text-emerald-400 stroke-[2.5]" />
+          </div>
+          <div className="flex-1 min-w-0 pr-1">
+            <h4 className="text-xs font-bold text-white tracking-tight">
+              {t('profile.savedTitle')}
+            </h4>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-300 dark:text-neutral-400">
+              {t('profile.savedBody')}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playClick()
+              setSaveToast(false)
+              if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+            }}
+            title={t('common.close') || 'Close'}
+            className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
