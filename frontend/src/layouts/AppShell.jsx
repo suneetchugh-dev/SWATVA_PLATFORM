@@ -249,19 +249,28 @@ export default function AppShell() {
                 <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-white dark:bg-[#151618] border border-neutral-200 dark:border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 font-sans">
                   {/* Identity Header */}
                   <div className="relative flex flex-col items-center text-center px-4 pt-5 pb-4 border-b border-neutral-100 dark:border-white/5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        playClick()
-                        setIsAccountOpen(false)
-                        navigate('/app/profile')
-                      }}
-                      title={i18n.language === 'hi' ? 'प्रोफ़ाइल संपादित करें' : 'Edit Profile'}
-                      aria-label="Edit Profile"
-                      className="absolute top-3 right-3 p-1.5 rounded-full text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition cursor-pointer"
-                    >
-                      <Pencil size={13} />
-                    </button>
+                    {/* Pencil Edit Icon with Custom Styled Floating Tooltip */}
+                    <div className="absolute top-3 right-3 group/pencil">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playClick()
+                          setIsAccountOpen(false)
+                          navigate('/app/profile')
+                        }}
+                        title={i18n.language === 'hi' ? 'प्रोफ़ाइल सेट करें' : 'Set Up Profile'}
+                        aria-label={i18n.language === 'hi' ? 'प्रोफ़ाइल सेट करें' : 'Set Up Profile'}
+                        className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <div className="absolute right-0 top-full mt-1.5 pointer-events-none opacity-0 group-hover/pencil:opacity-100 transition-all duration-200 ease-out translate-y-1 group-hover/pencil:translate-y-0 z-50 whitespace-nowrap">
+                        <div className="bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 text-[10px] font-semibold tracking-wide py-1 px-2 rounded-md shadow-lg border border-white/10 dark:border-neutral-900/10 flex items-center gap-1">
+                          <span>{i18n.language === 'hi' ? 'प्रोफ़ाइल सेट करें' : 'Set Up Profile'}</span>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="h-14 w-14 rounded-full overflow-hidden mb-2.5 bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/15 flex items-center justify-center flex-shrink-0 shadow-sm ring-2 ring-amber-400/80 shadow-[0_0_14px_rgba(245,158,11,0.5)] text-lg font-bold uppercase text-neutral-800 dark:text-neutral-200">
                       {photoURL ? (
                         <img src={photoURL} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -273,7 +282,7 @@ export default function AppShell() {
                       <span className="text-sm font-bold text-neutral-900 dark:text-white truncate">
                         {displayName}
                       </span>
-                      <ShieldCheck size={14} className="text-amber-500 flex-shrink-0 hover:scale-125 transition-transform duration-300 cursor-default" />
+                      <ShieldCheck size={14} className="text-amber-500 flex-shrink-0 hover:text-amber-400 hover:scale-105 transition-all duration-300 ease-out cursor-default" />
                     </div>
                     <div className="text-[11px] text-neutral-400 dark:text-neutral-500 truncate max-w-full mt-0.5">
                       {user?.email || 'citizen@swatva.in'}
@@ -282,26 +291,6 @@ export default function AppShell() {
 
                   {/* Dropdown Actions */}
                   <div className="py-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        playClick()
-                        setIsAccountOpen(false)
-                        navigate('/app/profile')
-                      }}
-                      className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition cursor-pointer text-left group"
-                    >
-                      <span className="flex items-center space-x-3 min-w-0">
-                        <UserCog 
-                          size={15} 
-                          className="flex-shrink-0 text-neutral-400 dark:text-neutral-500 origin-center transform-gpu transition-transform duration-300 ease-out group-hover:scale-110 group-hover:text-amber-600 dark:group-hover:text-amber-400" 
-                        />
-                        <span className="text-xs font-medium text-neutral-700 dark:text-neutral-200 group-hover:text-neutral-950 dark:group-hover:text-white transition-colors truncate">
-                          {i18n.language === 'hi' ? 'प्रोफ़ाइल सेटिंग्स एवं संपादन' : 'Set Up & Edit Profile'}
-                        </span>
-                      </span>
-                      <ChevronRight size={14} className="text-neutral-300 dark:text-neutral-600 flex-shrink-0 group-hover:translate-x-0.5 group-hover:text-neutral-900 dark:group-hover:text-white transition-all duration-200" />
-                    </button>
                     <button
                       type="button"
                       onClick={() => {

@@ -315,36 +315,6 @@ export default function PreferencesModal({ isOpen, onClose }) {
         <div className="space-y-3 font-sans">
           
           {/* ========================================================
-              0. MAIN SETTING: Platform Theme Mode (With Outline Spin Toggle)
-             ======================================================== */}
-          <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-neutral-50/90 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/15 transition-all">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center space-x-2.5 sm:space-x-3 flex-1 min-w-0">
-                {dark ? (
-                  <Moon size={15} className="text-white flex-shrink-0" />
-                ) : (
-                  <Sun size={15} className="text-neutral-900 flex-shrink-0" />
-                )}
-                <div className="min-w-0">
-                  <div className="text-[11px] sm:text-xs font-semibold text-neutral-950 dark:text-white leading-snug">
-                    {currentLang === 'hi' ? 'इंटरफ़ेस थीम' : 'Interface Theme'}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center flex-shrink-0">
-                <ThemeToggle 
-                  darkMode={dark} 
-                  toggleTheme={() => {
-                    spinGear();
-                    setDark(!dark);
-                  }} 
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* ========================================================
               1. MAIN SETTING: Platform Language & Dialect Pipeline
              ======================================================== */}
           <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-neutral-50/90 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/15 transition-all">
