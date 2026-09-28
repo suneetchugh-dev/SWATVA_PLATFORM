@@ -24,8 +24,7 @@ export const TEAM_MEMBERS = [
     avatar: '/team/Devanshu.webp',
     fallbackAvatar: 'https://github.com/ks-devanshu.png',
     tags: ['Java 21', 'Spring Boot', 'PostgreSQL', 'REST APIs', 'Spring Security'],
-    github: 'https://github.com/ks-devanshu',
-    linkedin: 'https://in.linkedin.com/in/devanshu-ks-417281432'
+    github: 'https://github.com/ks-devanshu'
   },
   {
     id: 'rishit',
@@ -36,10 +35,10 @@ export const TEAM_MEMBERS = [
     college: 'NIET (Computer Science & AI)',
     bio: 'Orchestrated the Qdrant vector database infrastructure, multi-document semantic retrieval, Groq AI tool pipelines, and transparent context grounding.',
     avatar: '/team/Rishit Roy.png',
-    fallbackAvatar: 'https://github.com/RishitRoy.png',
-    tags: ['Qdrant', 'RAG Engine', 'Vector Embeddings', 'FastAPI/Java AI', 'Semantic Search'],
-    github: 'https://github.com/RishitRoy',
-    linkedin: 'https://www.linkedin.com/in/rishit-roy/'
+    fallbackAvatar: 'https://github.com/rishit1711.png',
+    tags: ['Qdrant', 'RAG Engine', 'Vector Embeddings', 'Spring AI/Java', 'Semantic Search'],
+    github: 'https://github.com/rishit1711',
+    linkedin: 'https://www.linkedin.com/in/rishit-roy-383b04314/'
   },
   {
     id: 'prakhar',

@@ -18,6 +18,12 @@ export default function PWAInstallBanner() {
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef(null);
 
+  const isExcludedRoute =
+    location.pathname.startsWith('/app') ||
+    location.pathname === '/login' ||
+    location.pathname === '/register' ||
+    location.pathname === '/team';
+
   useEffect(() => {
     try {
       const isDismissed = sessionStorage.getItem('swatva_pwa_banner_dismissed');
@@ -29,7 +35,7 @@ export default function PWAInstallBanner() {
 
   // Automatically fade out and dismiss after a few seconds unless hovered
   useEffect(() => {
-    const isVisible = isInstallable && !isInstalled && !dismissed && !scrolledAway;
+    const isVisible = !isExcludedRoute && isInstallable && !isInstalled && !dismissed && !scrolledAway;
     if (!isVisible || isHovered || installing || installedSuccess) {
       if (timerRef.current) clearTimeout(timerRef.current);
       return;
@@ -67,6 +73,8 @@ export default function PWAInstallBanner() {
       }
     };
   }, [location.pathname, dismissed, scrolledAway]);
+
+  if (isExcludedRoute) return null;
 
   const isVisible = isInstallable && !isInstalled && !dismissed && !scrolledAway;
 
@@ -112,11 +120,11 @@ export default function PWAInstallBanner() {
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-neutral-950 dark:text-white tracking-tight">
                 {t('pwa.installTitle', 'Install SWATVA App')}
               </span>
-              <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+              <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-wider rounded-md bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-200 border border-neutral-200/80 dark:border-white/10">
                 PWA
               </span>
             </div>

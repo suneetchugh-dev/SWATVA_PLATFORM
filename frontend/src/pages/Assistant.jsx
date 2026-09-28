@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import {
+  Check,
   Clock,
+  Copy,
+  Download,
   ExternalLink,
   MessageSquare,
   Mic,
@@ -12,12 +16,15 @@ import {
   Trash2,
   Volume2,
   VolumeX,
+  Maximize2,
+  Minimize2,
   X,
 } from 'lucide-react'
 import { api } from '../api/client'
 import { Badge, Banner, Button, Card, PageHeader, StatusPill, cx } from '../components/ui'
 import AIOrbFace from '../components/AIOrbFace'
 import { playClick } from '../utils/soundFx'
+import { PageTourButton } from '../components/GuidedTour'
 import {
   isSpeechRecognitionSupported,
   isSpeechSynthesisSupported,
@@ -125,10 +132,12 @@ export default function Assistant() {
   const [sawUngrounded, setSawUngrounded] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [activeSpeakingIndex, setActiveSpeakingIndex] = useState(null)
+  const [copiedIndex, setCopiedIndex] = useState(null)
   const [voiceNotice, setVoiceNotice] = useState(null)
 
-  // History Drawer state
+  // History Drawer & Fullscreen state
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [historySearch, setHistorySearch] = useState('')
 
   const endRef = useRef(null)
@@ -158,16 +167,29 @@ export default function Assistant() {
     setActiveSpeakingIndex(null)
   }, [i18n.resolvedLanguage])
 
-  // Close drawer on ESC
+  // Close drawer or exit fullscreen on ESC and lock body scroll
   useEffect(() => {
+    if (isHistoryOpen || isFullscreen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isHistoryOpen) {
-        setIsHistoryOpen(false)
+      if (e.key === 'Escape') {
+        if (isFullscreen) {
+          setIsFullscreen(false)
+        } else if (isHistoryOpen) {
+          setIsHistoryOpen(false)
+        }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isHistoryOpen])
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isHistoryOpen, isFullscreen])
 
   // Sync active session changes to stored sessions
   const updateSessionInStorage = useCallback((currentSessionId, updatedMessages, newBackendSessionId, ungrounded) => {
@@ -297,6 +319,59 @@ export default function Assistant() {
     }
   }
 
+  const handleCopy = (index, textToCopy) => {
+    if (!textToCopy) return
+    playClick()
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopiedIndex(index)
+      setTimeout(() => setCopiedIndex(null), 2000)
+    }).catch((err) => {
+      console.warn('Failed to copy to clipboard:', err)
+    })
+  }
+
+  const handleExportChat = () => {
+    if (messages.length === 0) return
+    playClick()
+    const title = 'SWATVA Welfare Assistant - Consultation Export'
+    const dateStr = new Date().toLocaleString(i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN')
+    let markdown = `# ${title}\n*Export Date: ${dateStr}*\n\n---\n\n`
+
+    messages.forEach((m, idx) => {
+      const isUser = m.role === 'user'
+      const speaker = isUser ? '👤 Citizen / User' : '🤖 SWATVA Welfare Assistant'
+      markdown += `### ${idx + 1}. ${speaker}\n\n${m.content}\n\n`
+
+      if (m.readiness) {
+        markdown += `> **Application Readiness:** ${m.readiness.readinessPercentage}% (${m.readiness.completedDocuments}/${m.readiness.totalRequired} documents ready)\n\n`
+      }
+
+      if (m.benefits && m.benefits.length > 0) {
+        markdown += `**Matched Schemes Surfaced:**\n`
+        m.benefits.forEach((b) => {
+          markdown += `- **${b.schemeName}** (${b.matchStatus}, ${b.matchPercentage}% match)${b.officialSourceUrl ? ` - [Official Portal](${b.officialSourceUrl})` : ''}\n`
+        })
+        markdown += '\n'
+      }
+
+      if (m.citations && m.citations.length > 0) {
+        markdown += `*Official Sources / Citations:* ${m.citations.join(' · ')}\n\n`
+      }
+
+      markdown += '---\n\n'
+    })
+
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `swatva-consultation-${new Date().toISOString().slice(0, 10)}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const send = async (raw) => {
     const message = (raw ?? text).trim()
     if (!message || sending) return
@@ -347,8 +422,8 @@ export default function Assistant() {
       setMessages(finalMessages)
       updateSessionInStorage(currentActiveId, finalMessages, backendId, isUngrounded || sawUngrounded)
 
-      // Auto-readout if setting enabled in Preferences
-      const autoTts = typeof window !== 'undefined' && localStorage.getItem('swatva_sound_tts') !== 'off'
+      // Auto-readout if explicitly enabled by user in Preferences
+      const autoTts = typeof window !== 'undefined' && localStorage.getItem('swatva_sound_tts') === 'on'
       if (autoTts && ttsAvailable) {
         setTimeout(() => {
           handleToggleSpeak(finalMessages.length - 1, assistantReply)
@@ -430,45 +505,68 @@ export default function Assistant() {
   }, [sessions, historySearch])
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-13rem)] relative">
+    <div
+      className={cx(
+        'w-full transition-all duration-300',
+        isFullscreen
+          ? 'fixed inset-0 z-[9000] p-4 sm:p-6 bg-porcelain dark:bg-obsidian flex flex-col h-dvh max-h-dvh overflow-hidden'
+          : 'flex flex-col h-[calc(100dvh-13.5rem)] lg:h-[calc(100dvh-14rem)] max-h-[calc(100dvh-13.5rem)] min-h-[440px] relative overflow-hidden'
+      )}
+    >
       <PageHeader
         title={t('assistant.title')}
         desc={t('assistant.desc')}
-        className="mb-4"
+        className="mb-4 shrink-0"
         actions={
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                playClick()
-                setIsHistoryOpen((prev) => !prev)
-              }}
-              aria-label={t('assistant.historyButton')}
-              className={cx(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 cursor-pointer select-none',
-                isHistoryOpen
-                  ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow-xs'
-                  : 'border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300'
-              )}
-            >
-              <Clock size={13} />
-              <span>{t('assistant.historyButton')}</span>
-              {sessions.length > 0 && (
-                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-200 dark:bg-white/15 text-neutral-900 dark:text-white font-mono font-medium">
-                  {sessions.length}
-                </span>
-              )}
-            </button>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <PageTourButton pageKey="assistant" />
+            <div data-tour="assistant-actions" className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                onClick={handleNewChat}
+                aria-label={t('assistant.newChat')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 transition-all duration-200 cursor-pointer select-none shadow-xs"
+              >
+                <Plus size={13} />
+                <span>{t('assistant.newChat')}</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={handleNewChat}
-              aria-label={t('assistant.newChat')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 transition-all duration-200 cursor-pointer select-none shadow-xs"
-            >
-              <Plus size={13} />
-              <span>{t('assistant.newChat')}</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  playClick()
+                  setIsHistoryOpen((prev) => !prev)
+                }}
+                aria-label={t('assistant.historyButton')}
+                className={cx(
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 cursor-pointer select-none',
+                  isHistoryOpen
+                    ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow-xs'
+                    : 'border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300'
+                )}
+              >
+                <Clock size={13} />
+                <span>{t('assistant.historyButton')}</span>
+                {sessions.length > 0 && (
+                  <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-200 dark:bg-white/15 text-neutral-900 dark:text-white font-mono font-medium">
+                    {sessions.length}
+                  </span>
+                )}
+              </button>
+
+              {messages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleExportChat}
+                  aria-label={t('assistant.export')}
+                  title={t('assistant.export')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs"
+                >
+                  <Download size={13} />
+                  <span>{t('assistant.export')}</span>
+                </button>
+              )}
+            </div>
           </div>
         }
       />
@@ -486,7 +584,26 @@ export default function Assistant() {
         </div>
       ) : null}
 
-      <div className="flex-1 overflow-y-auto rounded-2xl border border-neutral-200 dark:border-white/10 p-4 sm:p-5 bg-white/50 dark:bg-white/[0.02]">
+      <div
+        data-tour="assistant-chat"
+        className="flex-1 overflow-y-auto overflow-x-hidden rounded-2xl border border-neutral-200 dark:border-white/10 p-4 sm:p-5 bg-white/50 dark:bg-white/[0.02] relative min-h-0"
+      >
+        {/* Top-Right Sticky Fullscreen Toggle Button inside Chat Window */}
+        <div className="sticky top-0 float-right z-20 -mr-1 -mt-1 ml-2 mb-2">
+          <button
+            type="button"
+            onClick={() => {
+              playClick()
+              setIsFullscreen((prev) => !prev)
+            }}
+            aria-label={isFullscreen ? t('assistant.exitFullscreen') : t('assistant.fullscreen')}
+            title={isFullscreen ? t('assistant.exitFullscreen') : t('assistant.fullscreen')}
+            className="p-1.5 rounded-xl bg-white/85 dark:bg-[#18191c]/90 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white border border-neutral-200/90 dark:border-white/15 shadow-2xs backdrop-blur-md transition-all duration-150 cursor-pointer select-none active:scale-95 flex items-center justify-center"
+          >
+            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+          </button>
+        </div>
+
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-8">
             <AIOrbFace size={76} state={sending ? 'thinking' : isListening ? 'listening' : 'idle'} className="mb-3" />
@@ -511,8 +628,21 @@ export default function Assistant() {
           <div className="flex flex-col gap-4">
             {messages.map((m, i) =>
               m.role === 'user' ? (
-                <div key={i} className="flex justify-end">
-                  <p className="max-w-[85%] rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
+                <div key={i} className="flex justify-end items-start gap-1.5 group">
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(i, m.content)}
+                    aria-label={copiedIndex === i ? t('assistant.copied') : t('assistant.copy')}
+                    title={copiedIndex === i ? t('assistant.copied') : t('assistant.copy')}
+                    className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 mt-1 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-200/60 dark:hover:bg-white/10 transition-all duration-150 cursor-pointer select-none"
+                  >
+                    {copiedIndex === i ? (
+                      <Check size={13} className="text-emerald-500" />
+                    ) : (
+                      <Copy size={13} />
+                    )}
+                  </button>
+                  <p className="max-w-[85%] rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 break-words overflow-hidden">
                     {m.content}
                   </p>
                 </div>
@@ -522,7 +652,7 @@ export default function Assistant() {
                   <div className="flex-1 min-w-0">
                     <div
                       className={cx(
-                        'relative rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap',
+                        'relative rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden',
                         m.error
                           ? 'border border-amber-600/40 bg-amber-500/10'
                           : 'bg-white dark:bg-white/[0.05] border border-neutral-200 dark:border-white/10',
@@ -530,14 +660,40 @@ export default function Assistant() {
                     >
                       {m.content}
 
-                      {/* TTS Speak / Stop Button for assistant message */}
-                      {ttsAvailable && !m.error ? (
-                        <div className="mt-2.5 pt-2 border-t border-neutral-100 dark:border-white/5 flex items-center justify-end">
+                      {/* Assistant Message Actions: Copy + TTS */}
+                      <div className="mt-2.5 pt-2 border-t border-neutral-100 dark:border-white/5 flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(i, m.content)}
+                          aria-label={copiedIndex === i ? t('assistant.copied') : t('assistant.copy')}
+                          title={copiedIndex === i ? t('assistant.copied') : t('assistant.copy')}
+                          className={cx(
+                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs transition-all duration-200 cursor-pointer select-none',
+                            copiedIndex === i
+                              ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/35 font-semibold'
+                              : 'text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 font-medium'
+                          )}
+                        >
+                          {copiedIndex === i ? (
+                            <>
+                              <Check size={13} className="text-emerald-500" />
+                              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">{t('assistant.copied')}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={13} />
+                              <span className="text-[11px]">{t('assistant.copy')}</span>
+                            </>
+                          )}
+                        </button>
+
+                        {/* TTS Speak / Stop Button for assistant message */}
+                        {ttsAvailable && !m.error ? (
                           <button
                             type="button"
                             onClick={() => handleToggleSpeak(i, m.content)}
-                            aria-label={activeSpeakingIndex === i ? t('assistant.voiceStop') : t('assistant.voiceSpeak')}
-                            title={activeSpeakingIndex === i ? t('assistant.voiceStop') : t('assistant.voiceSpeak')}
+                            aria-label={activeSpeakingIndex === i ? (t('assistant.voiceStop') || 'Stop') : (t('assistant.voiceSpeak') || 'Read aloud')}
+                            title={activeSpeakingIndex === i ? (t('assistant.voiceStop') || 'Stop') : (t('assistant.voiceSpeak') || 'Read aloud')}
                             className={cx(
                               'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs transition-all duration-200 cursor-pointer select-none',
                               activeSpeakingIndex === i
@@ -553,17 +709,17 @@ export default function Assistant() {
                                   <span className="w-0.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDuration: '700ms', animationDelay: '200ms' }} />
                                 </span>
                                 <VolumeX size={13} className="text-amber-600 dark:text-amber-400" />
-                                <span className="text-[11px] font-semibold">{t('assistant.voiceStop')}</span>
+                                <span className="text-[11px] font-semibold">{t('assistant.voiceStop') || 'Stop'}</span>
                               </>
                             ) : (
                               <>
                                 <Volume2 size={13} />
-                                <span className="text-[11px]">{t('assistant.voiceSpeak')}</span>
+                                <span className="text-[11px]">{t('assistant.voiceSpeak') || 'Read aloud'}</span>
                               </>
                             )}
                           </button>
-                        </div>
-                      ) : null}
+                        ) : null}
+                      </div>
                     </div>
 
                     {m.readiness ? (
@@ -632,8 +788,7 @@ export default function Assistant() {
             {sending ? (
               <div className="flex items-center gap-2.5 text-xs text-neutral-500 dark:text-neutral-400">
                 <AIOrbFace size={24} state="thinking" className="flex-shrink-0" />
-                <span className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="font-medium text-neutral-600 dark:text-neutral-300">
                   {t('assistant.thinking')}
                 </span>
               </div>
@@ -646,25 +801,40 @@ export default function Assistant() {
       {voiceNotice ? (
         <div className="mt-2.5 px-3.5 py-2 rounded-2xl bg-amber-500/10 dark:bg-amber-400/[0.08] backdrop-blur-md border border-amber-500/25 dark:border-amber-400/20 text-xs text-amber-950 dark:text-amber-200 flex items-center justify-between shadow-xs animate-fade-in">
           <span className="flex items-center gap-2.5 font-medium">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
-            </span>
+            <Mic size={14} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2] flex-shrink-0" />
             <span>{voiceNotice}</span>
           </span>
           {isListening ? (
             <button
               type="button"
               onClick={handleToggleListening}
-              className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 hover:bg-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 text-amber-950 dark:text-amber-100 border border-amber-500/30 dark:border-amber-400/25 transition-all duration-150 cursor-pointer"
+              className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 hover:bg-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 text-amber-950 dark:text-amber-100 border border-amber-500/30 dark:border-amber-400/25 transition-all duration-150 cursor-pointer active:scale-95"
             >
-              {t('assistant.voiceStop')}
+              {t('assistant.voiceStop') || 'Stop'}
             </button>
           ) : null}
         </div>
       ) : null}
 
+      {/* Active Audio Readout (TTS) Indicator Banner */}
+      {activeSpeakingIndex !== null && !isListening && (
+        <div className="mt-2.5 px-3.5 py-2 rounded-2xl bg-amber-500/10 dark:bg-amber-400/[0.08] backdrop-blur-md border border-amber-500/25 dark:border-amber-400/20 text-xs text-amber-950 dark:text-amber-200 flex items-center justify-between shadow-xs animate-fade-in">
+          <span className="flex items-center gap-2.5 font-medium">
+            <Volume2 size={15} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2] flex-shrink-0" />
+            <span className="font-semibold">{t('assistant.voiceReadingAloud') || 'Reading aloud…'}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => { playClick(); stopSpeaking(); setActiveSpeakingIndex(null); }}
+            className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 hover:bg-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 text-amber-950 dark:text-amber-100 border border-amber-500/30 dark:border-amber-400/25 transition-all duration-150 cursor-pointer active:scale-95"
+          >
+            {t('assistant.voiceStopReadout') || 'Stop audio readout'}
+          </button>
+        </div>
+      )}
+
       <form
+        data-tour="assistant-input"
         onSubmit={(e) => { e.preventDefault(); send() }}
         className="mt-3 shrink-0 flex items-end gap-2"
       >
@@ -679,7 +849,7 @@ export default function Assistant() {
             }
           }}
           rows={1}
-          placeholder={isListening ? t('assistant.voiceListening') : t('assistant.placeholder')}
+          placeholder={isListening ? (t('assistant.voiceListening') || 'Listening… Speak now') : t('assistant.placeholder')}
           aria-label={t('assistant.placeholder')}
           className={cx(
             'flex-1 resize-none rounded-2xl px-4 py-3 text-sm bg-white/70 dark:bg-white/[0.04] border transition-all duration-200 focus:outline-none max-h-32 min-h-[46px]',
@@ -694,7 +864,7 @@ export default function Assistant() {
           type="button"
           onClick={handleToggleListening}
           aria-label={t('assistant.voiceInput')}
-          title={isListening ? t('assistant.voiceStop') : t('assistant.voiceInput')}
+          title={isListening ? (t('assistant.voiceStop') || 'Stop') : t('assistant.voiceInput')}
           className={cx(
             'h-[46px] w-[46px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none',
             isListening
@@ -705,17 +875,38 @@ export default function Assistant() {
           {isListening ? <MicOff size={18} className="font-bold" /> : <Mic size={18} />}
         </button>
 
-        <Button type="submit" variant="accent" disabled={!text.trim() || sending} aria-label={t('assistant.send')}>
-          <Send size={15} />
-        </Button>
+        {/* Send Button */}
+        <button
+          type="submit"
+          disabled={!text.trim() || sending}
+          aria-label={t('assistant.send')}
+          title={t('assistant.send')}
+          className={cx(
+            'h-[46px] w-[46px] rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 select-none cursor-pointer',
+            text.trim() && !sending
+              ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-md shadow-amber-500/20 active:scale-95'
+              : 'border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.04] text-neutral-400 dark:text-neutral-600 cursor-not-allowed opacity-50'
+          )}
+        >
+          <Send size={16} className="stroke-[2.2]" />
+        </button>
       </form>
 
-      {/* History Slide-Over Drawer */}
-      {isHistoryOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop */}
+      {/* History Slide-Over Drawer with smooth sliding transition Portalled to document.body */}
+      {typeof document !== 'undefined' && createPortal(
+        <div
+          className={cx(
+            'fixed inset-0 z-[100000] flex justify-end transition-all duration-300 pointer-events-none select-none',
+            isHistoryOpen ? 'pointer-events-auto visible' : 'invisible delay-300'
+          )}
+          aria-hidden={!isHistoryOpen}
+        >
+          {/* Full Screen Viewport Backdrop */}
           <div
-            className="fixed inset-0 bg-neutral-950/40 backdrop-blur-xs transition-opacity duration-200"
+            className={cx(
+              'fixed inset-0 bg-neutral-950/40 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 ease-out',
+              isHistoryOpen ? 'opacity-100' : 'opacity-0'
+            )}
             onClick={() => {
               playClick()
               setIsHistoryOpen(false)
@@ -724,9 +915,15 @@ export default function Assistant() {
           />
 
           {/* Drawer Panel */}
-          <div className="relative w-full max-w-sm sm:max-w-md bg-white dark:bg-neutral-900 border-l border-neutral-200 dark:border-white/10 shadow-2xl flex flex-col h-full z-10 animate-fade-in">
+          <div
+            className={cx(
+              'relative w-full max-w-sm sm:max-w-md bg-white dark:bg-[#121316] border-l border-neutral-200 dark:border-white/10 shadow-2xl flex flex-col h-full z-10 overflow-hidden',
+              'transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
+              isHistoryOpen ? 'translate-x-0' : 'translate-x-full'
+            )}
+          >
             {/* Header */}
-            <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between">
+            <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                   <MessageSquare size={16} />
@@ -746,7 +943,7 @@ export default function Assistant() {
                   playClick()
                   setIsHistoryOpen(false)
                 }}
-                className="h-8 w-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                className="h-8 w-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer active:scale-95"
                 aria-label={t('common.close')}
               >
                 <X size={16} />
@@ -754,7 +951,7 @@ export default function Assistant() {
             </div>
 
             {/* Search Input */}
-            <div className="p-4 border-b border-neutral-200/80 dark:border-white/5 bg-neutral-50/50 dark:bg-white/[0.01]">
+            <div className="p-4 border-b border-neutral-200/80 dark:border-white/5 bg-neutral-50/50 dark:bg-white/[0.01] shrink-0">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
@@ -777,7 +974,7 @@ export default function Assistant() {
             </div>
 
             {/* Sessions List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2.5 min-h-0">
               {filteredSessions.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-6 text-neutral-400">
                   <Clock size={32} strokeWidth={1.5} className="mb-2 opacity-50" />
@@ -845,7 +1042,7 @@ export default function Assistant() {
 
             {/* Footer */}
             {sessions.length > 0 && (
-              <div className="p-3.5 border-t border-neutral-200 dark:border-white/10 bg-neutral-50/70 dark:bg-white/[0.02] flex items-center justify-between">
+              <div className="p-3.5 border-t border-neutral-200 dark:border-white/10 bg-neutral-50/70 dark:bg-white/[0.02] flex items-center justify-between shrink-0">
                 <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
                   {sessions.length} {t('assistant.historyTitle').toLowerCase()}
                 </span>
@@ -860,7 +1057,8 @@ export default function Assistant() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

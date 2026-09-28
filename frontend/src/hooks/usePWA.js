@@ -6,8 +6,18 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * and service worker lifecycle with background caching & update alerts.
  */
 export function usePWA() {
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [isInstallable, setIsInstallable] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(() => {
+    if (typeof window !== 'undefined' && window.__deferredPrompt) {
+      return window.__deferredPrompt;
+    }
+    return null;
+  });
+  const [isInstallable, setIsInstallable] = useState(() => {
+    if (typeof window !== 'undefined' && Boolean(window.__deferredPrompt)) {
+      return true;
+    }
+    return false;
+  });
   const [isInstalled, setIsInstalled] = useState(false);
   const [isOffline, setIsOffline] = useState(() =>
     typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' ? !navigator.onLine : false,
@@ -22,12 +32,13 @@ export function usePWA() {
       (typeof window.navigator !== 'undefined' && Boolean(window.navigator?.standalone)) ||
       (typeof document !== 'undefined' && typeof document.referrer === 'string' && document.referrer.includes('android-app://')));
 
-  // Register and manage service worker updates natively
+  // Register and manage service worker updates natively in production
   useEffect(() => {
     if (
       typeof window === 'undefined' ||
       typeof navigator === 'undefined' ||
-      !('serviceWorker' in navigator)
+      !('serviceWorker' in navigator) ||
+      import.meta.env.DEV
     ) {
       return;
     }
@@ -96,12 +107,14 @@ export function usePWA() {
     // 1. Capture beforeinstallprompt event for custom install triggers
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
+      if (typeof window !== 'undefined') window.__deferredPrompt = e;
       setDeferredPrompt(e);
       setIsInstallable(true);
     };
 
     // 2. Listen for app installed event
     const handleAppInstalled = () => {
+      if (typeof window !== 'undefined') window.__deferredPrompt = null;
       setDeferredPrompt(null);
       setIsInstallable(false);
       setIsInstalled(true);
@@ -119,12 +132,10 @@ export function usePWA() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Initial check
-    try {
-      if (localStorage.getItem('swatva_pwa_installed') === 'true' || isStandalone) {
-        setIsInstalled(true);
-      }
-    } catch {}
+    // Initial check: if standalone, definitely installed
+    if (isStandalone) {
+      setIsInstalled(true);
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -136,16 +147,18 @@ export function usePWA() {
 
   // Method to trigger the native installation prompt
   const promptInstall = useCallback(async () => {
-    if (!deferredPrompt) {
+    const promptEvent = deferredPrompt || (typeof window !== 'undefined' ? window.__deferredPrompt : null);
+    if (!promptEvent) {
       return { outcome: 'dismissed', isManual: true };
     }
 
     try {
-      deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
+      promptEvent.prompt();
+      const choiceResult = await promptEvent.userChoice;
       if (choiceResult.outcome === 'accepted') {
         setIsInstallable(false);
         setDeferredPrompt(null);
+        if (typeof window !== 'undefined') window.__deferredPrompt = null;
       }
       return choiceResult;
     } catch (err) {

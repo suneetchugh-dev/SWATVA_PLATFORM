@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
+  Activity,
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
@@ -222,8 +223,10 @@ export default function Landing() {
   // Sahnirmaan morphing navbar scroll engine
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40)
+      const scrollPos = window.scrollY || document.documentElement.scrollTop || window.pageYOffset || 0
+      setScrolled(scrollPos > 24)
     }
+    handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -284,7 +287,7 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-dvh w-full overflow-x-hidden bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white transition-colors">
+    <div className="min-h-dvh w-full overflow-x-clip bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white transition-colors">
       {/* ------------------------------------------------------ nav */}
       <header className={`portfolio-header ${scrolled ? 'scrolled' : ''}`}>
         {/* Left: Brand Logo & Name. Deliberately NOT `flex-1`: the header's own
@@ -797,10 +800,7 @@ export default function Landing() {
                   <span className="text-xs font-mono font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                     {t('landing.bento.card2Tag')}
                   </span>
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-600 dark:bg-amber-400" />
-                  </span>
+                  <Activity size={14} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2]" />
                 </div>
                 <h3 className="text-base font-bold text-neutral-950 dark:text-white mb-4 tracking-tight">
                   {t('landing.bento.card2Title')}
@@ -1067,9 +1067,13 @@ export default function Landing() {
           <LoadingLogo size="h-7 w-7" animate={false} />
           <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">SWATVA</span>
           <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
-          <span className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium">
+          <Link
+            to="/team"
+            onClick={playClick}
+            className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer hover:underline"
+          >
             {t('landing.footer.tagline')}
-          </span>
+          </Link>
         </div>
         <div className="flex items-center gap-4 text-[11px] text-neutral-600 dark:text-neutral-300 font-medium">
           <a href="#how" onClick={(e) => scrollToSection(e, 'how')} className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer">{t('nav.how')}</a>

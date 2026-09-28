@@ -1,8 +1,9 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { User, Mail, Lock, ArrowRight, LogIn, UserPlus, KeyRound, RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, ArrowRight, LogIn, UserPlus, KeyRound, RefreshCw, AlertTriangle } from 'lucide-react';
 import MinimalBrandHeader from '../components/MinimalBrandHeader';
+import LoadingLogo from '../components/LoadingLogo';
 import { useTheme } from '../lib/theme';
 import { api, getToken, setToken, setStoredUser } from '../api/client';
 import { playClick } from '../utils/soundFx';
@@ -14,7 +15,6 @@ export default function Auth({ mode: initialMode = 'login' }) {
   const { dark } = useTheme();
 
   const [mode, setMode] = useState(initialMode); // 'login' | 'register'
-  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -28,10 +28,6 @@ export default function Auth({ mode: initialMode = 'login' }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-
-  const cardRef = useRef(null);
-  const [cardHeight, setCardHeight] = useState(null);
-  const animatingHeight = useRef(false);
 
   // Live countdown timer for Resend OTP service
   useEffect(() => {
@@ -49,44 +45,12 @@ export default function Auth({ mode: initialMode = 'login' }) {
   const switchMode = (next) => {
     if (next === mode) return;
     playClick();
-    const el = cardRef.current;
-    if (el) {
-      animatingHeight.current = true;
-      setCardHeight(el.offsetHeight);
-    }
     setError(null);
     setOtpMessage(null);
     setOtpStep('input');
     setOtpCode('');
     setMode(next);
   };
-
-  useLayoutEffect(() => {
-    const el = cardRef.current;
-    if (!el || !animatingHeight.current) return undefined;
-    const target = el.scrollHeight;
-    const frame = requestAnimationFrame(() => setCardHeight(target));
-    const settle = window.setTimeout(() => {
-      animatingHeight.current = false;
-      setCardHeight(null);
-    }, 380);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.clearTimeout(settle);
-    };
-  }, [mode, otpStep]);
-
-  const cardStyle = useMemo(
-    () =>
-      cardHeight == null
-        ? undefined
-        : {
-            height: `${cardHeight}px`,
-            overflow: 'hidden',
-            transition: 'height 300ms cubic-bezier(0.32, 0.72, 0, 1)',
-          },
-    [cardHeight],
-  );
 
   if (getToken()) {
     return <Navigate to="/app" replace />;
@@ -143,12 +107,6 @@ export default function Auth({ mode: initialMode = 'login' }) {
     setLoading(true);
 
     const emailTrimmed = email.trim();
-    const nameTrimmed = fullName.trim();
-    if (!nameTrimmed) {
-      setError('Please enter your full name.');
-      setLoading(false);
-      return;
-    }
     if (!emailTrimmed) {
       setError('Please enter a valid email address.');
       setLoading(false);
@@ -201,7 +159,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
     playClick();
 
     const emailTrimmed = email.trim();
-    const nameTrimmed = fullName.trim();
+    const nameTrimmed = emailTrimmed.includes('@') ? emailTrimmed.split('@')[0] : 'Citizen';
     const otpTrimmed = otpCode.trim();
 
     if (!otpTrimmed || otpTrimmed.length !== 6) {
@@ -278,11 +236,9 @@ export default function Auth({ mode: initialMode = 'login' }) {
 
       <main className="flex-1 flex items-center justify-center p-2 sm:p-6 pt-16 sm:pt-20 pb-16 sm:pb-24 w-full z-10 my-auto">
         <div
-          ref={cardRef}
-          style={cardStyle}
           className="w-full max-w-[720px] p-4 sm:p-8 sm:pb-10 login-form-card"
         >
-          <h1 className="flex items-center justify-center gap-2 text-base sm:text-lg font-bold text-neutral-950 dark:text-white text-center mb-5 sm:mb-6 text-balance">
+          <h1 className="h-7 sm:h-8 flex items-center justify-center gap-2 text-base sm:text-lg font-bold text-neutral-950 dark:text-white text-center mb-5 sm:mb-6 whitespace-nowrap">
             {mode === 'login' && <><LogIn size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Sign in to SWATVA</span></>}
             {mode === 'register' && <><UserPlus size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Create your SWATVA account</span></>}
           </h1>
@@ -358,7 +314,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
             onClick={handleGoogleSignIn}
             disabled={loading || googleLoading}
             data-sound="click"
-            className="w-full mb-4 flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl text-xs font-semibold tracking-wide border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-white/[0.05] hover:bg-neutral-50 dark:hover:bg-white/[0.08] active:scale-[0.99] text-neutral-800 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm cursor-pointer"
+            className="w-full h-11 mb-4 flex items-center justify-center gap-3 px-4 rounded-xl text-xs font-semibold tracking-wide border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-white/[0.05] hover:bg-neutral-50 dark:hover:bg-white/[0.08] active:scale-[0.99] text-neutral-800 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm cursor-pointer"
           >
             {googleLoading ? (
               <div className="w-4 h-4 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
@@ -382,7 +338,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 />
               </svg>
             )}
-            <span>{googleLoading ? 'Connecting to Google...' : mode === 'login' ? 'Sign in with Google' : 'Sign up with Google'}</span>
+            <span className="whitespace-nowrap">{googleLoading ? 'Connecting to Google...' : mode === 'login' ? 'Sign in with Google' : 'Sign up with Google'}</span>
           </button>
 
           <div className="relative flex items-center justify-center my-4">
@@ -394,29 +350,6 @@ export default function Auth({ mode: initialMode = 'login' }) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'register' && (
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
-                  Full Name
-                </label>
-                <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
-                  <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
-                    <User size={16} />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    disabled={mode === 'register' && otpStep === 'otp_verify'}
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Your full name"
-                    autoComplete="name"
-                    className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 disabled:opacity-70"
-                  />
-                </div>
-              </div>
-            )}
-
             <div>
               <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
                 Email address
@@ -525,9 +458,9 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 type="submit"
                 disabled={loading}
                 data-sound="click"
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-neutral-950 hover:bg-neutral-800 active:scale-[0.99] dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md cursor-pointer"
+                className="w-full h-11 flex items-center justify-center gap-2 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-neutral-950 hover:bg-neutral-800 active:scale-[0.99] dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md cursor-pointer"
               >
-                <span>
+                <span className="whitespace-nowrap">
                   {loading
                     ? 'Processing...'
                     : mode === 'login'
@@ -536,7 +469,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                     ? 'Send Verification OTP'
                     : 'Verify OTP & Create Account'}
                 </span>
-                <ArrowRight size={14} className="stroke-[2.2]" />
+                <ArrowRight size={14} className="stroke-[2.2] flex-shrink-0" />
               </button>
             </div>
           </form>
@@ -544,16 +477,21 @@ export default function Auth({ mode: initialMode = 'login' }) {
       </main>
 
       <footer className="fixed bottom-0 left-0 right-0 z-40 px-4 sm:px-12 py-2.5 sm:py-3 border-t border-neutral-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0c0c10]/90 backdrop-blur-xl flex items-center justify-between gap-2 sm:gap-3 shadow-sm pb-[calc(0.6rem+env(safe-area-inset-bottom))]">
-        <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0">
-          SWATVA · CITIZEN EMPOWERMENT ARCHITECTURE
-        </span>
-        <button
-          type="button"
-          onClick={() => { playClick(); navigate('/'); }}
-          className="text-[11px] font-mono text-neutral-700 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white transition cursor-pointer font-medium hover:underline flex-shrink-0 whitespace-nowrap"
+        <div className="flex items-center gap-2.5 min-w-0">
+          <LoadingLogo size="h-6 w-6" animate={false} />
+          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">SWATVA</span>
+          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
+          <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0">
+            CITIZEN EMPOWERMENT ARCHITECTURE
+          </span>
+        </div>
+        <Link
+          to="/team"
+          onClick={playClick}
+          className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer hover:underline flex-shrink-0 whitespace-nowrap"
         >
-          Explore Platform &rarr;
-        </button>
+          {t('landing.footer.tagline') || 'BY TheQuirkies'}
+        </Link>
       </footer>
     </div>
   );

@@ -7,14 +7,41 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="SWATVA" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="application-name" content="SWATVA" />
+    <meta name="author" content="Team TheQuirkies" />
+    <meta
+      name="keywords"
+      content="SWATVA, Indian government schemes, welfare scheme discovery, citizen eligibility engine, document locker, deterministic rules, TheQuirkies"
+    />
+    <meta
+      name="description"
+      content="SWATVA is a citizen empowerment platform that deterministically matches citizens with eligible welfare schemes, provides an encrypted document locker, and guides applications end-to-end."
+    />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SWATVA" />
+    <meta property="og:title" content="SWATVA — Citizen Welfare Scheme Discovery & Eligibility Engine" />
+    <meta
+      property="og:description"
+      content="Discover every welfare benefit you qualify for using deterministic statutory criteria and an encrypted document locker."
+    />
+    <meta property="og:image" content="/pwa-512x512.png" />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SWATVA — Citizen Welfare Scheme Discovery & Eligibility Engine" />
+    <meta
+      name="twitter:description"
+      content="Discover every welfare benefit you qualify for using deterministic statutory criteria and an encrypted document locker."
+    />
+    <meta name="twitter:image" content="/pwa-512x512.png" />
+
+    <!-- Icons & App Manifest -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta
-      name="description"
-      content="SWATVA finds every Indian government benefit scheme you qualify for, and tells you exactly what to do next."
-    />
     <title>SWATVA — Every scheme you qualify for</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,6 +53,13 @@
           document.documentElement.classList.add('dark')
         }
       } catch (e) {}
+
+      // Early capture of PWA beforeinstallprompt so it is never missed by late React hydration
+      window.__deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        window.__deferredPrompt = e;
+      });
     </script>
   </head>
   <body>
