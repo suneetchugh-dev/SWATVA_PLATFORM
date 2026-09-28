@@ -1065,9 +1065,13 @@ export default function Landing() {
           <LoadingLogo size="h-7 w-7" animate={false} />
           <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">SWATVA</span>
           <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
-          <span className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium">
+          <Link
+            to="/team"
+            onClick={playClick}
+            className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer hover:underline"
+          >
             {t('landing.footer.tagline')}
-          </span>
+          </Link>
         </div>
         <div className="flex items-center gap-4 text-[11px] text-neutral-600 dark:text-neutral-300 font-medium">
           <a href="#how" onClick={(e) => scrollToSection(e, 'how')} className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer">{t('nav.how')}</a>

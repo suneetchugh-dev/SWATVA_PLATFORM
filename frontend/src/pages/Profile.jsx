@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Camera, Check, ChevronLeft, ChevronRight, Pencil, Sparkles, Trash2, UserRound, X } from 'lucide-react'
+import { AlertCircle, Camera, Check, ChevronLeft, ChevronRight, Pencil, Trash2, UserRound, Wand2, X } from 'lucide-react'
 import { api, getStoredUser, setStoredUser } from '../api/client'
 import { playClick } from '../utils/soundFx'
 
@@ -164,12 +164,45 @@ export default function Profile() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [saved, setSaved] = useState(false)
-  const [saveToast, setSaveToast] = useState(false)
+  const [toast, setToast] = useState({
+    open: false,
+    visible: false,
+    title: '',
+    body: '',
+    tone: 'success', // 'success' | 'info' | 'warn' | 'error'
+  })
   const toastTimerRef = useRef(null)
+  const toastDismissTimerRef = useRef(null)
+
+  const showToast = (title, body = '', tone = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    if (toastDismissTimerRef.current) clearTimeout(toastDismissTimerRef.current)
+
+    setToast({ open: true, visible: false, title, body, tone })
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setToast((prev) => ({ ...prev, visible: true }))
+      })
+    })
+
+    toastTimerRef.current = setTimeout(() => {
+      dismissToast()
+    }, 3800)
+  }
+
+  const dismissToast = () => {
+    setToast((prev) => ({ ...prev, visible: false }))
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    toastDismissTimerRef.current = setTimeout(() => {
+      setToast((prev) => (prev.visible ? prev : { ...prev, open: false }))
+    }, 320)
+  }
 
   useEffect(() => {
     return () => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+      if (toastDismissTimerRef.current) clearTimeout(toastDismissTimerRef.current)
     }
   }, [])
 
@@ -298,33 +331,44 @@ export default function Profile() {
     try {
       await api.user.updateProfile(payload)
       setSaved(true)
-      setSaveToast(true)
-      if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-      toastTimerRef.current = setTimeout(() => {
-        setSaveToast(false)
-      }, 4000)
+      showToast(t('profile.savedTitle'), t('profile.savedBody'), 'success')
     } catch (err) {
-      setError(err?.message || t('profile.loadError'))
+      const msg = err?.message || t('profile.loadError')
+      setError(msg)
+      showToast(t('profile.errorTitle'), msg, 'error')
     } finally {
       setSaving(false)
     }
   }
 
   const [filling, setFilling] = useState(false)
-  const [fillResult, setFillResult] = useState(null) // 'ok' | 'none' | 'error'
 
   /** Auto-fill profile fields from uploaded documents (Aadhaar preferred) */
   const fillFromDocuments = async () => {
+    if (filling) return
     setFilling(true)
-    setFillResult(null)
     try {
       const docs = await api.documents.list()
-      if (!docs?.length) { setFillResult('none'); return }
+      if (!docs?.length) {
+        showToast(
+          t('profile.autoFillNone'),
+          isHindi ? 'लॉकर में कोई दस्तावेज़ नहीं मिले। कृपया पहले दस्तावेज़ अपलोड करें।' : 'No uploaded documents found in your locker.',
+          'warn'
+        )
+        return
+      }
 
       // Prefer Aadhaar; fall back to first available doc
       const aadhaar = docs.find((d) => d.documentType === 'AADHAAR') ?? docs[0]
       const extracted = await api.documents.extract(aadhaar.id)
-      if (!extracted) { setFillResult('none'); return }
+      if (!extracted) {
+        showToast(
+          t('profile.autoFillNone'),
+          isHindi ? 'दस्तावेज़ से कोई जानकारी नहीं मिली।' : 'No readable profile fields extracted from document.',
+          'warn'
+        )
+        return
+      }
 
       let changed = false
       setForm((f) => {
@@ -369,9 +413,25 @@ export default function Profile() {
       })
 
       setSaved(false)
-      setFillResult(changed ? 'ok' : 'none')
+      if (changed) {
+        showToast(
+          t('profile.autoFillOk'),
+          isHindi ? 'दस्तावेज़ से विवरण सफलतापूर्वक भरे गए।' : 'Profile details extracted and populated from your document.',
+          'info'
+        )
+      } else {
+        showToast(
+          t('profile.autoFillNone'),
+          isHindi ? 'सभी उपलब्ध विवरण पहले से भरे हुए हैं।' : 'All matching fields are already filled.',
+          'info'
+        )
+      }
     } catch {
-      setFillResult('error')
+      showToast(
+        t('profile.autoFillError'),
+        isHindi ? 'दस्तावेज़ पढ़ने में समस्या आई।' : 'Could not extract fields from document.',
+        'error'
+      )
     } finally {
       setFilling(false)
     }
@@ -417,7 +477,7 @@ export default function Profile() {
               {filling ? (
                 <Spinner size="sm" className="text-amber-600 dark:text-amber-400" />
               ) : (
-                <Sparkles size={13} className="text-amber-600 dark:text-amber-400 stroke-[2.2]" />
+                <Wand2 size={13} className="text-amber-600 dark:text-amber-400 stroke-[2.2]" />
               )}
               <span>{filling ? (t('common.loading') || 'Extracting...') : (t('profile.autoFillBtn') || 'Auto-fill')}</span>
             </button>
@@ -505,22 +565,6 @@ export default function Profile() {
           </Banner>
         </div>
       ) : null}
-
-      {/* Dynamic Auto-fill result status banner */}
-      {fillResult && (
-        <div className="mb-5">
-          <Banner
-            tone={fillResult === 'ok' ? 'info' : fillResult === 'none' ? 'warn' : 'error'}
-            title={
-              fillResult === 'ok'
-                ? t('profile.autoFillOk')
-                : fillResult === 'none'
-                ? t('profile.autoFillNone')
-                : t('profile.autoFillError')
-            }
-          />
-        </div>
-      )}
 
       {/* Step rail */}
       <ol data-tour="profile-stepper" className="flex items-center gap-1.5 mb-6" aria-label="Profile steps">
@@ -739,29 +783,61 @@ export default function Profile() {
         </div>
       </Card>
 
-      {/* Disappearing Floating Profile Saved Toast */}
-      {saveToast && (
-        <div className="fixed bottom-6 right-6 z-50 max-w-sm sm:max-w-md bg-neutral-950 dark:bg-[#18191c] text-white p-4 rounded-2xl shadow-2xl border border-neutral-800 dark:border-white/15 flex items-start gap-3.5 backdrop-blur-xl animate-in slide-in-from-bottom-5 fade-in duration-300 pointer-events-auto">
-          <div className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
-            <Check size={16} className="text-emerald-400 stroke-[2.5]" />
+      {/* Smooth Disappearing Floating Toast */}
+      {toast.open && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={cx(
+            'fixed bottom-6 right-6 z-[100] max-w-sm sm:max-w-md w-[calc(100vw-3rem)]',
+            'bg-white/95 dark:bg-[#151619]/95 text-neutral-900 dark:text-white',
+            'p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.22),0_0_20px_rgba(0,0,0,0.08)]',
+            'border border-neutral-200/90 dark:border-white/15',
+            'flex items-start gap-3.5 backdrop-blur-xl',
+            'transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
+            toast.visible
+              ? 'opacity-100 translate-y-0 scale-100'
+              : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
+          )}
+        >
+          <div
+            className={cx(
+              'w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 border',
+              toast.tone === 'success'
+                ? 'bg-emerald-500/15 border-emerald-500/35 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/20'
+                : toast.tone === 'info'
+                ? 'bg-amber-500/15 border-amber-500/35 text-amber-600 dark:text-amber-400 ring-2 ring-amber-500/20'
+                : toast.tone === 'warn'
+                ? 'bg-amber-500/15 border-amber-500/35 text-amber-600 dark:text-amber-400'
+                : 'bg-rose-500/15 border-rose-500/35 text-rose-600 dark:text-rose-400 ring-2 ring-rose-500/20'
+            )}
+          >
+            {toast.tone === 'success' ? (
+              <Check size={16} className="stroke-[2.5]" />
+            ) : toast.tone === 'info' ? (
+              <Wand2 size={15} className="stroke-[2.2]" />
+            ) : (
+              <AlertCircle size={15} className="stroke-[2.2]" />
+            )}
           </div>
           <div className="flex-1 min-w-0 pr-1">
-            <h4 className="text-xs font-bold text-white tracking-tight">
-              {t('profile.savedTitle')}
+            <h4 className="text-xs font-bold text-neutral-950 dark:text-white tracking-tight">
+              {toast.title}
             </h4>
-            <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-300 dark:text-neutral-400">
-              {t('profile.savedBody')}
-            </p>
+            {toast.body ? (
+              <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-600 dark:text-neutral-300">
+                {toast.body}
+              </p>
+            ) : null}
           </div>
           <button
             type="button"
             onClick={() => {
               playClick()
-              setSaveToast(false)
-              if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+              dismissToast()
             }}
             title={t('common.close') || 'Close'}
-            className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+            className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
           >
             <X size={14} />
           </button>

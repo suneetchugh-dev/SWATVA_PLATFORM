@@ -456,6 +456,7 @@
     "voiceListening": "Listening… Speak now",
     "voiceNotSupported": "Voice recognition is not supported in this browser",
     "voiceSpeak": "Read aloud",
+    "voiceStop": "Stop",
     "voiceStopRecording": "Stop recording",
     "voiceStopReadout": "Stop audio readout",
     "voiceReadingAloud": "Reading aloud…",

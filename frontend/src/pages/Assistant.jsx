@@ -649,8 +649,8 @@ export default function Assistant() {
                           <button
                             type="button"
                             onClick={() => handleToggleSpeak(i, m.content)}
-                            aria-label={activeSpeakingIndex === i ? t('assistant.voiceStop') : t('assistant.voiceSpeak')}
-                            title={activeSpeakingIndex === i ? t('assistant.voiceStop') : t('assistant.voiceSpeak')}
+                            aria-label={activeSpeakingIndex === i ? (t('assistant.voiceStop') || 'Stop') : (t('assistant.voiceSpeak') || 'Read aloud')}
+                            title={activeSpeakingIndex === i ? (t('assistant.voiceStop') || 'Stop') : (t('assistant.voiceSpeak') || 'Read aloud')}
                             className={cx(
                               'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs transition-all duration-200 cursor-pointer select-none',
                               activeSpeakingIndex === i
@@ -666,12 +666,12 @@ export default function Assistant() {
                                   <span className="w-0.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDuration: '700ms', animationDelay: '200ms' }} />
                                 </span>
                                 <VolumeX size={13} className="text-amber-600 dark:text-amber-400" />
-                                <span className="text-[11px] font-semibold">{t('assistant.voiceStop')}</span>
+                                <span className="text-[11px] font-semibold">{t('assistant.voiceStop') || 'Stop'}</span>
                               </>
                             ) : (
                               <>
                                 <Volume2 size={13} />
-                                <span className="text-[11px]">{t('assistant.voiceSpeak')}</span>
+                                <span className="text-[11px]">{t('assistant.voiceSpeak') || 'Read aloud'}</span>
                               </>
                             )}
                           </button>
@@ -767,7 +767,7 @@ export default function Assistant() {
               onClick={handleToggleListening}
               className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 hover:bg-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 text-amber-950 dark:text-amber-100 border border-amber-500/30 dark:border-amber-400/25 transition-all duration-150 cursor-pointer active:scale-95"
             >
-              {t('assistant.voiceStop')}
+              {t('assistant.voiceStop') || 'Stop'}
             </button>
           ) : null}
         </div>
@@ -806,7 +806,7 @@ export default function Assistant() {
             }
           }}
           rows={1}
-          placeholder={isListening ? t('assistant.voiceListening') : t('assistant.placeholder')}
+          placeholder={isListening ? (t('assistant.voiceListening') || 'Listening… Speak now') : t('assistant.placeholder')}
           aria-label={t('assistant.placeholder')}
           className={cx(
             'flex-1 resize-none rounded-2xl px-4 py-3 text-sm bg-white/70 dark:bg-white/[0.04] border transition-all duration-200 focus:outline-none max-h-32 min-h-[46px]',
@@ -821,7 +821,7 @@ export default function Assistant() {
           type="button"
           onClick={handleToggleListening}
           aria-label={t('assistant.voiceInput')}
-          title={isListening ? t('assistant.voiceStop') : t('assistant.voiceInput')}
+          title={isListening ? (t('assistant.voiceStop') || 'Stop') : t('assistant.voiceInput')}
           className={cx(
             'h-[46px] w-[46px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none',
             isListening
