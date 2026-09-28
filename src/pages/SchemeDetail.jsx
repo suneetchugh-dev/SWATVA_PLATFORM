@@ -136,7 +136,7 @@ export default function SchemeDetail() {
           <ul className="flex flex-col gap-2">
             {detail.eligibilityCriteria.map((c, i) => (
               <li key={i} className="text-sm text-neutral-700 dark:text-neutral-200 flex items-start gap-2">
-                <span className="mt-1.5 h-1 w-1 rounded-full bg-amber-500 flex-shrink-0" />
+                <CheckCircle2 size={13} className="mt-1 text-neutral-400 dark:text-neutral-500 flex-shrink-0 stroke-[2]" />
                 {c}
               </li>
             ))}

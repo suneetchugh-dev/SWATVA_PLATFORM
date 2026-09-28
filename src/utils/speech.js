@@ -328,7 +328,7 @@ export function createSpeechRecognizer({
   const recognition = new SpeechRecognition();
 
   recognition.lang = getSpeechLocale(appLang);
-  recognition.continuous = false;
+  recognition.continuous = true;
   recognition.interimResults = true;
   recognition.maxAlternatives = 1;
 

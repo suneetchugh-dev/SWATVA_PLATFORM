@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, ChevronLeft, ChevronRight, Sparkles, UserRound } from 'lucide-react'
-import { api, getStoredUser } from '../api/client'
+import { AlertCircle, Camera, Check, ChevronLeft, ChevronRight, Pencil, Trash2, UserRound, Wand2, X } from 'lucide-react'
+import { api, getStoredUser, setStoredUser } from '../api/client'
+import { playClick } from '../utils/soundFx'
+import { getLocalizedUserName } from '../utils/userDisplay'
 
 import { INDIAN_STATES } from '../lib/india'
 import {
@@ -17,6 +19,7 @@ import {
   Spinner,
   cx,
 } from '../components/ui'
+import { PageTourButton } from '../components/GuidedTour'
 
 /**
  * Progressive intake. Broken into steps so a citizen on a phone can stop after
@@ -48,52 +51,207 @@ const RELATIONSHIP_VALUES = ['SPOUSE', 'CHILD', 'PARENT', 'GRANDPARENT', 'SIBLIN
 
 // Human labels for the social categories, which the backend does not name.
 const CATEGORY_LABELS = {
-  GENERAL: 'General',
-  OBC: 'Other Backward Class (OBC)',
-  SC: 'Scheduled Caste (SC)',
-  ST: 'Scheduled Tribe (ST)',
-  EWS: 'Economically Weaker Section (EWS)',
+  GENERAL: 'options.general',
+  OBC: 'options.obc',
+  SC: 'options.sc',
+  ST: 'options.st',
+  EWS: 'options.ews',
   OTHER: 'options.other',
 }
 
-const GENDER_LABELS = { FEMALE: 'Female', MALE: 'Male', OTHER: 'options.other', PREFER_NOT_TO_SAY: 'options.preferNotToSay' }
+const GENDER_LABELS = {
+  FEMALE: 'options.female',
+  MALE: 'options.male',
+  OTHER: 'options.other',
+  PREFER_NOT_TO_SAY: 'options.preferNotToSay',
+}
 const DISABILITY_LABELS = { NONE: 'options.noDisability', PERSON_WITH_DISABILITY: 'options.personWithDisability', NOT_DISCLOSED: 'options.preferNotToSay' }
 const RELATIONSHIP_LABELS = {
   SPOUSE: 'options.spouse', CHILD: 'options.child', PARENT: 'options.parent',
   GRANDPARENT: 'options.grandparent', SIBLING: 'options.sibling', OTHER: 'options.other',
 }
 
-
 const toNum = (v) => (v === '' || v == null ? null : Number(v))
 
 /**
- * Resolve an option label. A label is either an i18n key (translated) or a
- * literal proper noun such as "Scheduled Caste (SC)" that is correct as-is in
- * both languages.
+ * Resolve an option label. A label is an i18n key or literal string.
  */
 function useOptionLabels() {
   const { t } = useTranslation()
   return (value, table) => {
     if (value === '') return t('profile.options.notSpecified')
-    const label = table[value]
-    if (!label) return value
-    return t(`profile.${label}`)
+    const keyOrLabel = table[value]
+    if (!keyOrLabel) return value
+    if (keyOrLabel.startsWith('options.')) {
+      return t(`profile.${keyOrLabel}`, { defaultValue: value })
+    }
+    return t(`profile.${keyOrLabel}`, { defaultValue: keyOrLabel })
   }
 }
 
+function ProfileHealthGauge({ percentage = 0, isHindi = false }) {
+  const radius = 20
+  const stroke = 3.5
+  const normalizedRadius = radius - stroke / 2
+  const circumference = normalizedRadius * 2 * Math.PI
+  const strokeDashoffset = circumference - (percentage / 100) * circumference
+
+  const statusLabel =
+    percentage === 100
+      ? (isHindi ? 'पूर्ण प्रोफ़ाइल' : 'Complete')
+      : percentage >= 60
+      ? (isHindi ? 'मजबूत' : 'Strong')
+      : percentage > 0
+      ? (isHindi ? 'प्रगति पर' : 'In Progress')
+      : (isHindi ? 'शुरू नहीं' : 'Not Started')
+
+  return (
+    <div className="flex items-center gap-3 select-none">
+      <div className="text-right hidden sm:block">
+        <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 block leading-tight">
+          {isHindi ? 'प्रोफ़ाइल स्वास्थ्य' : 'Profile Health'}
+        </span>
+        <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+          {statusLabel}
+        </span>
+      </div>
+
+      <div className="relative inline-flex items-center justify-center shrink-0">
+        <svg height={radius * 2 + stroke} width={radius * 2 + stroke} className="rotate-[-90deg]">
+          {/* Background Track */}
+          <circle
+            stroke="currentColor"
+            fill="transparent"
+            strokeWidth={stroke}
+            r={normalizedRadius}
+            cx={radius + stroke / 2}
+            cy={radius + stroke / 2}
+            className="text-neutral-200 dark:text-white/10"
+          />
+          {/* Progress Indicator */}
+          <circle
+            stroke="currentColor"
+            fill="transparent"
+            strokeWidth={stroke}
+            strokeDasharray={`${circumference} ${circumference}`}
+            style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
+            strokeLinecap="round"
+            r={normalizedRadius}
+            cx={radius + stroke / 2}
+            cy={radius + stroke / 2}
+            className={
+              percentage === 100
+                ? 'text-emerald-500'
+                : percentage >= 60
+                ? 'text-amber-500'
+                : 'text-amber-600'
+            }
+          />
+        </svg>
+        <span className="absolute font-mono text-[10px] font-bold text-neutral-900 dark:text-white tracking-tight">
+          {percentage}%
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function Profile() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const isHindi = i18n.language === 'hi'
   const label = useOptionLabels()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [saved, setSaved] = useState(false)
+  const [toast, setToast] = useState({
+    open: false,
+    visible: false,
+    title: '',
+    body: '',
+    tone: 'success', // 'success' | 'info' | 'warn' | 'error'
+  })
+  const toastTimerRef = useRef(null)
+  const toastDismissTimerRef = useRef(null)
+
+  const showToast = (title, body = '', tone = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    if (toastDismissTimerRef.current) clearTimeout(toastDismissTimerRef.current)
+
+    setToast({ open: true, visible: false, title, body, tone })
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setToast((prev) => ({ ...prev, visible: true }))
+      })
+    })
+
+    toastTimerRef.current = setTimeout(() => {
+      dismissToast()
+    }, 3800)
+  }
+
+  const dismissToast = () => {
+    setToast((prev) => ({ ...prev, visible: false }))
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    toastDismissTimerRef.current = setTimeout(() => {
+      setToast((prev) => (prev.visible ? prev : { ...prev, open: false }))
+    }, 320)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+      if (toastDismissTimerRef.current) clearTimeout(toastDismissTimerRef.current)
+    }
+  }, [])
+
   const [form, setForm] = useState({
     age: '', income: '', state: '', district: '', occupation: '', education: '',
     category: '', gender: '', disabilityStatus: '',
   })
   const [family, setFamily] = useState([])
+  const [currentUser, setCurrentUser] = useState(() => getStoredUser())
+  const avatarInputRef = useRef(null)
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setCurrentUser(getStoredUser())
+    }
+    window.addEventListener('swatva-profile-updated', handleProfileUpdate)
+    return () => window.removeEventListener('swatva-profile-updated', handleProfileUpdate)
+  }, [])
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setError(isHindi ? 'कृपया एक मान्य छवि फ़ाइल (PNG, JPG, WebP) चुनें।' : 'Please select a valid image file (PNG, JPG, WebP).')
+      return
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setError(isHindi ? 'छवि का आकार 3MB से कम होना चाहिए।' : 'Image size must be less than 3MB.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result
+      setStoredUser({ photoURL: dataUrl })
+      setCurrentUser(getStoredUser())
+      window.dispatchEvent(new Event('swatva-profile-updated'))
+      playClick()
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveAvatar = (e) => {
+    e.stopPropagation()
+    setStoredUser({ photoURL: null })
+    setCurrentUser(getStoredUser())
+    window.dispatchEvent(new Event('swatva-profile-updated'))
+    playClick()
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -121,6 +279,36 @@ export default function Profile() {
       .catch((err) => !cancelled && setError(err?.message || t('profile.loadError')))
       .finally(() => !cancelled && setLoading(false))
     return () => { cancelled = true }
+  }, [])
+
+  // Keyboard navigation for step wizard (ArrowLeft and ArrowRight)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't intercept arrow keys if user is typing in an input, textarea, or select
+      const tag = document.activeElement?.tagName?.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return
+
+      if (e.key === 'ArrowLeft') {
+        setStep((s) => {
+          if (s > 0) {
+            playClick()
+            return s - 1
+          }
+          return s
+        })
+      } else if (e.key === 'ArrowRight') {
+        setStep((s) => {
+          if (s < STEPS.length - 1) {
+            playClick()
+            return s + 1
+          }
+          return s
+        })
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
   const set = (key) => (event) => {
@@ -167,33 +355,51 @@ export default function Profile() {
   )
 
   const save = async () => {
+    if (saving) return
+    playClick()
     setError(null)
     setSaving(true)
     try {
       await api.user.updateProfile(payload)
       setSaved(true)
+      showToast(t('profile.savedTitle'), t('profile.savedBody'), 'success')
     } catch (err) {
-      setError(err?.message || t('profile.loadError'))
+      const msg = err?.message || t('profile.loadError')
+      setError(msg)
+      showToast(t('profile.errorTitle'), msg, 'error')
     } finally {
       setSaving(false)
     }
   }
 
   const [filling, setFilling] = useState(false)
-  const [fillResult, setFillResult] = useState(null) // 'ok' | 'none' | 'error'
 
   /** Auto-fill profile fields from uploaded documents (Aadhaar preferred) */
   const fillFromDocuments = async () => {
+    if (filling) return
     setFilling(true)
-    setFillResult(null)
     try {
       const docs = await api.documents.list()
-      if (!docs?.length) { setFillResult('none'); return }
+      if (!docs?.length) {
+        showToast(
+          t('profile.autoFillNone'),
+          isHindi ? 'लॉकर में कोई दस्तावेज़ नहीं मिले। कृपया पहले दस्तावेज़ अपलोड करें।' : 'No uploaded documents found in your locker.',
+          'warn'
+        )
+        return
+      }
 
       // Prefer Aadhaar; fall back to first available doc
       const aadhaar = docs.find((d) => d.documentType === 'AADHAAR') ?? docs[0]
       const extracted = await api.documents.extract(aadhaar.id)
-      if (!extracted) { setFillResult('none'); return }
+      if (!extracted) {
+        showToast(
+          t('profile.autoFillNone'),
+          isHindi ? 'दस्तावेज़ से कोई जानकारी नहीं मिली।' : 'No readable profile fields extracted from document.',
+          'warn'
+        )
+        return
+      }
 
       let changed = false
       setForm((f) => {
@@ -238,9 +444,25 @@ export default function Profile() {
       })
 
       setSaved(false)
-      setFillResult(changed ? 'ok' : 'none')
+      if (changed) {
+        showToast(
+          t('profile.autoFillOk'),
+          isHindi ? 'दस्तावेज़ से विवरण सफलतापूर्वक भरे गए।' : 'Profile details extracted and populated from your document.',
+          'info'
+        )
+      } else {
+        showToast(
+          t('profile.autoFillNone'),
+          isHindi ? 'सभी उपलब्ध विवरण पहले से भरे हुए हैं।' : 'All matching fields are already filled.',
+          'info'
+        )
+      }
     } catch {
-      setFillResult('error')
+      showToast(
+        t('profile.autoFillError'),
+        isHindi ? 'दस्तावेज़ पढ़ने में समस्या आई।' : 'Could not extract fields from document.',
+        'error'
+      )
     } finally {
       setFilling(false)
     }
@@ -262,51 +484,112 @@ export default function Profile() {
 
   const current = STEPS[step]
   const user = getStoredUser()
-  const displayName = user?.fullName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
-  const initial = (displayName[0] || 'S').toUpperCase()
+  const displayName = getLocalizedUserName(user, isHindi)
+  const initial = (displayName[0] || (isHindi ? 'न' : 'S')).toUpperCase()
+  const isEmailUser = currentUser?.provider !== 'firebase-google'
 
   return (
     <div>
       <PageHeader
         title={t('profile.title')}
-        desc={t('profile.desc')}
         actions={
-          <Button onClick={save} variant="accent" loading={saving}>
-            {saved ? t('common.saved') : t('profile.save')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={filling}
+              onClick={() => {
+                playClick()
+                fillFromDocuments()
+              }}
+              title={t('profile.autoFillHint') || 'Auto-fill profile details from your uploaded documents'}
+              aria-label={t('profile.autoFillBtn') || 'Auto-fill'}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 text-amber-800 dark:text-amber-300 transition-all duration-200 cursor-pointer shadow-xs select-none disabled:opacity-60 min-w-[86px] justify-center"
+            >
+              <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
+                {filling ? (
+                  <span className="w-3.5 h-3.5 rounded-full border-[1.5px] border-amber-500/30 border-t-amber-600 dark:border-t-amber-400 animate-spin" />
+                ) : (
+                  <Wand2 size={13} className="text-amber-600 dark:text-amber-400 stroke-[2.2]" />
+                )}
+              </div>
+              <span>{filling ? (t('common.loading') || 'Extracting...') : (t('profile.autoFillBtn') || 'Auto-fill')}</span>
+            </button>
+            <PageTourButton pageKey="profile" />
+          </div>
         }
       />
 
       {/* Citizen Identity Profile Banner */}
-      <div className="mb-6 p-4 rounded-2xl neo-glass-card flex items-center justify-between gap-4">
+      <div data-tour="profile-avatar" className="mb-6 p-4 rounded-2xl neo-glass-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/20 ring-2 ring-amber-400/80 shadow-[0_0_12px_rgba(245,158,11,0.4)] flex items-center justify-center font-bold text-base uppercase text-neutral-800 dark:text-neutral-200">
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            ) : (
-              initial
+          {/* Interactive Avatar with Refined Round Ring & Inner Pencil Edit Badge */}
+          <div
+            className={cx(
+              'relative group/avatar shrink-0 select-none',
+              isEmailUser ? 'cursor-pointer' : 'cursor-default'
+            )}
+            onClick={() => {
+              if (isEmailUser) {
+                avatarInputRef.current?.click()
+              }
+            }}
+            title={
+              isEmailUser
+                ? (isHindi ? 'अपनी पसंद की प्रोफ़ाइल फ़ोटो चुनें' : 'Choose custom profile picture')
+                : (isHindi ? 'Google प्रोफ़ाइल फ़ोटो से सिंक किया गया' : 'Synced with Google Account')
+            }
+          >
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/20 ring-2 ring-offset-2 ring-offset-white dark:ring-offset-[#121216] ring-amber-400/90 shadow-[0_0_12px_rgba(245,158,11,0.35)] flex items-center justify-center font-bold text-base uppercase text-neutral-800 dark:text-neutral-200 relative transition-transform duration-300 ease-out group-hover/avatar:scale-[1.02]">
+              {currentUser?.photoURL ? (
+                <img src={currentUser.photoURL} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                initial
+              )}
+
+              {/* Bottom inner shade with small pencil icon inside the pic - only for email users */}
+              {isEmailUser && (
+                <div className="absolute inset-x-0 bottom-0 py-0.5 bg-black/50 backdrop-blur-[1.5px] flex items-center justify-center transition-colors duration-200 group-hover/avatar:bg-black/70">
+                  <Pencil size={9} className="text-white drop-shadow-sm stroke-[2.2]" />
+                </div>
+              )}
+            </div>
+
+            {isEmailUser && (
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
             )}
           </div>
+
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-neutral-900 dark:text-white truncate">
-              {displayName}
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+                {displayName}
+              </h2>
+              {currentUser?.photoURL && isEmailUser && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  title={isHindi ? 'फ़ोटो हटाएं' : 'Remove photo'}
+                  className="text-[10px] text-neutral-400 hover:text-red-500 transition-colors flex items-center gap-0.5 cursor-pointer"
+                >
+                  <Trash2 size={10} />
+                  <span>{isHindi ? 'हटाएं' : 'Remove'}</span>
+                </button>
+              )}
+            </div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-              {user?.email || 'citizen@swatva.in'}
+              {currentUser?.email || 'citizen@swatva.in'}
             </p>
           </div>
         </div>
 
-        <div className="text-right flex-shrink-0">
-          <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 block mb-0.5">
-            Profile Health
-          </span>
-          <span className="text-base font-black text-amber-600 dark:text-amber-400">
-            {complete}%
-          </span>
-        </div>
+        <ProfileHealthGauge percentage={complete} isHindi={isHindi} />
       </div>
-
 
       {error ? (
         <div className="mb-6">
@@ -315,47 +598,9 @@ export default function Profile() {
           </Banner>
         </div>
       ) : null}
-      {saved ? (
-        <div className="mb-6">
-          <Banner tone="info" title={t('profile.savedTitle')}>
-            {t('profile.savedBody')}
-          </Banner>
-        </div>
-      ) : null}
-
-      {/* Auto-fill from documents — only show when profile is sparse */}
-      {complete < 60 && (
-        <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-2xl border border-amber-400/30 bg-amber-50 dark:bg-amber-500/[0.08] px-4 py-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-              {t('profile.autoFillTitle')}
-            </p>
-            <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
-              {fillResult === 'ok'
-                ? t('profile.autoFillOk')
-                : fillResult === 'none'
-                ? t('profile.autoFillNone')
-                : fillResult === 'error'
-                ? t('profile.autoFillError')
-                : t('profile.autoFillHint')}
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            loading={filling}
-            onClick={fillFromDocuments}
-            className="shrink-0 text-amber-700 dark:text-amber-300 border border-amber-400/40 hover:bg-amber-100 dark:hover:bg-amber-500/10"
-          >
-            <Sparkles size={13} />
-            {t('profile.autoFillBtn')}
-          </Button>
-        </div>
-      )}
 
       {/* Step rail */}
-      <ol className="flex items-center gap-1.5 mb-6" aria-label="Profile steps">
+      <ol data-tour="profile-stepper" className="flex items-center gap-1.5 mb-6" aria-label="Profile steps">
         {STEPS.map((s, i) => {
           const isCurrent = i === step
           const isDone = i < step
@@ -524,34 +769,124 @@ export default function Profile() {
           ) : null}
         </div>
 
-        <div className="mt-8 flex items-center justify-between gap-3">
-          <Button
-            variant="secondary"
-            onClick={() => setStep((s) => Math.max(0, s - 1))}
-            disabled={step === 0}
-          >
-            <ChevronLeft size={15} />
-            {t('common.back')}
-          </Button>
-          <Button
-            onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
-            disabled={step === STEPS.length - 1}
-          >
-            {t('common.next')}
-            <ChevronRight size={15} />
-          </Button>
+        <div data-tour="profile-actions" className="mt-8 pt-4 border-t border-neutral-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
+          {/* Left Button Group: Back & Next together */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                playClick()
+                setStep((s) => Math.max(0, s - 1))
+              }}
+              disabled={step === 0}
+              title={isHindi ? 'पिछला चरण (बायाँ तीर कुंजी)' : 'Previous step (Left Arrow key)'}
+            >
+              <ChevronLeft size={15} />
+              <span>{t('common.back')}</span>
+            </Button>
+
+            {step < STEPS.length - 1 && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  playClick()
+                  setStep((s) => Math.min(STEPS.length - 1, s + 1))
+                }}
+                title={isHindi ? 'अगला चरण (दायाँ तीर कुंजी)' : 'Next step (Right Arrow key)'}
+                className="group"
+              >
+                <span>{t('common.next')}</span>
+                <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+              </Button>
+            )}
+          </div>
+
+          {/* Right Button: Save Profile */}
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={save}
+              disabled={saving}
+              className={cx(
+                'inline-flex items-center justify-center gap-2 h-10 px-5 min-w-[105px] rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer select-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm',
+                saved
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 border border-emerald-500/50 ring-2 ring-emerald-500/30'
+                  : 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-100 border border-neutral-800/80 dark:border-white/20 ring-1 ring-amber-400/50 hover:ring-amber-400/90 shadow-amber-500/10'
+              )}
+            >
+              <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
+                {saving ? (
+                  <span className="w-3.5 h-3.5 rounded-full border-[1.5px] border-current/30 border-t-current animate-spin" />
+                ) : (
+                  <Check size={14} className={cx('stroke-[2.5]', saved ? 'text-emerald-400 dark:text-emerald-600' : 'text-amber-400 dark:text-amber-600')} />
+                )}
+              </div>
+              <span>{saved ? t('common.saved') : t('profile.save')}</span>
+            </button>
+          </div>
         </div>
       </Card>
 
-      <Card accent className="mt-4 p-5 flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <p className="text-sm font-semibold tracking-tight">{t('profile.completeness')}</p>
-          <p className="text-xs text-neutral-600 dark:text-neutral-300 mt-0.5">
-            {t('profile.completenessHint', { count: complete, n: complete })}
-          </p>
+      {/* Smooth Disappearing Floating Toast */}
+      {toast.open && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={cx(
+            'fixed bottom-6 right-6 z-[100] max-w-sm sm:max-w-md w-[calc(100vw-3rem)]',
+            'bg-white/95 dark:bg-[#151619]/95 text-neutral-900 dark:text-white',
+            'p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.22),0_0_20px_rgba(0,0,0,0.08)]',
+            'border border-neutral-200/90 dark:border-white/15',
+            'flex items-start gap-3.5 backdrop-blur-xl',
+            'transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
+            toast.visible
+              ? 'opacity-100 translate-y-0 scale-100'
+              : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
+          )}
+        >
+          <div
+            className={cx(
+              'w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 border',
+              toast.tone === 'success'
+                ? 'bg-emerald-500/15 border-emerald-500/35 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/20'
+                : toast.tone === 'info'
+                ? 'bg-amber-500/15 border-amber-500/35 text-amber-600 dark:text-amber-400 ring-2 ring-amber-500/20'
+                : toast.tone === 'warn'
+                ? 'bg-amber-500/15 border-amber-500/35 text-amber-600 dark:text-amber-400'
+                : 'bg-rose-500/15 border-rose-500/35 text-rose-600 dark:text-rose-400 ring-2 ring-rose-500/20'
+            )}
+          >
+            {toast.tone === 'success' ? (
+              <Check size={16} className="stroke-[2.5]" />
+            ) : toast.tone === 'info' ? (
+              <Wand2 size={15} className="stroke-[2.2]" />
+            ) : (
+              <AlertCircle size={15} className="stroke-[2.2]" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0 pr-1">
+            <h4 className="text-xs font-bold text-neutral-950 dark:text-white tracking-tight">
+              {toast.title}
+            </h4>
+            {toast.body ? (
+              <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-600 dark:text-neutral-300">
+                {toast.body}
+              </p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playClick()
+              dismissToast()
+            }}
+            title={t('common.close') || 'Close'}
+            className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+          >
+            <X size={14} />
+          </button>
         </div>
-        <span className="mono-badge text-amber-700 dark:text-amber-400">{complete}%</span>
-      </Card>
+      )}
     </div>
   )
 }

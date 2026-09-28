@@ -25,6 +25,7 @@ import {
   Textarea,
   cx,
 } from '../components/ui'
+import { PageTourButton } from '../components/GuidedTour'
 
 /**
  * Exact ReportCategory values from the backend enum. These are sent verbatim, so
@@ -103,6 +104,7 @@ export default function Transparency() {
       <PageHeader
         title={t('transparency.title')}
         desc={t('transparency.desc')}
+        actions={<PageTourButton pageKey="transparency" />}
       />
 
       {/* Success receipt — the only identifier the citizen ever receives. */}
@@ -136,9 +138,9 @@ export default function Transparency() {
 
       {error ? <Banner tone="error" title={t('transparency.submitFailedTitle')}>{error}</Banner> : null}
 
-      <div className="grid gap-4 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-5">
         {/* ---------------------------------------------------------- form */}
-        <Card as="form" onSubmit={submit} className="p-5 lg:col-span-3 space-y-4">
+        <Card data-tour="transparency-form" as="form" onSubmit={submit} className="p-5 md:col-span-3 space-y-4">
           <div className="flex items-center gap-2">
             <Lock size={15} className="text-neutral-500 dark:text-neutral-400" aria-hidden="true" />
             <h2 className="text-sm font-bold tracking-tight">{t('transparency.formTitle')}</h2>
@@ -231,7 +233,7 @@ export default function Transparency() {
         </Card>
 
         {/* -------------------------------------------------------- summary */}
-        <div className="lg:col-span-2 space-y-4">
+        <div data-tour="transparency-stats" className="md:col-span-2 space-y-4">
           <Card className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <ShieldCheck size={15} className="text-neutral-500 dark:text-neutral-400" aria-hidden="true" />

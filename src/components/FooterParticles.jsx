@@ -63,7 +63,7 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
       let fontSize = Math.floor(width / (text.length * 0.58));
       fontSize = Math.max(28, Math.min(fontSize, 110));
 
-      offCtx.font = '900 ' + fontSize + 'px "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      offCtx.font = '900 ' + fontSize + 'px "Space Grotesk", "Noto Sans Devanagari", "Mangal", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       offCtx.textAlign = 'center';
       offCtx.textBaseline = 'middle';
       offCtx.fillStyle = '#ffffff';
@@ -72,7 +72,7 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
       if (textMetrics.width > width * 0.92) {
         const scale = (width * 0.92) / textMetrics.width;
         fontSize = Math.floor(fontSize * scale);
-        offCtx.font = '900 ' + fontSize + 'px "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        offCtx.font = '900 ' + fontSize + 'px "Space Grotesk", "Noto Sans Devanagari", "Mangal", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       }
 
       const centerX = width / 2;
@@ -157,6 +157,21 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
       particles = updatedParticles;
     };
 
+    const resetParticles = () => {
+      if (!particles || !particles.length) return;
+      particles.forEach((p) => {
+        p.isDissolving = false;
+        p.alpha = p.baseAlpha;
+        const spawnAngle = Math.random() * Math.PI * 2;
+        const spawnDist = Math.random() * 25 + 5;
+        p.x = p.originX + Math.cos(spawnAngle) * spawnDist;
+        p.y = p.originY + Math.sin(spawnAngle) * spawnDist;
+        p.vx = 0;
+        p.vy = 0;
+      });
+    };
+
+    let autoResetTimer = null;
     const triggerParticleDissolve = () => {
       if (!particles.length) return;
       particles.forEach((p) => {
@@ -171,10 +186,17 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
         p.vx = p.ashVx;
         p.vy = p.ashVy;
       });
+      // Automatically reset particles after dissolve animation finishes so they return on next view
+      if (autoResetTimer) clearTimeout(autoResetTimer);
+      autoResetTimer = setTimeout(() => {
+        resetParticles();
+      }, 1800);
     };
 
     window.addEventListener('sahnirmaan-trigger-particle-dissolve', triggerParticleDissolve);
     window.addEventListener('swatva-trigger-particle-dissolve', triggerParticleDissolve);
+    window.addEventListener('sahnirmaan-reset-particles', resetParticles);
+    window.addEventListener('swatva-reset-particles', resetParticles);
 
     const onMouseMove = (e) => {
       const rect = canvas.getBoundingClientRect();
@@ -268,6 +290,10 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
     const observer = new IntersectionObserver(([entry]) => {
       isVisible = entry.isIntersecting;
       if (isVisible) {
+        // When coming back into view, ensure particles are reset if they were dissolved
+        if (particles.some(p => p.isDissolving || p.alpha <= 0)) {
+          resetParticles();
+        }
         lastTime = performance.now();
       }
     }, { threshold: 0.05 });
@@ -278,10 +304,13 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
     animationFrameId = requestAnimationFrame(render);
 
     return () => {
+      if (autoResetTimer) clearTimeout(autoResetTimer);
       observer.disconnect();
       window.removeEventListener('resize', resize);
       window.removeEventListener('sahnirmaan-trigger-particle-dissolve', triggerParticleDissolve);
       window.removeEventListener('swatva-trigger-particle-dissolve', triggerParticleDissolve);
+      window.removeEventListener('sahnirmaan-reset-particles', resetParticles);
+      window.removeEventListener('swatva-reset-particles', resetParticles);
       canvas.removeEventListener('mousemove', onMouseMove);
       canvas.removeEventListener('mouseleave', onMouseLeave);
       cancelAnimationFrame(animationFrameId);
@@ -289,10 +318,10 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
   }, [text, darkMode]);
 
   return (
-    <div className="w-full flex items-center justify-center relative overflow-hidden select-none cursor-default py-6">
+    <div className="w-full flex items-center justify-center relative overflow-hidden select-none cursor-default py-6 touch-pan-y">
       <canvas 
         ref={canvasRef} 
-        className="block mx-auto max-w-full touch-none"
+        className="block mx-auto max-w-full pointer-events-none"
         aria-label={text}
       />
     </div>

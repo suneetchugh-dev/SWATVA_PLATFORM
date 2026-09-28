@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowUpRight, Coins, ExternalLink, IndianRupee, Sparkles, TrendingUp } from 'lucide-react'
 import { api } from '../api/client'
 import { Badge, Banner, Card, EmptyState, PageHeader, Spinner, StatusPill, cx } from '../components/ui'
+import { PageTourButton } from '../components/GuidedTour'
 
 /**
  * What the citizen is currently leaving on the table, and what they can get.
@@ -51,6 +52,7 @@ export default function Benefits() {
       <PageHeader
         title={t('benefits.title')}
         desc={t('benefits.desc')}
+        actions={<PageTourButton pageKey="benefits" />}
       />
 
       {error ? (
@@ -72,7 +74,7 @@ export default function Benefits() {
         />
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 mb-8">
+          <div data-tour="benefits-summary" className="grid gap-4 sm:grid-cols-2 mb-8">
             <Card accent className="p-5">
               <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-200 flex items-center gap-1.5">
                 <TrendingUp size={13} className="text-amber-600 dark:text-amber-400" />
@@ -114,7 +116,7 @@ export default function Benefits() {
           ) : null}
 
           {missed?.breakdown?.length ? (
-            <section className="mb-10">
+            <section data-tour="benefits-list" className="mb-10">
               <h2 className="text-sm font-bold tracking-tight mb-3">{t('benefits.gapTitle')}</h2>
               <div className="flex flex-col gap-2">
                 {missed.breakdown.map((b) => {

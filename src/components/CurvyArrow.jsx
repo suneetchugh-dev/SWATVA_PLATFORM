@@ -66,7 +66,7 @@ export default function CurvyArrow({
     <span 
       ref={arrowRef}
       style={{ transitionDuration: `${revealDuration}ms` }}
-      className={`absolute inline-flex flex-col items-center select-none pointer-events-none text-neutral-900 dark:text-white transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] z-20 ${
+      className={`absolute hidden sm:inline-flex flex-col items-center select-none pointer-events-none text-neutral-900 dark:text-white transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] z-20 ${
         hoverOnly 
           ? 'opacity-0 group-hover:opacity-100' 
           : (isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none')

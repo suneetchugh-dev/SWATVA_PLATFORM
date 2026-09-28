@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileStack, Plus, Trash2, Upload } from 'lucide-react'
+import { AlertTriangle, FileStack, Info, Plus, Trash2, Upload } from 'lucide-react'
 import { api } from '../api/client'
+import DocumentReviewModal from '../components/DocumentReviewModal'
+import ClearDocumentsModal from '../components/ClearDocumentsModal'
 import {
   Badge,
   Banner,
@@ -16,6 +18,7 @@ import {
   cx,
 } from '../components/ui'
 import { playClick } from '../utils/soundFx'
+import { PageTourButton } from '../components/GuidedTour'
 
 /**
  * The document locker. Documents are stored in S3-compatible storage and tracked
@@ -27,6 +30,19 @@ const DOC_TYPES = [
   'RESIDENCE_PROOF', 'BANK_ACCOUNT', 'ELECTRICITY_CONNECTION',
   'EDUCATION_CERTIFICATE', 'OFFICIAL_ID', 'OTHER',
 ]
+
+/**
+ * Single-instance document types: Only one active document of these types
+ * is maintained per citizen. Uploading a new one replaces the existing record.
+ * Multi-instance types (e.g. Education Certificates, Electricity Bills, Income/Caste renewals)
+ * allow multiple active entries.
+ */
+const SINGLE_INSTANCE_DOC_TYPES = new Set([
+  'AADHAAR',
+  'RATION_CARD',
+  'BANK_ACCOUNT',
+  'RESIDENCE_PROOF',
+])
 
 /**
  * Per-document-type field visibility rules.
@@ -48,6 +64,27 @@ const DOC_FIELD_CONFIG = {
   EDUCATION_CERTIFICATE: { showIssue: true,  showExpiry: false, showAuthority: true  },
   OFFICIAL_ID:           { showIssue: true,  showExpiry: true,  showAuthority: true  },
   OTHER:                 { showIssue: true,  showExpiry: true,  showAuthority: true  },
+}
+
+const ALLOWED_MIME_TYPES = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+])
+
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'jpg', 'jpeg', 'png', 'webp'])
+
+function isValidDocumentFile(file) {
+  if (!file) return false
+  if (file.type && ALLOWED_MIME_TYPES.has(file.type.toLowerCase())) {
+    return true
+  }
+  const ext = file.name?.split('.').pop()?.toLowerCase()
+  if (ext && ALLOWED_EXTENSIONS.has(ext)) {
+    return true
+  }
+  return false
 }
 
 const STATUS_STYLES = {
@@ -87,6 +124,10 @@ export default function Documents() {
   const [error, setError] = useState(null)
   const [busyId, setBusyId] = useState(null)
   const [activeTab, setActiveTab] = useState('locker') // 'locker' | 'add'
+  const [selectedReviewDoc, setSelectedReviewDoc] = useState(null)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false)
+  const [clearingAll, setClearingAll] = useState(false)
 
   const [docType, setDocType] = useState('AADHAAR')
   const [filename, setFilename] = useState('')
@@ -105,6 +146,10 @@ export default function Documents() {
   }
 
   const fieldCfg = DOC_FIELD_CONFIG[docType] ?? DOC_FIELD_CONFIG.OTHER
+  const isSingleInstance = SINGLE_INSTANCE_DOC_TYPES.has(docType)
+  const existingSingleDoc = isSingleInstance
+    ? docs?.find((d) => d.documentType === docType)
+    : null
 
   const load = () => {
     setLoading(true)
@@ -120,8 +165,30 @@ export default function Documents() {
   /** When a file is chosen, infer the doc type from the filename and pre-fill the display name.
    *  Actual upload happens only when the user clicks "Save document" so they can review first. */
   const handleFileChange = () => {
+    setError(null)
     const file = fileRef.current?.files?.[0]
-    if (!file) return
+    if (!file) {
+      setSelectedFile(null)
+      return
+    }
+
+    // MIME type & format validation guard
+    if (!isValidDocumentFile(file)) {
+      setError(t('documents.invalidFileType') || 'Invalid file format. Only PDF and image files (JPG, PNG, WebP) are supported.')
+      if (fileRef.current) fileRef.current.value = ''
+      setSelectedFile(null)
+      return
+    }
+
+    // Size limit guard: 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      setError(t('documents.fileTooLarge') || 'File size exceeds the 10MB limit.')
+      if (fileRef.current) fileRef.current.value = ''
+      setSelectedFile(null)
+      return
+    }
+
+    setSelectedFile(file)
 
     // Auto-fill display name from filename (strip extension)
     if (!filename) {
@@ -142,32 +209,53 @@ export default function Documents() {
   const register = async (event) => {
     event.preventDefault()
     setError(null)
+    const file = fileRef.current?.files?.[0] || selectedFile
+    if (!file) {
+      setError(t('documents.fileRequired') || 'A document file is required. Please choose a PDF or image file before saving.')
+      return
+    }
+
+    if (!isValidDocumentFile(file)) {
+      setError(t('documents.invalidFileType') || 'Invalid file format. Only PDF and image files (JPG, PNG, WebP) are supported.')
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError(t('documents.fileTooLarge') || 'File size exceeds the 10MB limit.')
+      return
+    }
+
+    const isSingleInstance = SINGLE_INSTANCE_DOC_TYPES.has(docType)
+    const existingSingleDoc = isSingleInstance
+      ? docs?.find((d) => d.documentType === docType)
+      : null
+
     setUploading(true)
     try {
-      const file = fileRef.current?.files?.[0]
-      if (file) {
-        const fd = new FormData()
-        fd.append('documentType', docType)
-        fd.append('file', file)
-        fd.append('filename', filename.trim() || file.name)
-        if (issueDate) fd.append('issueDate', issueDate)
-        if (expiryDate) fd.append('expiryDate', expiryDate)
-        if (authority.trim()) fd.append('issuingAuthority', authority.trim())
-        await api.documents.upload(fd)
-      } else {
-        await api.documents.register({
-          documentType: docType,
-          filename: filename.trim(),
-          issueDate: issueDate || null,
-          expiryDate: expiryDate || null,
-          issuingAuthority: authority.trim() || null,
-        })
+      const fd = new FormData()
+      fd.append('documentType', docType)
+      fd.append('file', file)
+      fd.append('filename', filename.trim() || file.name)
+      if (issueDate) fd.append('issueDate', issueDate)
+      if (expiryDate) fd.append('expiryDate', expiryDate)
+      if (authority.trim()) fd.append('issuingAuthority', authority.trim())
+      await api.documents.upload(fd)
+
+      // If replacing an existing single-instance document, clean up the superseded document
+      if (existingSingleDoc) {
+        try {
+          await api.documents.delete(existingSingleDoc.id)
+        } catch (cleanupErr) {
+          console.warn('Failed to prune superseded document:', cleanupErr)
+        }
       }
+
       playClick()
       setFilename('')
       setIssueDate('')
       setExpiryDate('')
       setAuthority('')
+      setSelectedFile(null)
       if (fileRef.current) fileRef.current.value = ''
       load()
       setActiveTab('locker')
@@ -192,6 +280,21 @@ export default function Documents() {
     }
   }
 
+  const handleRemoveAll = async () => {
+    if (!docs || docs.length === 0) return
+    setError(null)
+    setClearingAll(true)
+    try {
+      await Promise.all(docs.map((d) => api.documents.delete(d.id)))
+      setIsClearModalOpen(false)
+      load()
+    } catch (err) {
+      setError(err?.message || t('documents.deleteError'))
+    } finally {
+      setClearingAll(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24 text-neutral-500 dark:text-neutral-400">
@@ -208,47 +311,69 @@ export default function Documents() {
         title={t('documents.title')}
         desc={t('documents.desc')}
         actions={
-          <div className="p-1 rounded-full neo-glass-card inline-flex items-center">
-            <div className="relative grid grid-cols-2 gap-1 min-w-[240px] sm:min-w-[280px]">
-              <span
-                aria-hidden="true"
-                className={cx(
-                  'absolute inset-y-0 left-0 w-[calc(50%-2px)] rounded-full bg-neutral-950 dark:bg-white transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)]',
-                  activeTab === 'add' ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'
-                )}
-              />
+          <div className="flex items-center gap-2">
+            {docCount > 0 && activeTab === 'locker' && (
               <button
                 type="button"
-                onClick={() => { playClick(); setActiveTab('locker'); }}
-                aria-pressed={activeTab === 'locker'}
-                className={cx(
-                  'relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer',
-                  activeTab === 'locker'
-                    ? 'text-white dark:text-neutral-950'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
-                )}
+                onClick={() => {
+                  playClick()
+                  setIsClearModalOpen(true)
+                }}
+                aria-label={t('documents.removeAll') || 'Remove all documents'}
+                className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-300/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 active:scale-[0.98] text-xs font-medium shadow-2xs transition-all duration-200 cursor-pointer"
               >
-                <FileStack size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                <span>{t('documents.tabLockerCount', { n: docCount }) || `My Locker (${docCount})`}</span>
+                <Trash2 size={13} className="stroke-[2.2] shrink-0 text-neutral-400 dark:text-neutral-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
+                <span className="hidden sm:inline">{t('documents.removeAll') || 'Remove all documents'}</span>
+                <span className="sm:hidden">{t('documents.removeAll') ? t('documents.removeAll').split(' ')[0] : 'Remove'}</span>
               </button>
-              <button
-                type="button"
-                onClick={() => { playClick(); setActiveTab('add'); }}
-                aria-pressed={activeTab === 'add'}
-                className={cx(
-                  'relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer',
-                  activeTab === 'add'
-                    ? 'text-white dark:text-neutral-950'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
-                )}
-              >
-                <Plus size={13} className="stroke-[2.5] flex-shrink-0" aria-hidden="true" />
-                <span>{t('documents.tabAdd') || 'Add Document'}</span>
-              </button>
-            </div>
+            )}
+            <PageTourButton pageKey="documents" />
           </div>
         }
       />
+
+      {/* Top Center Tab Switcher */}
+      <div className="flex justify-center mb-6">
+        <div data-tour="documents-tabs" className="p-1 rounded-full neo-glass-card inline-flex items-center shadow-xs">
+          <div className="relative grid grid-cols-2 gap-1 min-w-[260px] sm:min-w-[300px]">
+            <span
+              aria-hidden="true"
+              className={cx(
+                'absolute inset-y-0 left-0 w-[calc(50%-2px)] rounded-full bg-neutral-950 dark:bg-white transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)] shadow-xs',
+                activeTab === 'add' ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'
+              )}
+            />
+            <button
+              type="button"
+              onClick={() => { playClick(); setActiveTab('locker'); }}
+              aria-pressed={activeTab === 'locker'}
+              className={cx(
+                'relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer select-none',
+                activeTab === 'locker'
+                  ? 'text-white dark:text-neutral-950'
+                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+              )}
+            >
+              <FileStack size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
+              <span>{t('documents.tabLockerCount', { n: docCount }) || `My Locker (${docCount})`}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { playClick(); setActiveTab('add'); }}
+              aria-pressed={activeTab === 'add'}
+              className={cx(
+                'relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer select-none',
+                activeTab === 'add'
+                  ? 'text-white dark:text-neutral-950'
+                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+              )}
+            >
+              <Plus size={13} className="stroke-[2.5] flex-shrink-0" aria-hidden="true" />
+              <span>{t('documents.tabAdd') || 'Add Document'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       {error ? (
         <div className="mb-6">
@@ -276,7 +401,8 @@ export default function Documents() {
               }
             />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-3">
+              <div data-tour="documents-grid" className="grid gap-3 sm:grid-cols-2">
               {docs.map((d) => {
                 const expired = isExpired(d.expiryDate)
                 const style = STATUS_STYLES[d.status] ?? STATUS_STYLES.ACTIVE
@@ -284,9 +410,30 @@ export default function Documents() {
                   <Card key={d.id} className="p-4 flex flex-col min-w-0 overflow-hidden">
                     <div className="flex items-start justify-between gap-3 min-w-0">
                       <div className="min-w-0 flex-1">
-                        <span className={cx('mono-badge inline-block rounded px-2 py-1 border', style)}>
-                          {t(`status.${d.status ?? 'ACTIVE'}`)}
-                        </span>
+                        {d.status === 'NEEDS_REVIEW' ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              playClick()
+                              setSelectedReviewDoc(d)
+                            }}
+                            className="mono-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-dashed border-amber-500/70 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 hover:border-amber-500 transition-all cursor-pointer group text-left"
+                            title={t('documents.clickToReview')}
+                            aria-label={`${t('status.NEEDS_REVIEW')} - ${t('documents.clickToReview')}`}
+                          >
+                            <AlertTriangle size={11} className="shrink-0 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+                            <span className="font-semibold underline decoration-dotted decoration-amber-500/60 underline-offset-2">
+                              {t(`status.${d.status}`)}
+                            </span>
+                            <span className="text-[10px] opacity-80 font-normal">
+                              • {t('documents.clickToReview')}
+                            </span>
+                          </button>
+                        ) : (
+                          <span className={cx('mono-badge inline-block rounded px-2 py-1 border', style)}>
+                            {t(`status.${d.status ?? 'ACTIVE'}`)}
+                          </span>
+                        )}
                         <p className="mt-2 text-sm font-semibold tracking-tight text-balance truncate">
                           {d.documentTypeName ?? d.documentType}
                         </p>
@@ -330,6 +477,7 @@ export default function Documents() {
                   </Card>
                 )
               })}
+              </div>
             </div>
           )}
         </div>
@@ -358,20 +506,53 @@ export default function Documents() {
           </div>
 
           <form onSubmit={register} className="mt-5 grid gap-4 sm:grid-cols-2 min-w-0">
+            {/* Single-instance replacement notice */}
+            {existingSingleDoc && (
+              <div className="sm:col-span-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-900 dark:text-amber-200 text-xs flex items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+                <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+                  <Info size={16} className="shrink-0 text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-0" />
+                  <div className="min-w-0">
+                    <p className="font-semibold leading-tight">
+                      {t('documents.replaceNotice', {
+                        type: t(`documents.types.${docType}`),
+                        existing: existingSingleDoc.filename || t(`documents.types.${docType}`),
+                      })}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-amber-700/90 dark:text-amber-300/80 leading-normal">
+                      {t('documents.singleInstanceHint')}
+                    </p>
+                  </div>
+                </div>
+                <Badge tone="amber" className="shrink-0 text-[10px] uppercase font-bold tracking-wide">
+                  {t('documents.willReplace')}
+                </Badge>
+              </div>
+            )}
+
             {/* Document type — changing this updates placeholder + visible fields */}
             <Field label={t('documents.type')} htmlFor="docType" required>
               <Select id="docType" value={docType} onChange={(e) => handleDocTypeChange(e.target.value)}>
-                {DOC_TYPES.map((v) => <option key={v} value={v}>{t(`documents.types.${v}`)}</option>)}
+                {DOC_TYPES.map((v) => {
+                  const isSingle = SINGLE_INSTANCE_DOC_TYPES.has(v)
+                  const hasExisting = isSingle && docs?.some((d) => d.documentType === v)
+                  return (
+                    <option key={v} value={v}>
+                      {t(`documents.types.${v}`)}
+                      {hasExisting ? ` — (${t('documents.willReplace') || 'Replaces existing'})` : ''}
+                    </option>
+                  )
+                })}
               </Select>
             </Field>
 
             {/* File — infers type+name from filename on selection */}
-            <Field label={t('documents.file')} htmlFor="docFile" hint={t('documents.fileHint')}>
+            <Field label={t('documents.file')} htmlFor="docFile" hint={t('documents.fileHint')} required>
               <input
                 id="docFile"
                 ref={fileRef}
                 type="file"
-                accept="application/pdf,image/*"
+                required
+                accept="application/pdf,image/jpeg,image/png,image/webp"
                 onChange={handleFileChange}
                 className="w-full text-xs text-neutral-600 dark:text-neutral-300 file:mr-3 file:rounded-full file:border-0 file:bg-neutral-100 dark:file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-800 dark:file:text-neutral-100 cursor-pointer"
               />
@@ -419,7 +600,7 @@ export default function Documents() {
             )}
 
             <div className="sm:col-span-2 flex items-center gap-3 pt-2">
-              <Button type="submit" variant="accent" loading={uploading}>
+              <Button type="submit" variant="accent" loading={uploading} disabled={uploading || !selectedFile}>
                 <Upload size={15} />
                 {t('documents.save')}
               </Button>
@@ -434,6 +615,29 @@ export default function Documents() {
           </form>
         </Card>
       )}
+
+      {/* Verification Review Modal */}
+      <DocumentReviewModal
+        doc={selectedReviewDoc}
+        isOpen={Boolean(selectedReviewDoc)}
+        onClose={() => setSelectedReviewDoc(null)}
+        onReupload={(doc) => {
+          setSelectedReviewDoc(null)
+          if (doc.documentType) {
+            handleDocTypeChange(doc.documentType)
+          }
+          setActiveTab('add')
+        }}
+      />
+
+      {/* Clear All Documents Modal */}
+      <ClearDocumentsModal
+        isOpen={isClearModalOpen}
+        count={docCount}
+        onClose={() => setIsClearModalOpen(false)}
+        onConfirm={handleRemoveAll}
+        loading={clearingAll}
+      />
     </div>
   )
 }

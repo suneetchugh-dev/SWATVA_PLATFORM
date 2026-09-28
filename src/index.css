@@ -704,16 +704,16 @@ pre.code-view {
   .portfolio-header {
     padding: 1.15rem 4rem;
   }
+  /* Visual balance offset on desktop: keeps optical alignment with right CTA cluster */
+  .portfolio-header.scrolled {
+    margin-left: 1.5rem;
+  }
 }
 
 .portfolio-header.scrolled {
   top: 0.85rem;
   width: 90%;
   max-width: 720px;
-  /* The pill is centred with `left: 50%` + `translateX(-50%)`, so a left margin
-     is what offsets it off-centre. It is in the transition list below, otherwise
-     the bar would slide right in one step while the width was still animating. */
-  margin-left: 1.5rem;
   padding: 0.45rem 0.85rem;
   border-radius: 9999px;
   backdrop-filter: blur(16px);
@@ -739,6 +739,80 @@ pre.code-view {
 }
 
 .dark .portfolio-header.scrolled {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background-color: rgba(7, 9, 14, 0.85);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Team Page Morphing Header CSS Engine
+   ══════════════════════════════════════════════════════════════════════════ */
+.team-header {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0px;
+  border: 1px solid transparent;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+  background-color: transparent;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  transition:
+    background-color 0.45s ease,
+    border-color 0.45s ease,
+    width 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+    max-width 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+    top 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+    padding 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+    border-radius 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+    backdrop-filter 0.45s ease;
+}
+
+.dark .team-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+@media (min-width: 640px) {
+  .team-header {
+    padding: 1.15rem 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .team-header {
+    padding: 1.15rem 4rem;
+  }
+}
+
+.team-header.scrolled {
+  top: 0.75rem;
+  width: calc(100% - 1.25rem);
+  max-width: 680px;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  background-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 640px) {
+  .team-header.scrolled {
+    width: 92%;
+    padding: 0.45rem 1.25rem;
+  }
+}
+
+.dark .team-header.scrolled {
   border: 1px solid rgba(255, 255, 255, 0.18);
   background-color: rgba(7, 9, 14, 0.85);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
@@ -1133,3 +1207,22 @@ select option,
   font-size: 13px !important;
   font-weight: 500 !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Seamless Page Route Navigation Transitions (Fade & Micro-Slide-Up)
+   ══════════════════════════════════════════════════════════════════════════ */
+@keyframes page-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.page-transition-enter {
+  animation: page-enter 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowRight,
+  Check,
   Clock,
   Compass,
   Search,
@@ -25,6 +26,7 @@ import {
   Textarea,
   cx,
 } from '../components/ui'
+import { PageTourButton } from '../components/GuidedTour'
 
 const HISTORY_KEY = 'swatva_discover_history'
 const MAX_HISTORY = 10
@@ -111,13 +113,13 @@ export default function Discover() {
       <PageHeader
         title={t('discover.title')}
         desc={t('discover.desc')}
+        actions={<PageTourButton pageKey="discover" />}
       />
 
-      <Card as="form" onSubmit={submit} className="p-5 space-y-4">
+      <Card as="form" onSubmit={submit} className="p-5 space-y-4" data-tour="discover-input">
         <Field
           label={t('discover.prompt')}
           htmlFor="discover-description"
-          hint={t('discover.promptHint')}
         >
           <Textarea
             id="discover-description"
@@ -134,17 +136,13 @@ export default function Discover() {
             required
             minLength={5}
             maxLength={2000}
-            aria-describedby="discover-kb-hint"
           />
-          <p id="discover-kb-hint" className="mt-1 text-[11px] text-neutral-400 dark:text-neutral-500">
-            {t('discover.kbHint')}
-          </p>
         </Field>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={loading || description.trim().length < 5}>
-            <Search size={13} />
-            {loading ? t('common.searching') : t('discover.submit')}
+          <Button type="submit" disabled={loading || description.trim().length < 5} className="group">
+            <Search size={13} className={loading ? 'animate-spin' : 'group-hover:scale-110 transition-transform duration-200'} />
+            <span>{loading ? t('common.searching') : t('discover.submit')}</span>
           </Button>
           {loading ? (
             <span className="text-neutral-500 dark:text-neutral-400">
@@ -155,7 +153,7 @@ export default function Discover() {
 
         {/* Examples double as a discoverability device: the extractor keys off
             specific words, so showing them teaches the citizen what to write. */}
-        <div className="pt-1">
+        <div className="pt-1" data-tour="discover-examples">
           <p className="text-[11px] font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
             {t('discover.examples')}
           </p>
@@ -227,7 +225,7 @@ export default function Discover() {
                   key={i}
                   className="flex items-start gap-2 text-sm text-neutral-600 dark:text-neutral-300"
                 >
-                  <span className="mt-1.5 h-1 w-1 rounded-full bg-amber-500 flex-shrink-0" />
+                  <Check size={13} className="mt-0.5 text-neutral-400 dark:text-neutral-500 flex-shrink-0 stroke-[2.2]" />
                   {c}
                 </li>
               ))}

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Code2, 
   Users2, 
@@ -22,6 +23,8 @@ import { TEAM_MEMBERS, PLATFORM_STATS, PROJECT_DETAILS, CORE_PILLARS } from '../
 import { playClick } from '../utils/soundFx';
 import LoadingLogo from '../components/LoadingLogo';
 import ThemeToggle from '../components/ThemeToggle';
+import FooterParticles from '../components/FooterParticles';
+import DragScrollController from '../components/DragScrollController';
 import { getToken } from '../api/client';
 
 export default function Team() {
@@ -32,14 +35,101 @@ export default function Team() {
 
   const [lightboxMember, setLightboxMember] = useState(null);
   const [lightboxTilt, setLightboxTilt] = useState({ x: 0, y: 0 });
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape' && lightboxMember) setLightboxMember(null);
+    const handleScroll = () => {
+      const scrollPos = window.scrollY || document.documentElement.scrollTop || window.pageYOffset || 0;
+      setScrolled(scrollPos > 24);
     };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!lightboxMember) {
+      setLightboxTilt({ x: 0, y: 0 });
+      return;
+    }
+    document.documentElement.classList.add('lightbox-active');
+    document.body.style.overflow = 'hidden';
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        playClick();
+        setLightboxMember(null);
+        setLightboxTilt({ x: 0, y: 0 });
+      } else if (e.key === 'ArrowLeft') {
+        const idx = TEAM_MEMBERS.findIndex((m) => m.id === lightboxMember.id);
+        if (idx !== -1) {
+          playClick();
+          setLightboxMember(TEAM_MEMBERS[(idx - 1 + TEAM_MEMBERS.length) % TEAM_MEMBERS.length]);
+          setLightboxTilt({ x: 0, y: 0 });
+        }
+      } else if (e.key === 'ArrowRight') {
+        const idx = TEAM_MEMBERS.findIndex((m) => m.id === lightboxMember.id);
+        if (idx !== -1) {
+          playClick();
+          setLightboxMember(TEAM_MEMBERS[(idx + 1) % TEAM_MEMBERS.length]);
+          setLightboxTilt({ x: 0, y: 0 });
+        }
+      }
+    };
+
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      document.documentElement.classList.remove('lightbox-active');
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
   }, [lightboxMember]);
+
+  const handleLightboxMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+    const y = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+    setLightboxTilt({
+      x: Math.max(-1, Math.min(1, x)) * 10,
+      y: Math.max(-1, Math.min(1, y)) * -10,
+    });
+  };
+
+  const handleLightboxMouseLeave = () => {
+    setLightboxTilt({ x: 0, y: 0 });
+  };
+
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
+
+  const handleLightboxTouchStart = (e) => {
+    if (e.touches && e.touches[0]) {
+      touchStartXRef.current = e.touches[0].clientX;
+      touchStartYRef.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleLightboxTouchEnd = (e) => {
+    if (!lightboxMember || !e.changedTouches || !e.changedTouches[0]) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+
+    // Check for horizontal swipe with low vertical displacement
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaY) < 60) {
+      const idx = TEAM_MEMBERS.findIndex((m) => m.id === lightboxMember.id);
+      if (idx !== -1) {
+        playClick();
+        if (deltaX < 0) {
+          // Swipe left -> Next member
+          setLightboxMember(TEAM_MEMBERS[(idx + 1) % TEAM_MEMBERS.length]);
+        } else {
+          // Swipe right -> Prev member
+          setLightboxMember(TEAM_MEMBERS[(idx - 1 + TEAM_MEMBERS.length) % TEAM_MEMBERS.length]);
+        }
+        setLightboxTilt({ x: 0, y: 0 });
+      }
+    }
+  };
 
   const handleBack = () => {
     playClick();
@@ -51,43 +141,54 @@ export default function Team() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300 relative overflow-hidden bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">
+    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300 relative bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white overflow-x-hidden">
       {/* Monumental Background Watermark */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center select-none z-0 overflow-hidden">
         <span className="text-[18vw] font-black tracking-tighter text-neutral-950/[0.03] dark:text-white/[0.04] leading-none font-mono">
-          THEQUIRKIES
+          {isHindi ? 'द क्वर्कीज़' : 'THEQUIRKIES'}
         </span>
       </div>
 
       {/* Header Bar */}
-      <header className="sticky top-0 z-40 pt-3 px-3 sm:px-5">
-        <div className="mx-auto max-w-6xl neo-glass-card px-4 py-2.5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-white/10 transition cursor-pointer"
-            >
-              <ArrowLeft size={13} />
-              <span>{isHindi ? 'वापस जाएं' : 'Back to App'}</span>
-            </button>
-            <div className="h-4 w-px bg-neutral-200 dark:bg-white/10" />
-            <div className="flex items-center gap-2">
-              <LoadingLogo animate={false} />
-              <span className="font-bold text-sm tracking-tight text-neutral-950 dark:text-white">
-                SWATVA
-              </span>
-            </div>
-          </div>
+      <header className={`team-header ${scrolled ? 'scrolled' : ''}`}>
+        <div className="flex items-center z-10">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-900 dark:bg-neutral-800/90 dark:hover:bg-neutral-700/90 dark:text-neutral-100 border border-neutral-200/80 dark:border-white/20 shadow-xs dark:shadow-md transition-all cursor-pointer select-none active:scale-95"
+          >
+            <ArrowLeft size={13} className="text-neutral-700 dark:text-neutral-200" />
+            <span>{isHindi ? 'वापस जाएं' : 'Back to App'}</span>
+          </button>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <ThemeToggle darkMode={dark} toggleTheme={toggle} />
-          </div>
+        {/* Absolute Mathematically Centered Logo */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="pointer-events-auto flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-full group"
+            title={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
+            aria-label={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
+          >
+            <div className="relative h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center flex-shrink-0">
+              {/* Amber Aura Glow matching login header */}
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 -m-2 rounded-full bg-amber-500/35 blur-lg scale-100 hidden dark:block pointer-events-none transition-all duration-300 ease-out group-hover:bg-amber-500/60 group-hover:blur-xl group-hover:scale-115"
+              />
+              <LoadingLogo animate={false} size="h-7 w-7 sm:h-8 sm:w-8" />
+            </div>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 z-10">
+          <ThemeToggle darkMode={dark} toggleTheme={toggle} />
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-20 w-full relative z-10">
+      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28 pb-20 w-full relative z-10">
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16 relative">
           {/* Amber Aura Halo */}
@@ -98,22 +199,22 @@ export default function Team() {
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 mb-3 shadow-sm">
             <Users2 size={13} className="text-amber-400 dark:text-amber-500" />
-            TheQuirkies
+            {isHindi ? 'द क्वर्कीज़' : 'TheQuirkies'}
           </span>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-neutral-950 dark:text-white mb-4 text-balance">
-            {isHindi ? 'अभियांत्रिकी एवं विकास टीम' : 'Meet TheQuirkies'}
+            {isHindi ? 'मीट द क्वर्कीज़' : 'Meet TheQuirkies'}
           </h1>
 
           <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed max-w-2xl mx-auto">
             {isHindi
-              ? 'SWATVA सार्वजनिक कल्याण प्लेटफ़ॉर्म के पीछे समर्पित डेवलपर्स और सिस्टम आर्किटेक्ट्स।'
+              ? 'स्वतवा सार्वजनिक कल्याण प्लेटफ़ॉर्म के पीछे समर्पित डेवलपर्स और सिस्टम आर्किटेक्ट्स।'
               : 'The multidisciplinary engineering team behind SWATVA — deterministic welfare evaluation, vernacular RAG intelligence, and zero-middleman civic infrastructure.'}
           </p>
         </div>
 
         {/* Team Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-12 sm:mb-16">
+        <div id="members" className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-12 sm:mb-16">
           {TEAM_MEMBERS.map((member) => (
             <div 
               key={member.id}
@@ -127,14 +228,17 @@ export default function Team() {
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={() => setLightboxMember(member)}
+                      onClick={() => {
+                        playClick();
+                        setLightboxMember(member);
+                      }}
                       className="block group/avatar cursor-zoom-in focus:outline-none rounded-2xl"
                       title="View full photo"
                       aria-label={`View photo — ${member.name}`}
                     >
                       <img 
                         src={member.avatar} 
-                        alt={member.name}
+                        alt={isHindi ? member.nameHi : member.name}
                         loading="lazy"
                         onError={(e) => {
                           e.currentTarget.onerror = null;
@@ -144,7 +248,9 @@ export default function Team() {
                       />
                     </button>
                     <div className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 flex items-center justify-center font-mono text-[9px] font-bold shadow-xs">
-                      {member.role === 'Team Leader' ? 'LEAD' : 'DEV'}
+                      {isHindi
+                        ? (member.role === 'Team Leader' ? 'लीड' : 'डेव')
+                        : (member.role === 'Team Leader' ? 'LEAD' : 'DEV')}
                     </div>
                   </div>
 
@@ -181,27 +287,27 @@ export default function Team() {
                 {/* Info */}
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight min-w-0">
-                    {member.name}
+                    {isHindi ? member.nameHi : member.name}
                   </h3>
                   <span className="font-mono text-[9px] px-2 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 font-bold uppercase whitespace-nowrap">
-                    {member.role}
+                    {isHindi ? member.roleHi : member.role}
                   </span>
                 </div>
 
                 <div className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 mt-1">
-                  {member.title}
+                  {isHindi ? member.titleHi : member.title}
                 </div>
                 <div className="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mt-0.5 mb-3">
-                  {member.domain} · {member.college}
+                  {isHindi ? member.domainHi : member.domain} · {isHindi ? member.collegeHi : member.college}
                 </div>
                 <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
-                  {member.bio}
+                  {isHindi ? member.bioHi : member.bio}
                 </p>
               </div>
 
               {/* Tags */}
               <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-white/5 flex flex-wrap gap-1.5">
-                {member.tags.map((tag) => (
+                {(isHindi && member.tagsHi ? member.tagsHi : member.tags).map((tag) => (
                   <span 
                     key={tag}
                     className="font-mono text-[9px] px-2 py-0.5 rounded-md bg-neutral-100/80 dark:bg-white/5 text-neutral-600 dark:text-neutral-400 border border-neutral-200/60 dark:border-white/5"
@@ -215,13 +321,13 @@ export default function Team() {
         </div>
 
         {/* Core Architectural Pillars */}
-        <div className="p-6 sm:p-10 rounded-3xl neo-glass-card mb-10 sm:mb-12">
+        <div id="pillars" className="p-6 sm:p-10 rounded-3xl neo-glass-card mb-10 sm:mb-12">
           <div className="mb-6 pb-4 border-b border-neutral-200/60 dark:border-white/10">
             <span className="font-mono text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-bold block mb-1">
-              SYSTEM FOUNDATIONS
+              {isHindi ? 'सिस्टम की नींव' : 'SYSTEM FOUNDATIONS'}
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-neutral-950 dark:text-white">
-              Architectural Pillars
+              {isHindi ? 'आर्किटेक्चरल स्तंभ' : 'Architectural Pillars'}
             </h2>
           </div>
 
@@ -230,8 +336,12 @@ export default function Team() {
               <div key={idx} className="p-4 rounded-2xl bg-neutral-100/60 dark:bg-white/[0.03] border border-neutral-200/40 dark:border-white/5 flex flex-col justify-between">
                 <div>
                   <div className="font-mono text-xs font-black text-neutral-400 mb-2">0{idx + 1}.</div>
-                  <h4 className="text-xs font-bold text-neutral-900 dark:text-white mb-1.5">{pillar.title}</h4>
-                  <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed">{pillar.desc}</p>
+                  <h4 className="text-xs font-bold text-neutral-900 dark:text-white mb-1.5">
+                    {isHindi ? pillar.titleHi : pillar.title}
+                  </h4>
+                  <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                    {isHindi ? pillar.descHi : pillar.desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -239,14 +349,14 @@ export default function Team() {
         </div>
 
         {/* Platform Architecture Metrics Bar */}
-        <div className="p-6 sm:p-10 rounded-3xl neo-glass-card">
+        <div id="benchmarks" className="p-6 sm:p-10 rounded-3xl neo-glass-card">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 pb-6 border-b border-neutral-200/60 dark:border-white/10">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-bold block mb-1">
-                TELEMETRY & VERIFICATION
+                {isHindi ? 'टेलीमेट्री एवं सत्यापन' : 'TELEMETRY & VERIFICATION'}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-neutral-950 dark:text-white">
-                Platform Benchmarks
+                {isHindi ? 'प्लेटफ़ॉर्म बेंचमार्क' : 'Platform Benchmarks'}
               </h2>
             </div>
             <button
@@ -265,10 +375,10 @@ export default function Team() {
                   {stat.value}
                 </div>
                 <div className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-                  {stat.label}
+                  {isHindi ? stat.labelHi : stat.label}
                 </div>
                 <div className="text-[10px] text-neutral-400 font-mono mt-0.5">
-                  {stat.detail}
+                  {isHindi && stat.detailHi ? stat.detailHi : stat.detail}
                 </div>
               </div>
             ))}
@@ -276,50 +386,207 @@ export default function Team() {
         </div>
       </main>
 
-      {/* Profile Photo Lightbox Viewer with 3D Tilt */}
-      {lightboxMember && (
+      {/* ----------------- Dynamic Pointillism Particle Canvas */}
+      <div className="w-full border-t border-neutral-200/50 dark:border-white/5 py-4">
+        <FooterParticles text={isHindi ? 'द क्वर्कीज़' : 'THEQUIRKIES'} darkMode={dark} />
+      </div>
+
+      {/* -------------------------------------------- footer */}
+      <footer className="w-full relative border-t border-neutral-200 dark:border-white/15 py-8 px-6 max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-600 dark:text-neutral-300 gap-3 mt-6">
+        {/* Absolute Centered Top-Border Scroll-to-Top Button */}
+        <button
+          type="button"
+          onClick={() => {
+            playClick();
+            window.dispatchEvent(new CustomEvent('swatva-trigger-particle-dissolve'));
+            setTimeout(() => {
+              if (window.lenis) {
+                window.lenis.scrollTo(0, { duration: 1.2 });
+              } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }, 320);
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('swatva-reset-particles'));
+            }, 1600);
+          }}
+          className="footer-scroll-top"
+          aria-label="Scroll to top"
+          title="Scroll to top"
+          data-sound="click"
+        >
+          <img
+            src="/cursors/scroll-up.svg"
+            className="scroll-up-img pointer-events-none"
+            alt="Scroll to top"
+            width="17"
+            height="17"
+          />
+        </button>
+
+        <div className="flex items-center gap-2.5">
+          <LoadingLogo size="h-7 w-7" animate={false} />
+          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">
+            {isHindi ? 'स्वतवा' : 'SWATVA'}
+          </span>
+          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
+          <Link
+            to="/team"
+            onClick={playClick}
+            title={isHindi ? 'हमारी टीम से मिलें' : 'Meet our team'}
+            className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {isHindi ? 'द क्वर्कीज़ द्वारा' : 'BY TheQuirkies'}
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-4 text-[11px] text-neutral-600 dark:text-neutral-300 font-medium">
+          <a
+            href="#members"
+            onClick={(e) => {
+              e.preventDefault();
+              playClick();
+              if (window.lenis) {
+                window.lenis.scrollTo('#members', { offset: -90, duration: 1.2 });
+              } else {
+                document.getElementById('members')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {isHindi ? 'टीम सदस्य' : 'Team'}
+          </a>
+          <a
+            href="#pillars"
+            onClick={(e) => {
+              e.preventDefault();
+              playClick();
+              if (window.lenis) {
+                window.lenis.scrollTo('#pillars', { offset: -90, duration: 1.2 });
+              } else {
+                document.getElementById('pillars')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {isHindi ? 'स्तंभ' : 'Pillars'}
+          </a>
+          <a
+            href="#benchmarks"
+            onClick={(e) => {
+              e.preventDefault();
+              playClick();
+              if (window.lenis) {
+                window.lenis.scrollTo('#benchmarks', { offset: -90, duration: 1.2 });
+              } else {
+                document.getElementById('benchmarks')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {isHindi ? 'बेंचमार्क' : 'Benchmarks'}
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              playClick();
+              if (getToken()) {
+                navigate('/app');
+              } else {
+                navigate('/');
+              }
+            }}
+            className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {getToken() ? (isHindi ? 'डैशबोर्ड' : 'Dashboard') : (isHindi ? 'होम' : 'Home')}
+          </button>
+        </div>
+      </footer>
+
+      {/* Global Draggable Diagonal Scroll Controller */}
+      <DragScrollController />
+
+      {/* Profile Photo Lightbox Portalled to Document Body */}
+      {typeof document !== 'undefined' && lightboxMember && createPortal(
         <div
-          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-8 bg-black/80 dark:bg-[#080808]/92 backdrop-blur-md"
-          onClick={() => setLightboxMember(null)}
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200 select-none"
+          onClick={() => {
+            playClick();
+            setLightboxMember(null);
+            setLightboxTilt({ x: 0, y: 0 });
+          }}
           role="dialog"
           aria-modal="true"
+          aria-label={`Photo viewer - ${isHindi ? lightboxMember.nameHi : lightboxMember.name}`}
         >
+          {/* Ambient Golden Radial Glow Aura behind modal */}
           <div
-            className="relative max-w-sm sm:max-w-md w-full rounded-3xl overflow-hidden bg-white dark:bg-[#151618] border border-amber-500/60 dark:border-amber-400/50 shadow-2xl shadow-amber-500/10 dark:shadow-[0_0_50px_rgba(245,158,11,0.28)] transition-transform duration-300 ease-out"
-            style={{ transform: `perspective(800px) rotateX(${lightboxTilt.y}deg) rotateY(${lightboxTilt.x}deg) scale(1.015)` }}
-            onMouseMove={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const x = ((e.clientX - rect.left) / rect.width - 0.5) * 14;
-              const y = -((e.clientY - rect.top) / rect.height - 0.5) * 14;
-              setLightboxTilt({ x, y });
+            aria-hidden="true"
+            className="absolute w-[360px] sm:w-[480px] h-[360px] sm:h-[480px] rounded-full bg-amber-500/20 dark:bg-amber-400/25 blur-3xl pointer-events-none"
+          />
+
+          <div
+            onMouseMove={handleLightboxMouseMove}
+            onMouseLeave={handleLightboxMouseLeave}
+            onTouchStart={handleLightboxTouchStart}
+            onTouchEnd={handleLightboxTouchEnd}
+            style={{
+              transform: `perspective(900px) rotateX(${lightboxTilt.y}deg) rotateY(${lightboxTilt.x}deg) scale3d(1.015, 1.015, 1.015)`,
+              transition: lightboxTilt.x === 0 && lightboxTilt.y === 0 ? 'transform 0.4s ease-out' : 'transform 0.08s ease-out',
+              willChange: 'transform',
             }}
-            onMouseLeave={() => setLightboxTilt({ x: 0, y: 0 })}
+            className="relative max-w-sm sm:max-w-md w-full max-h-[92vh] flex flex-col rounded-3xl overflow-hidden bg-white/95 dark:bg-[#121316] border-2 border-amber-500/60 dark:border-amber-400/50 shadow-2xl shadow-amber-500/25 dark:shadow-[0_0_60px_rgba(245,158,11,0.35)] backdrop-blur-2xl animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-3 right-3 z-10">
+            {/* Top Close Button */}
+            <div className="absolute top-3 right-3 z-20">
               <button
                 type="button"
-                onClick={() => setLightboxMember(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center bg-white/80 dark:bg-black/60 text-neutral-700 dark:text-neutral-200 hover:bg-white dark:hover:bg-black transition cursor-pointer border border-neutral-200 dark:border-white/10 shadow-xs"
+                onClick={() => {
+                  playClick();
+                  setLightboxMember(null);
+                  setLightboxTilt({ x: 0, y: 0 });
+                }}
+                className="w-8 h-8 rounded-full flex items-center justify-center bg-black/60 hover:bg-black/80 text-white transition-all cursor-pointer backdrop-blur-md border border-white/10 shadow-xs active:scale-95"
+                aria-label="Close photo"
               >
                 <X size={15} />
               </button>
             </div>
-            <img
-              src={lightboxMember.avatar}
-              alt={lightboxMember.name}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = lightboxMember.fallbackAvatar;
-              }}
-              className="w-full aspect-square object-cover bg-neutral-100 dark:bg-white/5"
-            />
-            <div className="p-5 text-center border-t border-neutral-200/70 dark:border-white/10">
-              <h3 className="text-base font-bold text-neutral-950 dark:text-white">{lightboxMember.name}</h3>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{memberTitle(lightboxMember)}</p>
+
+            {/* Profile Image View Area */}
+            <div className="relative w-full aspect-square bg-neutral-900 overflow-hidden flex items-center justify-center">
+              <img
+                src={lightboxMember.avatar}
+                alt={isHindi ? lightboxMember.nameHi : lightboxMember.name}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = lightboxMember.fallbackAvatar;
+                }}
+                className="w-full h-full object-cover select-none pointer-events-none"
+              />
+            </div>
+
+            {/* Member Details Footer inside Lightbox */}
+            <div className="p-5 text-center border-t border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#121316]">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <h3 className="text-base sm:text-lg font-bold text-neutral-950 dark:text-white">
+                  {isHindi ? lightboxMember.nameHi : lightboxMember.name}
+                </h3>
+                <span className="font-mono text-[9px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-500/30 font-bold uppercase">
+                  {isHindi ? lightboxMember.roleHi : lightboxMember.role}
+                </span>
+              </div>
+              <p className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                {isHindi ? lightboxMember.titleHi : lightboxMember.title}
+              </p>
+              <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
+                {isHindi ? lightboxMember.domainHi : lightboxMember.domain} · {isHindi ? lightboxMember.collegeHi : lightboxMember.college}
+              </p>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

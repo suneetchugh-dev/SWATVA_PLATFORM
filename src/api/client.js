@@ -76,9 +76,17 @@ export async function request(path, options = {}) {
       setToken(null);
     }
     const errorObj = payload.error || {};
+    let errorMsg = errorObj.message || payload.message || response.statusText || 'An error occurred';
+    if (errorObj.fieldErrors && typeof errorObj.fieldErrors === 'object' && Object.keys(errorObj.fieldErrors).length > 0) {
+      const firstField = Object.keys(errorObj.fieldErrors)[0];
+      const fieldDetail = errorObj.fieldErrors[firstField];
+      if (fieldDetail && (!errorObj.message || errorObj.message === 'Request validation failed')) {
+        errorMsg = `${firstField}: ${fieldDetail}`;
+      }
+    }
     const error = {
       code: errorObj.code || `HTTP_${response.status}`,
-      message: errorObj.message || payload.message || response.statusText || 'An error occurred',
+      message: errorMsg,
       status: response.status,
       fieldErrors: errorObj.fieldErrors || null,
     };
@@ -125,6 +133,40 @@ export const api = {
       if (data && data.accessToken) {
         setToken(data.accessToken);
         setStoredUser({ email: data.email, userId: data.userId, fullName: fullName || data.email });
+      }
+      return data;
+    },
+    sendOtp: async (email) => {
+      return await request('/api/auth/send-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+    },
+    resendOtp: async (email) => {
+      return await request('/api/auth/resend-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+    },
+    verifyOtp: async (email, otp) => {
+      const data = await request('/api/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp }),
+      });
+      if (data && data.accessToken) {
+        setToken(data.accessToken);
+        setStoredUser({ email: data.email, userId: data.userId });
+      }
+      return data;
+    },
+    registerWithOtp: async (fullName, email, password, otp) => {
+      const data = await request('/api/auth/register-otp', {
+        method: 'POST',
+        body: JSON.stringify({ fullName, email, password, otp }),
+      });
+      if (data && data.accessToken) {
+        setToken(data.accessToken);
+        setStoredUser({ email: data.email, userId: data.userId });
       }
       return data;
     },

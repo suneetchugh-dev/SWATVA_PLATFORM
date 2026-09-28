@@ -9,10 +9,11 @@ import {
   FileStack,
   LayoutDashboard,
   LogOut,
-  MessageSquare,
+  Pencil,
   Scale,
   Settings,
   ShieldCheck,
+  UserCog,
   Users2,
 } from 'lucide-react'
 import { api, getStoredUser } from '../api/client'
@@ -26,6 +27,8 @@ import GuidedTour from '../components/GuidedTour'
 import ThemeToggle from '../components/ThemeToggle'
 import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
+import AIOrbIcon from '../components/AIOrbIcon'
+import { getLocalizedUserName } from '../utils/userDisplay'
 import { playClick } from '../utils/soundFx'
 
 // Routes are stable; only the labels are translated.
@@ -34,7 +37,7 @@ const NAV = [
   { to: '/app/discover', key: 'discover', icon: Compass },
   { to: '/app/matches', key: 'matches', icon: Scale },
   { to: '/app/documents', key: 'documents', icon: FileStack },
-  { to: '/app/assistant', key: 'assistant', icon: MessageSquare },
+  { to: '/app/assistant', key: 'assistant', icon: AIOrbIcon },
 ]
 
 const isNavItemActive = ({ to, end }, pathname) =>
@@ -99,6 +102,14 @@ export default function AppShell() {
   }, [pathname])
 
   useEffect(() => {
+    const handleProfileUpdate = () => {
+      setUser(getStoredUser())
+    }
+    window.addEventListener('swatva-profile-updated', handleProfileUpdate)
+    return () => window.removeEventListener('swatva-profile-updated', handleProfileUpdate)
+  }, [])
+
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) {
         setIsAccountOpen(false)
@@ -135,9 +146,10 @@ export default function AppShell() {
     navigate('/', { replace: true })
   }
 
-  const displayName = profileName || user?.fullName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
+  const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi')
+  const displayName = getLocalizedUserName(profileName || user, isHindi)
   const photoURL = user?.photoURL
-  const initial = (displayName[0] || 'S').toUpperCase()
+  const initial = (displayName[0] || (isHindi ? 'न' : 'S')).toUpperCase()
 
   return (
     <div className="min-h-dvh w-full bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">
@@ -246,7 +258,28 @@ export default function AppShell() {
               {isAccountOpen && (
                 <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-white dark:bg-[#151618] border border-neutral-200 dark:border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 font-sans">
                   {/* Identity Header */}
-                  <div className="flex flex-col items-center text-center px-4 pt-5 pb-4 border-b border-neutral-100 dark:border-white/5">
+                  <div className="relative flex flex-col items-center text-center px-4 pt-5 pb-4 border-b border-neutral-100 dark:border-white/5">
+                    {/* Pencil Edit Icon with Custom Styled Floating Tooltip */}
+                    <div className="absolute top-3 right-3 group/pencil">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playClick()
+                          setIsAccountOpen(false)
+                          navigate('/app/profile')
+                        }}
+                        aria-label={i18n.language === 'hi' ? 'प्रोफ़ाइल सेट करें' : 'Set Up Profile'}
+                        className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <div className="absolute right-0 top-full mt-1.5 pointer-events-none opacity-0 group-hover/pencil:opacity-100 transition-all duration-200 ease-out translate-y-1 group-hover/pencil:translate-y-0 z-50 whitespace-nowrap">
+                        <div className="bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 text-[10px] font-semibold tracking-wide py-1 px-2 rounded-md shadow-lg border border-white/10 dark:border-neutral-900/10 flex items-center gap-1">
+                          <span>{i18n.language === 'hi' ? 'प्रोफ़ाइल सेट करें' : 'Set Up Profile'}</span>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="h-14 w-14 rounded-full overflow-hidden mb-2.5 bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/15 flex items-center justify-center flex-shrink-0 shadow-sm ring-2 ring-amber-400/80 shadow-[0_0_14px_rgba(245,158,11,0.5)] text-lg font-bold uppercase text-neutral-800 dark:text-neutral-200">
                       {photoURL ? (
                         <img src={photoURL} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -258,13 +291,12 @@ export default function AppShell() {
                       <span className="text-sm font-bold text-neutral-900 dark:text-white truncate">
                         {displayName}
                       </span>
-                      <ShieldCheck size={14} className="text-amber-500 flex-shrink-0 hover:scale-125 transition-transform duration-300 cursor-default" />
+                      <ShieldCheck size={14} className="text-amber-500 flex-shrink-0 hover:text-amber-400 hover:scale-105 transition-all duration-300 ease-out cursor-default" />
                     </div>
                     <div className="text-[11px] text-neutral-400 dark:text-neutral-500 truncate max-w-full mt-0.5">
                       {user?.email || 'citizen@swatva.in'}
                     </div>
                   </div>
-
 
                   {/* Dropdown Actions */}
                   <div className="py-1">
@@ -304,7 +336,7 @@ export default function AppShell() {
                           className="flex-shrink-0 text-neutral-400 dark:text-neutral-500 origin-center transform-gpu transition-transform duration-300 ease-out group-hover:scale-110 group-hover:text-neutral-950 dark:group-hover:text-white" 
                         />
                         <span className="text-xs font-medium text-neutral-700 dark:text-neutral-200 group-hover:text-neutral-950 dark:group-hover:text-white transition-colors truncate">
-                          Meet TheQuirkies
+                          {i18n.language === 'hi' ? 'मीट द क्वर्कीज़' : 'Meet TheQuirkies'}
                         </span>
                       </span>
                       <ChevronRight size={14} className="text-neutral-300 dark:text-neutral-600 flex-shrink-0 group-hover:translate-x-0.5 group-hover:text-neutral-900 dark:group-hover:text-white transition-all duration-200" />
@@ -352,7 +384,7 @@ export default function AppShell() {
 
       <GuidedTour />
 
-      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-10 pb-28 lg:pb-10">
+      <main key={pathname} className="mx-auto max-w-7xl px-3 sm:px-5 py-6 sm:py-8 pb-28 lg:pb-10 page-transition-enter">
         <Outlet />
       </main>
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
+  Activity,
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
@@ -177,6 +178,7 @@ function SectionHeading({ title, desc, arrow, className = '' }) {
 
 export default function Landing() {
   const { t, i18n } = useTranslation()
+  const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi')
   const { dark, setDark } = useTheme()
   const [query, setQuery] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
@@ -222,8 +224,10 @@ export default function Landing() {
   // Sahnirmaan morphing navbar scroll engine
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40)
+      const scrollPos = window.scrollY || document.documentElement.scrollTop || window.pageYOffset || 0
+      setScrolled(scrollPos > 24)
     }
+    handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -284,7 +288,7 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-dvh w-full overflow-x-hidden bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white transition-colors">
+    <div className="min-h-dvh w-full overflow-x-clip bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white transition-colors">
       {/* ------------------------------------------------------ nav */}
       <header className={`portfolio-header ${scrolled ? 'scrolled' : ''}`}>
         {/* Left: Brand Logo & Name. Deliberately NOT `flex-1`: the header's own
@@ -427,7 +431,7 @@ export default function Landing() {
             <div className="flex items-center gap-2.5 min-w-0">
               <LoadingLogo size="h-7 w-7" animate={false} />
               <span className="font-bold tracking-tight text-sm text-neutral-950 dark:text-white whitespace-nowrap">
-                SWATVA
+                {t('common.appName')}
               </span>
             </div>
             <button
@@ -567,7 +571,7 @@ export default function Landing() {
 
         <div className="relative w-full max-w-4xl z-10 flex flex-col items-center">
           <h1 className="tracking-tight text-balance relative z-10 mb-4 flex flex-col items-center w-full">
-            <span className="relative inline-block max-w-fit group cursor-default whitespace-nowrap font-black text-[clamp(1.35rem,6.6vw,4rem)] leading-[1.18] bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 via-neutral-800 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400">
+            <span className="relative inline-block max-w-fit group cursor-default whitespace-nowrap font-black text-[clamp(1.35rem,6.6vw,4rem)] leading-[1.28] sm:leading-[1.25] bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 via-neutral-800 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400 pt-2 pb-1 px-1">
               <CurvyArrow 
                 direction="top-left" 
                 className="-left-12 sm:-left-24 -top-8 sm:-top-10"
@@ -797,10 +801,7 @@ export default function Landing() {
                   <span className="text-xs font-mono font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                     {t('landing.bento.card2Tag')}
                   </span>
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-600 dark:bg-amber-400" />
-                  </span>
+                  <Activity size={14} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2]" />
                 </div>
                 <h3 className="text-base font-bold text-neutral-950 dark:text-white mb-4 tracking-tight">
                   {t('landing.bento.card2Title')}
@@ -1027,7 +1028,7 @@ export default function Landing() {
 
       {/* ----------------- Dynamic Pointillism Particle Canvas (from SAHNIRMAAN) */}
       <div className="w-full border-t border-neutral-200/50 dark:border-white/5 py-4">
-        <FooterParticles text="SWATVA" darkMode={dark} />
+        <FooterParticles text={isHindi ? 'स्वतवा' : 'SWATVA'} darkMode={dark} />
       </div>
 
       {/* -------------------------------------------- footer */}
@@ -1045,6 +1046,9 @@ export default function Landing() {
                 window.scrollTo({ top: 0, behavior: 'smooth' })
               }
             }, 320)
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('swatva-reset-particles'))
+            }, 1600)
           }}
           className="footer-scroll-top"
           aria-label="Scroll to top"
@@ -1062,11 +1066,17 @@ export default function Landing() {
 
         <div className="flex items-center gap-2.5">
           <LoadingLogo size="h-7 w-7" animate={false} />
-          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">SWATVA</span>
-          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
-          <span className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium">
-            {t('landing.footer.tagline')}
+          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">
+            {isHindi ? 'स्वतवा' : 'SWATVA'}
           </span>
+          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
+          <Link
+            to="/team"
+            onClick={playClick}
+            className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer hover:underline"
+          >
+            {t('landing.footer.tagline')}
+          </Link>
         </div>
         <div className="flex items-center gap-4 text-[11px] text-neutral-600 dark:text-neutral-300 font-medium">
           <a href="#how" onClick={(e) => scrollToSection(e, 'how')} className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer">{t('nav.how')}</a>

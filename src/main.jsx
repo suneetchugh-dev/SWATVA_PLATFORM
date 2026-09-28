@@ -9,6 +9,7 @@ import { ThemeProvider } from './lib/theme'
 import SplashLoader from './components/SplashLoader'
 import { Spinner } from './components/ui'
 import ScrollToTop from './components/ScrollToTop'
+import SmoothScroll from './components/SmoothScroll'
 import { initGlobalClickSound } from './utils/soundFx'
 
 initGlobalClickSound()
@@ -52,6 +53,48 @@ function RouteFallback() {
   )
 }
 
+function AnimatedAppRoutes() {
+  const location = useLocation()
+  const topLevelKey = location.pathname.startsWith('/app') ? 'app' : location.pathname
+
+  return (
+    <div key={topLevelKey} className="page-transition-enter min-h-screen">
+      <Routes location={location}>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Auth mode="login" />} />
+        <Route path="/register" element={<Auth mode="register" />} />
+        <Route path="/schemes/:id" element={<SchemeDetail />} />
+        <Route path="/team" element={<Team />} />
+
+        <Route
+          path="/app"
+          element={
+            <RequireAuth>
+              <AppShell />
+            </RequireAuth>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="discover" element={<Discover />} />
+          <Route path="matches" element={<Matches />} />
+          <Route path="readiness/:id" element={<Readiness />} />
+          <Route path="benefits" element={<Benefits />} />
+          <Route path="documents" element={<Documents />} />
+          <Route path="transparency" element={<Transparency />} />
+          <Route path="assistant" element={<Assistant />} />
+        </Route>
+
+        {/* The original single-page console, still useful for exercising every
+            endpoint at once while developing. */}
+        <Route path="/console" element={<App />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  )
+}
+
 const container = document.getElementById('root')
 if (!container.__reactRoot) {
   container.__reactRoot = createRoot(container)
@@ -60,44 +103,14 @@ if (!container.__reactRoot) {
 container.__reactRoot.render(
   <StrictMode>
     <ThemeProvider>
+      <SmoothScroll />
       <OfflineBanner />
       <PWAUpdateToast />
       <SplashLoader />
       <BrowserRouter>
         <ScrollToTop />
         <Suspense fallback={<RouteFallback />}>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Auth mode="login" />} />
-            <Route path="/register" element={<Auth mode="register" />} />
-            <Route path="/schemes/:id" element={<SchemeDetail />} />
-            <Route path="/team" element={<Team />} />
-
-            <Route
-              path="/app"
-              element={
-                <RequireAuth>
-                  <AppShell />
-                </RequireAuth>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="discover" element={<Discover />} />
-              <Route path="matches" element={<Matches />} />
-              <Route path="readiness/:id" element={<Readiness />} />
-              <Route path="benefits" element={<Benefits />} />
-              <Route path="documents" element={<Documents />} />
-              <Route path="transparency" element={<Transparency />} />
-              <Route path="assistant" element={<Assistant />} />
-            </Route>
-
-            {/* The original single-page console, still useful for exercising every
-                endpoint at once while developing. */}
-            <Route path="/console" element={<App />} />
-
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <AnimatedAppRoutes />
         </Suspense>
         <PWAInstallBanner />
       </BrowserRouter>
