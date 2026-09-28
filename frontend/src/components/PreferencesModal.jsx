@@ -88,7 +88,7 @@ export default function PreferencesModal({ isOpen, onClose }) {
   const [soundsActive, setSoundsActive] = useState(() => localStorage.getItem('swatva_sound') !== 'off');
   const [clickSoundActive, setClickSoundActive] = useState(() => localStorage.getItem('swatva_sound_click') !== 'off');
   const [loadSoundActive, setLoadSoundActive] = useState(() => localStorage.getItem('swatva_sound_load') !== 'off');
-  const [voiceTtsActive, setVoiceTtsActive] = useState(() => localStorage.getItem('swatva_sound_tts') !== 'off');
+  const [voiceTtsActive, setVoiceTtsActive] = useState(() => localStorage.getItem('swatva_sound_tts') === 'on');
   const [speechRate, setSpeechRate] = useState(() => {
     return parseFloat(localStorage.getItem('swatva_sound_speed') || '1.0');
   });

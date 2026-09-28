@@ -347,8 +347,8 @@ export default function Assistant() {
       setMessages(finalMessages)
       updateSessionInStorage(currentActiveId, finalMessages, backendId, isUngrounded || sawUngrounded)
 
-      // Auto-readout if setting enabled in Preferences
-      const autoTts = typeof window !== 'undefined' && localStorage.getItem('swatva_sound_tts') !== 'off'
+      // Auto-readout if explicitly enabled by user in Preferences
+      const autoTts = typeof window !== 'undefined' && localStorage.getItem('swatva_sound_tts') === 'on'
       if (autoTts && ttsAvailable) {
         setTimeout(() => {
           handleToggleSpeak(finalMessages.length - 1, assistantReply)
