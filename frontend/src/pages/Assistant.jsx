@@ -138,6 +138,11 @@ export default function Assistant() {
   // History Drawer & Fullscreen state
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   const [historySearch, setHistorySearch] = useState('')
 
   const endRef = useRef(null)
@@ -893,7 +898,7 @@ export default function Assistant() {
       </form>
 
       {/* History Slide-Over Drawer with smooth sliding transition Portalled to document.body */}
-      {typeof document !== 'undefined' && createPortal(
+      {mounted && typeof document !== 'undefined' && createPortal(
         <div
           className={cx(
             'fixed inset-0 z-[100000] flex justify-end transition-all duration-300 pointer-events-none select-none',
