@@ -239,8 +239,8 @@ export default function Auth({ mode: initialMode = 'login' }) {
           className="w-full max-w-[720px] p-4 sm:p-8 sm:pb-10 login-form-card"
         >
           <h1 className="h-7 sm:h-8 flex items-center justify-center gap-2 text-base sm:text-lg font-bold text-neutral-950 dark:text-white text-center mb-5 sm:mb-6 whitespace-nowrap">
-            {mode === 'login' && <><LogIn size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Sign in to SWATVA</span></>}
-            {mode === 'register' && <><UserPlus size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Create your SWATVA account</span></>}
+            {mode === 'login' && <><LogIn size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>{t('auth.loginTitle') || 'Sign in to SWATVA'}</span></>}
+            {mode === 'register' && <><UserPlus size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>{t('auth.registerTitle') || 'Create your SWATVA account'}</span></>}
           </h1>
 
           {/* Clean 2-Tab Segmented Control */}
@@ -265,7 +265,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 }`}
               >
                 <LogIn size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                <span>Sign In</span>
+                <span>{t('auth.registerSwitchLabel') || 'Sign In'}</span>
               </button>
               <button
                 type="button"
@@ -278,7 +278,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 }`}
               >
                 <UserPlus size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                <span>Create Account</span>
+                <span>{t('auth.loginSwitchLabel') || 'Create Account'}</span>
               </button>
             </div>
           </div>
@@ -338,13 +338,19 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 />
               </svg>
             )}
-            <span className="whitespace-nowrap">{googleLoading ? 'Connecting to Google...' : mode === 'login' ? 'Sign in with Google' : 'Sign up with Google'}</span>
+            <span className="whitespace-nowrap">
+              {googleLoading
+                ? (t('common.loading') || 'Connecting...')
+                : mode === 'login'
+                ? (t('auth.signInWithGoogle') || 'Sign in with Google')
+                : (t('auth.signUpWithGoogle') || 'Sign up with Google')}
+            </span>
           </button>
 
           <div className="relative flex items-center justify-center my-4">
             <div className="border-t border-neutral-200/80 dark:border-white/10 w-full" />
             <span className="bg-white dark:bg-[#121216] px-3 text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 shrink-0">
-              or continue with email
+              {t('auth.orEmail') || 'or continue with email'}
             </span>
             <div className="border-t border-neutral-200/80 dark:border-white/10 w-full" />
           </div>
@@ -352,7 +358,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
-                Email address
+                {t('auth.email') || 'Email address'}
               </label>
               <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
                 <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
@@ -374,7 +380,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
 
             <div>
               <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
-                Password
+                {t('auth.password') || 'Password'}
               </label>
               <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
                 <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
@@ -398,14 +404,14 @@ export default function Auth({ mode: initialMode = 'login' }) {
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 font-semibold">
-                    6-Digit Email Validation OTP
+                    {t('auth.enterOtp') || '6-Digit Email Validation OTP'}
                   </label>
                   <button
                     type="button"
                     onClick={() => setOtpStep('input')}
                     className="text-[10px] font-mono text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
                   >
-                    Edit Details
+                    {t('common.back') || 'Edit Details'}
                   </button>
                 </div>
                 <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
@@ -428,7 +434,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 {/* Resend OTP Service Bar */}
                 <div className="mt-3 flex items-center justify-between px-1 text-xs">
                   <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
-                    Didn't receive verification code?
+                    {t('auth.otpNotReceived') || "Didn't receive verification code?"}
                   </span>
                   <button
                     type="button"
@@ -462,12 +468,12 @@ export default function Auth({ mode: initialMode = 'login' }) {
               >
                 <span className="whitespace-nowrap">
                   {loading
-                    ? 'Processing...'
+                    ? (t('common.saving') || 'Processing...')
                     : mode === 'login'
-                    ? 'Sign In'
+                    ? (t('auth.loginSubmit') || 'Sign In')
                     : otpStep === 'input'
-                    ? 'Send Verification OTP'
-                    : 'Verify OTP & Create Account'}
+                    ? (t('auth.sendOtp') || 'Send Verification OTP')
+                    : (t('auth.verifyAndSignIn') || 'Verify OTP & Create Account')}
                 </span>
                 <ArrowRight size={14} className="stroke-[2.2] flex-shrink-0" />
               </button>

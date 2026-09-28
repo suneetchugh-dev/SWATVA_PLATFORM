@@ -225,6 +225,10 @@
     "verifyingOtp": "Verifying OTP...",
     "usePassword": "Sign in with Password",
     "useOtp": "Sign in with Email OTP",
+    "signInWithGoogle": "Sign in with Google",
+    "signUpWithGoogle": "Sign up with Google",
+    "orEmail": "or continue with email",
+    "otpNotReceived": "Didn't receive verification code?",
     "genericError": "Something went wrong. Please try again.",
     "reassurance": "Finding out what you qualify for is free and always will be. Never pay anyone to check."
   },
