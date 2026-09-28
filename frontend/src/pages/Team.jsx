@@ -23,6 +23,8 @@ import { TEAM_MEMBERS, PLATFORM_STATS, PROJECT_DETAILS, CORE_PILLARS } from '../
 import { playClick } from '../utils/soundFx';
 import LoadingLogo from '../components/LoadingLogo';
 import ThemeToggle from '../components/ThemeToggle';
+import FooterParticles from '../components/FooterParticles';
+import DragScrollController from '../components/DragScrollController';
 import { getToken } from '../api/client';
 
 export default function Team() {
@@ -33,6 +35,17 @@ export default function Team() {
 
   const [lightboxMember, setLightboxMember] = useState(null);
   const [lightboxTilt, setLightboxTilt] = useState({ x: 0, y: 0 });
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPos = window.scrollY || document.documentElement.scrollTop || window.pageYOffset || 0;
+      setScrolled(scrollPos > 24);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (!lightboxMember) {
@@ -96,7 +109,7 @@ export default function Team() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300 relative overflow-hidden bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">
+    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300 relative bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">
       {/* Monumental Background Watermark */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center select-none z-0 overflow-hidden">
         <span className="text-[18vw] font-black tracking-tighter text-neutral-950/[0.03] dark:text-white/[0.04] leading-none font-mono">
@@ -105,47 +118,45 @@ export default function Team() {
       </div>
 
       {/* Header Bar */}
-      <header className="sticky top-0 z-40 pt-3 px-3 sm:px-5">
-        <div className="mx-auto max-w-6xl neo-glass-card px-4 py-2.5 relative flex items-center justify-between">
-          <div className="flex items-center z-10">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-900 dark:bg-neutral-800/90 dark:hover:bg-neutral-700/90 dark:text-neutral-100 border border-neutral-200/80 dark:border-white/20 shadow-xs dark:shadow-md transition-all cursor-pointer select-none active:scale-95"
-            >
-              <ArrowLeft size={13} className="text-neutral-700 dark:text-neutral-200" />
-              <span>{isHindi ? 'वापस जाएं' : 'Back to App'}</span>
-            </button>
-          </div>
+      <header className={`team-header ${scrolled ? 'scrolled' : ''}`}>
+        <div className="flex items-center z-10">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-900 dark:bg-neutral-800/90 dark:hover:bg-neutral-700/90 dark:text-neutral-100 border border-neutral-200/80 dark:border-white/20 shadow-xs dark:shadow-md transition-all cursor-pointer select-none active:scale-95"
+          >
+            <ArrowLeft size={13} className="text-neutral-700 dark:text-neutral-200" />
+            <span>{isHindi ? 'वापस जाएं' : 'Back to App'}</span>
+          </button>
+        </div>
 
-          {/* Absolute Mathematically Centered Logo */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="pointer-events-auto flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-full group"
-              title={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
-              aria-label={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
-            >
-              <div className="relative h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center flex-shrink-0">
-                {/* Amber Aura Glow matching login header */}
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-0 -m-2 rounded-full bg-amber-500/35 blur-lg scale-100 hidden dark:block pointer-events-none transition-all duration-300 ease-out group-hover:bg-amber-500/60 group-hover:blur-xl group-hover:scale-115"
-                />
-                <LoadingLogo animate={false} size="h-7 w-7 sm:h-8 sm:w-8" />
-              </div>
-            </button>
-          </div>
+        {/* Absolute Mathematically Centered Logo */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="pointer-events-auto flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-full group"
+            title={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
+            aria-label={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
+          >
+            <div className="relative h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center flex-shrink-0">
+              {/* Amber Aura Glow matching login header */}
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 -m-2 rounded-full bg-amber-500/35 blur-lg scale-100 hidden dark:block pointer-events-none transition-all duration-300 ease-out group-hover:bg-amber-500/60 group-hover:blur-xl group-hover:scale-115"
+              />
+              <LoadingLogo animate={false} size="h-7 w-7 sm:h-8 sm:w-8" />
+            </div>
+          </button>
+        </div>
 
-          <div className="flex items-center gap-2 z-10">
-            <ThemeToggle darkMode={dark} toggleTheme={toggle} />
-          </div>
+        <div className="flex items-center gap-2 z-10">
+          <ThemeToggle darkMode={dark} toggleTheme={toggle} />
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-20 w-full relative z-10">
+      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28 pb-20 w-full relative z-10">
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16 relative">
           {/* Amber Aura Halo */}
@@ -171,7 +182,7 @@ export default function Team() {
         </div>
 
         {/* Team Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-12 sm:mb-16">
+        <div id="members" className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-12 sm:mb-16">
           {TEAM_MEMBERS.map((member) => (
             <div 
               key={member.id}
@@ -276,7 +287,7 @@ export default function Team() {
         </div>
 
         {/* Core Architectural Pillars */}
-        <div className="p-6 sm:p-10 rounded-3xl neo-glass-card mb-10 sm:mb-12">
+        <div id="pillars" className="p-6 sm:p-10 rounded-3xl neo-glass-card mb-10 sm:mb-12">
           <div className="mb-6 pb-4 border-b border-neutral-200/60 dark:border-white/10">
             <span className="font-mono text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-bold block mb-1">
               SYSTEM FOUNDATIONS
@@ -300,7 +311,7 @@ export default function Team() {
         </div>
 
         {/* Platform Architecture Metrics Bar */}
-        <div className="p-6 sm:p-10 rounded-3xl neo-glass-card">
+        <div id="benchmarks" className="p-6 sm:p-10 rounded-3xl neo-glass-card">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 pb-6 border-b border-neutral-200/60 dark:border-white/10">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-bold block mb-1">
@@ -336,6 +347,119 @@ export default function Team() {
           </div>
         </div>
       </main>
+
+      {/* ----------------- Dynamic Pointillism Particle Canvas */}
+      <div className="w-full border-t border-neutral-200/50 dark:border-white/5 py-4">
+        <FooterParticles text="THEQUIRKIES" darkMode={dark} />
+      </div>
+
+      {/* -------------------------------------------- footer */}
+      <footer className="w-full relative border-t border-neutral-200 dark:border-white/15 py-8 px-6 max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-600 dark:text-neutral-300 gap-3 mt-6">
+        {/* Absolute Centered Top-Border Scroll-to-Top Button */}
+        <button
+          type="button"
+          onClick={() => {
+            playClick();
+            window.dispatchEvent(new CustomEvent('swatva-trigger-particle-dissolve'));
+            setTimeout(() => {
+              if (window.lenis) {
+                window.lenis.scrollTo(0, { duration: 1.2 });
+              } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }, 320);
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('swatva-reset-particles'));
+            }, 1600);
+          }}
+          className="footer-scroll-top"
+          aria-label="Scroll to top"
+          title="Scroll to top"
+          data-sound="click"
+        >
+          <img
+            src="/cursors/scroll-up.svg"
+            className="scroll-up-img pointer-events-none"
+            alt="Scroll to top"
+            width="17"
+            height="17"
+          />
+        </button>
+
+        <div className="flex items-center gap-2.5">
+          <LoadingLogo size="h-7 w-7" animate={false} />
+          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">SWATVA</span>
+          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
+          <span className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium">
+            {isHindi ? 'द क्वर्कीज़ द्वारा' : 'BY TheQuirkies'}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4 text-[11px] text-neutral-600 dark:text-neutral-300 font-medium">
+          <a
+            href="#members"
+            onClick={(e) => {
+              e.preventDefault();
+              playClick();
+              if (window.lenis) {
+                window.lenis.scrollTo('#members', { offset: -90, duration: 1.2 });
+              } else {
+                document.getElementById('members')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {isHindi ? 'टीम सदस्य' : 'Team'}
+          </a>
+          <a
+            href="#pillars"
+            onClick={(e) => {
+              e.preventDefault();
+              playClick();
+              if (window.lenis) {
+                window.lenis.scrollTo('#pillars', { offset: -90, duration: 1.2 });
+              } else {
+                document.getElementById('pillars')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {isHindi ? 'स्तंभ' : 'Pillars'}
+          </a>
+          <a
+            href="#benchmarks"
+            onClick={(e) => {
+              e.preventDefault();
+              playClick();
+              if (window.lenis) {
+                window.lenis.scrollTo('#benchmarks', { offset: -90, duration: 1.2 });
+              } else {
+                document.getElementById('benchmarks')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {isHindi ? 'बेंचमार्क' : 'Benchmarks'}
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              playClick();
+              if (getToken()) {
+                navigate('/app');
+              } else {
+                navigate('/');
+              }
+            }}
+            className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {getToken() ? (isHindi ? 'डैशबोर्ड' : 'Dashboard') : (isHindi ? 'होम' : 'Home')}
+          </button>
+        </div>
+      </footer>
+
+      {/* Global Draggable Diagonal Scroll Controller */}
+      <DragScrollController />
 
       {/* Profile Photo Lightbox Portalled to Document Body */}
       {typeof document !== 'undefined' && lightboxMember && createPortal(

@@ -3,6 +3,7 @@ import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, ArrowRight, LogIn, UserPlus, KeyRound, RefreshCw, AlertTriangle } from 'lucide-react';
 import MinimalBrandHeader from '../components/MinimalBrandHeader';
+import LoadingLogo from '../components/LoadingLogo';
 import { useTheme } from '../lib/theme';
 import { api, getToken, setToken, setStoredUser } from '../api/client';
 import { playClick } from '../utils/soundFx';
@@ -476,9 +477,14 @@ export default function Auth({ mode: initialMode = 'login' }) {
       </main>
 
       <footer className="fixed bottom-0 left-0 right-0 z-40 px-4 sm:px-12 py-2.5 sm:py-3 border-t border-neutral-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0c0c10]/90 backdrop-blur-xl flex items-center justify-between gap-2 sm:gap-3 shadow-sm pb-[calc(0.6rem+env(safe-area-inset-bottom))]">
-        <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0">
-          SWATVA · CITIZEN EMPOWERMENT ARCHITECTURE
-        </span>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <LoadingLogo size="h-6 w-6" animate={false} />
+          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">SWATVA</span>
+          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
+          <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0">
+            CITIZEN EMPOWERMENT ARCHITECTURE
+          </span>
+        </div>
         <Link
           to="/team"
           onClick={playClick}
