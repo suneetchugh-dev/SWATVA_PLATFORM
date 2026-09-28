@@ -246,10 +246,7 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
 
       {/* Footer */}
       {notifications.length > 0 && (
-        <div className="p-2 bg-neutral-50 dark:bg-[#0c0c0e] border-t border-neutral-100 dark:border-white/5 flex items-center justify-between px-3">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-neutral-400">
-            Node: SWATVA-CIVIC-FEED
-          </span>
+        <div className="p-2 bg-neutral-50/80 dark:bg-[#0c0c0e]/80 border-t border-neutral-100 dark:border-white/5 flex items-center justify-end px-3">
           <button
             type="button"
             onClick={clearAll}
