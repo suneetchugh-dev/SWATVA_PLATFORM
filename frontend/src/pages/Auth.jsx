@@ -15,8 +15,31 @@ export default function Auth({ mode: initialMode = 'login' }) {
   const navigate = useNavigate();
   const { dark } = useTheme();
 
+  const [lastAuthMethod] = useState(() => {
+    try {
+      return localStorage.getItem('swatva_last_auth_method');
+    } catch {
+      return null;
+    }
+  });
+
+  const [lastGoogleAccount] = useState(() => {
+    try {
+      const raw = localStorage.getItem('swatva_last_google_account');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [mode, setMode] = useState(initialMode); // 'login' | 'register'
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => {
+    try {
+      return localStorage.getItem('swatva_last_auth_email') || '';
+    } catch {
+      return '';
+    }
+  });
   const [password, setPassword] = useState('');
 
   // OTP Validation state & Resend service
@@ -57,13 +80,13 @@ export default function Auth({ mode: initialMode = 'login' }) {
     return <Navigate to="/app" replace />;
   }
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async (loginHint = null) => {
     setError(null);
     setGoogleLoading(true);
     playClick();
 
     try {
-      const result = await signInWithGoogle();
+      const result = await signInWithGoogle(loginHint);
       if (result.error) {
         setError(result.error);
         setGoogleLoading(false);
@@ -89,6 +112,15 @@ export default function Auth({ mode: initialMode = 'login' }) {
         if (authData?.accessToken) {
           setToken(authData.accessToken);
         }
+
+        try {
+          localStorage.setItem('swatva_last_auth_method', 'google');
+          if (userEmail) localStorage.setItem('swatva_last_auth_email', userEmail);
+          localStorage.setItem(
+            'swatva_last_google_account',
+            JSON.stringify({ email: userEmail, fullName: displayName, photoURL })
+          );
+        } catch {}
 
         navigate('/app', { replace: true });
       }
@@ -172,6 +204,10 @@ export default function Auth({ mode: initialMode = 'login' }) {
     try {
       await api.auth.registerWithOtp(nameTrimmed, emailTrimmed, password, otpTrimmed);
       registerWithFirebaseEmail(nameTrimmed, emailTrimmed, password).catch(() => {});
+      try {
+        localStorage.setItem('swatva_last_auth_method', 'email');
+        localStorage.setItem('swatva_last_auth_email', emailTrimmed);
+      } catch {}
       navigate('/app', { replace: true });
     } catch (err) {
       setError(err?.message || 'Invalid or expired OTP code. Please check your email and try again.');
@@ -205,6 +241,10 @@ export default function Auth({ mode: initialMode = 'login' }) {
     try {
       await api.auth.login(emailTrimmed, password);
       signInWithFirebaseEmail(emailTrimmed, password).catch(() => {});
+      try {
+        localStorage.setItem('swatva_last_auth_method', 'email');
+        localStorage.setItem('swatva_last_auth_email', emailTrimmed);
+      } catch {}
       playClick();
       navigate('/app', { replace: true });
     } catch (err) {
@@ -309,49 +349,121 @@ export default function Auth({ mode: initialMode = 'login' }) {
             </div>
           )}
 
-          {/* Google Quick Sign-In */}
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={loading || googleLoading}
-            data-sound="click"
-            className="w-full h-11 mb-4 flex items-center justify-center gap-3 px-4 rounded-xl text-xs font-semibold tracking-wide border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-white/[0.05] hover:bg-neutral-50 dark:hover:bg-white/[0.08] active:scale-[0.99] text-neutral-800 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm cursor-pointer"
-          >
-            {googleLoading ? (
-              <div className="w-4 h-4 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-            )}
-            <span className="whitespace-nowrap">
-              {googleLoading
-                ? (t('common.loading') || 'Connecting...')
-                : mode === 'login'
-                ? (t('auth.signInWithGoogle') || 'Sign in with Google')
-                : (t('auth.signUpWithGoogle') || 'Sign up with Google')}
-            </span>
-          </button>
+          {/* Google Quick Sign-In or 1-Click Account Re-Auth Card */}
+          {mode === 'login' && lastGoogleAccount ? (
+            <div className="mb-4 p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06] flex flex-col gap-2.5 shadow-xs transition-all">
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  {lastGoogleAccount.photoURL ? (
+                    <img
+                      src={lastGoogleAccount.photoURL}
+                      alt={lastGoogleAccount.fullName}
+                      className="w-10 h-10 rounded-full border border-emerald-500/40 object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-sm shrink-0">
+                      {lastGoogleAccount.fullName?.charAt(0) || 'G'}
+                    </div>
+                  )}
+                  <div className="min-w-0 text-left">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-bold text-neutral-950 dark:text-white truncate">
+                        {lastGoogleAccount.fullName}
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        {t('auth.lastUsed') || 'Last used'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 truncate">
+                      {lastGoogleAccount.email}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleGoogleSignIn(lastGoogleAccount.email)}
+                  disabled={loading || googleLoading}
+                  data-sound="click"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-neutral-950 dark:bg-white dark:text-neutral-950 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm shrink-0 cursor-pointer"
+                >
+                  {googleLoading ? (
+                    <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                  )}
+                  <span>{t('auth.continueAs', { name: lastGoogleAccount.fullName.split(' ')[0] }) || `Continue as ${lastGoogleAccount.fullName.split(' ')[0]}`}</span>
+                </button>
+              </div>
+
+              <div className="flex items-center justify-end pt-1 border-t border-emerald-500/15">
+                <button
+                  type="button"
+                  onClick={() => handleGoogleSignIn(null)}
+                  disabled={loading || googleLoading}
+                  className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer hover:underline"
+                >
+                  {t('auth.useAnotherAccount') || 'Sign in with a different Google account'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Standard Google Quick Sign-In Button */
+            <button
+              type="button"
+              onClick={() => handleGoogleSignIn(null)}
+              disabled={loading || googleLoading}
+              data-sound="click"
+              className="w-full h-11 mb-4 relative flex items-center justify-center gap-3 px-4 rounded-xl text-xs font-semibold tracking-wide border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-white/[0.05] hover:bg-neutral-50 dark:hover:bg-white/[0.08] active:scale-[0.99] text-neutral-800 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm cursor-pointer"
+            >
+              {googleLoading ? (
+                <div className="w-4 h-4 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+              )}
+              <span className="whitespace-nowrap">
+                {googleLoading
+                  ? (t('common.loading') || 'Connecting...')
+                  : mode === 'login'
+                  ? (t('auth.signInWithGoogle') || 'Sign in with Google')
+                  : (t('auth.signUpWithGoogle') || 'Sign up with Google')}
+              </span>
+            </button>
+          )}
 
           <div className="relative flex items-center justify-center my-4">
             <div className="border-t border-neutral-200/80 dark:border-white/10 w-full" />
-            <span className="bg-white dark:bg-[#121216] px-3 text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 shrink-0">
-              {t('auth.orEmail') || 'or continue with email'}
+            <span className="bg-white dark:bg-[#121216] px-3 flex items-center gap-2 text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 shrink-0">
+              <span>{t('auth.orEmail') || 'or continue with email'}</span>
+              {mode === 'login' && lastAuthMethod === 'email' && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  {t('auth.lastUsed') || 'Last used'}
+                </span>
+              )}
             </span>
             <div className="border-t border-neutral-200/80 dark:border-white/10 w-full" />
           </div>

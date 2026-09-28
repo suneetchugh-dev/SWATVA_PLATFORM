@@ -41,12 +41,8 @@ export const auth = app ? getAuth(app) : null;
 export const db = app ? getFirestore(app) : null;
 export const storage = app ? getStorage(app) : null;
 
-// Google Auth Provider
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt: 'select_account' });
-
 // Sign in with Google Popup
-export async function signInWithGoogle() {
+export async function signInWithGoogle(loginHint = null) {
   if (!auth) {
     return {
       user: null,
@@ -55,7 +51,13 @@ export async function signInWithGoogle() {
     };
   }
   try {
-    const result = await signInWithPopup(auth, googleProvider);
+    const provider = new GoogleAuthProvider();
+    if (loginHint) {
+      provider.setCustomParameters({ login_hint: loginHint });
+    } else {
+      provider.setCustomParameters({ prompt: 'select_account' });
+    }
+    const result = await signInWithPopup(auth, provider);
     const token = await result.user.getIdToken();
     return {
       user: result.user,
