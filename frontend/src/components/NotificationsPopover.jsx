@@ -251,9 +251,9 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
           <button
             type="button"
             onClick={clearAll}
-            className="flex items-center space-x-1 text-[10px] font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition cursor-pointer"
+            className="flex items-center gap-1.5 text-[10px] font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition cursor-pointer px-2 py-1 rounded-lg hover:bg-red-500/10 active:scale-95"
           >
-            <Trash2 size={11} />
+            <Trash2 size={12} className="text-red-600 dark:text-red-400 stroke-[2.2]" />
             <span>{i18n.language === 'hi' ? 'सभी हटाएं' : 'Clear All'}</span>
           </button>
         </div>

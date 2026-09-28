@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, ChevronLeft, ChevronRight, Sparkles, UserRound } from 'lucide-react'
-import { api, getStoredUser } from '../api/client'
+import { Camera, Check, ChevronLeft, ChevronRight, Pencil, Sparkles, Trash2, UserRound } from 'lucide-react'
+import { api, getStoredUser, setStoredUser } from '../api/client'
 
 import { INDIAN_STATES } from '../lib/india'
 import {
@@ -167,6 +167,46 @@ export default function Profile() {
     category: '', gender: '', disabilityStatus: '',
   })
   const [family, setFamily] = useState([])
+  const [currentUser, setCurrentUser] = useState(() => getStoredUser())
+  const avatarInputRef = useRef(null)
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setCurrentUser(getStoredUser())
+    }
+    window.addEventListener('swatva-profile-updated', handleProfileUpdate)
+    return () => window.removeEventListener('swatva-profile-updated', handleProfileUpdate)
+  }, [])
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setError(isHindi ? 'कृपया एक मान्य छवि फ़ाइल (PNG, JPG, WebP) चुनें।' : 'Please select a valid image file (PNG, JPG, WebP).')
+      return
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setError(isHindi ? 'छवि का आकार 3MB से कम होना चाहिए।' : 'Image size must be less than 3MB.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result
+      setStoredUser({ photoURL: dataUrl })
+      setCurrentUser(getStoredUser())
+      window.dispatchEvent(new Event('swatva-profile-updated'))
+      playClick()
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveAvatar = (e) => {
+    e.stopPropagation()
+    setStoredUser({ photoURL: null })
+    setCurrentUser(getStoredUser())
+    window.dispatchEvent(new Event('swatva-profile-updated'))
+    playClick()
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -353,19 +393,60 @@ export default function Profile() {
       {/* Citizen Identity Profile Banner */}
       <div className="mb-6 p-4 rounded-2xl neo-glass-card flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/20 ring-2 ring-amber-400/80 shadow-[0_0_12px_rgba(245,158,11,0.4)] flex items-center justify-center font-bold text-base uppercase text-neutral-800 dark:text-neutral-200">
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            ) : (
-              initial
-            )}
+          {/* Interactive Avatar with Pencil Badge & Camera Hover Overlay */}
+          <div
+            className="relative group/avatar cursor-pointer shrink-0"
+            onClick={() => avatarInputRef.current?.click()}
+            title={isHindi ? 'प्रोफ़ाइल फ़ोटो बदलें' : 'Change profile photo'}
+          >
+            <div className="w-13 h-13 rounded-full overflow-hidden bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/20 ring-2 ring-amber-400/80 shadow-[0_0_12px_rgba(245,158,11,0.4)] flex items-center justify-center font-bold text-base uppercase text-neutral-800 dark:text-neutral-200 relative transition-transform duration-200 group-hover/avatar:scale-105">
+              {currentUser?.photoURL ? (
+                <img src={currentUser.photoURL} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                initial
+              )}
+              {/* Camera Hover Overlay */}
+              <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition-opacity duration-200">
+                <Camera size={16} className="text-white drop-shadow-sm" />
+              </div>
+            </div>
+
+            {/* Pencil edit badge */}
+            <span
+              className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center shadow-xs border border-white/20 dark:border-black/20 group-hover/avatar:scale-110 transition-transform"
+              title={isHindi ? 'प्रोफ़ाइल फ़ोटो बदलें' : 'Change profile photo'}
+            >
+              <Pencil size={10} className="stroke-[2.5]" />
+            </span>
+
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={handleAvatarUpload}
+              className="hidden"
+            />
           </div>
+
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-neutral-900 dark:text-white truncate">
-              {displayName}
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+                {displayName}
+              </h2>
+              {currentUser?.photoURL && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  title={isHindi ? 'फ़ोटो हटाएं' : 'Remove photo'}
+                  className="text-[10px] text-neutral-400 hover:text-red-500 transition-colors flex items-center gap-0.5 cursor-pointer"
+                >
+                  <Trash2 size={10} />
+                  <span>{isHindi ? 'हटाएं' : 'Remove'}</span>
+                </button>
+              )}
+            </div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-              {user?.email || 'citizen@swatva.in'}
+              {currentUser?.email || 'citizen@swatva.in'}
             </p>
           </div>
         </div>

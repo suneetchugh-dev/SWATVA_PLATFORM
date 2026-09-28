@@ -101,6 +101,14 @@ export default function AppShell() {
   }, [pathname])
 
   useEffect(() => {
+    const handleProfileUpdate = () => {
+      setUser(getStoredUser())
+    }
+    window.addEventListener('swatva-profile-updated', handleProfileUpdate)
+    return () => window.removeEventListener('swatva-profile-updated', handleProfileUpdate)
+  }, [])
+
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) {
         setIsAccountOpen(false)
