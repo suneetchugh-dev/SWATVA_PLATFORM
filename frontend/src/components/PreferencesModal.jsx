@@ -19,7 +19,6 @@ import {
   Download,
   Smartphone,
   CheckCircle2,
-  Info,
   ChevronRight,
   Play,
   Square,
@@ -99,7 +98,6 @@ export default function PreferencesModal({ isOpen, onClose }) {
 
   // PWA Direct Install state
   const [pwaInstalling, setPwaInstalling] = useState(false);
-  const [pwaTip, setPwaTip] = useState(null);
 
   // Single-group accordion expansion: 'sounds' | 'motion' | null
   const [expandedGroupId, setExpandedGroupId] = useState(null);
@@ -119,34 +117,9 @@ export default function PreferencesModal({ isOpen, onClose }) {
     }
 
     setPwaInstalling(true);
-    setPwaTip(null);
 
     try {
-      const res = await promptInstall();
-      if (res?.outcome === 'accepted') {
-        setPwaTip({
-          type: 'success',
-          text: currentLang === 'hi' ? 'ऐप सफलतापूर्वक इंस्टॉल हो गया।' : 'App installed successfully.',
-        });
-      } else if (res?.isManual || res?.outcome === 'dismissed') {
-        const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent || '');
-        const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
-        let tipText = '';
-        if (isIOS) {
-          tipText = currentLang === 'hi' 
-            ? 'Safari में नीचे "Share" (⎋) दबाएं और "Add to Home Screen" चुनें।'
-            : 'In Safari, tap Share (⎋) and select "Add to Home Screen".';
-        } else if (isAndroid) {
-          tipText = currentLang === 'hi'
-            ? 'Chrome मेन्यू (⋮) में "Install app" या "Add to Home screen" चुनें।'
-            : 'In Chrome menu (⋮), tap "Install app" or "Add to Home screen".';
-        } else {
-          tipText = currentLang === 'hi'
-            ? 'ब्राउज़र एड्रेस बार में 💻 या ⊕ आइकन पर क्लिक करके इंस्टॉल करें।'
-            : 'Click the install icon (💻 or ⊕) in your browser address bar to install.';
-        }
-        setPwaTip({ type: 'info', text: tipText });
-      }
+      await promptInstall();
     } catch (err) {
       console.warn('PWA install error:', err);
     } finally {
@@ -744,14 +717,6 @@ export default function PreferencesModal({ isOpen, onClose }) {
                 </button>
               )}
             </div>
-
-            {/* Direct Install Helper / Status Notice */}
-            {pwaTip && (
-              <div className="mt-2.5 p-2 rounded-lg bg-amber-500/10 border border-amber-500/25 text-[10px] text-amber-900 dark:text-amber-200 flex items-start gap-1.5">
-                <Info size={12} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-                <span className="leading-tight">{pwaTip.text}</span>
-              </div>
-            )}
           </div>
 
           {/* ========================================================
