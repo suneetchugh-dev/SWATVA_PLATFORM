@@ -276,6 +276,8 @@
     },
     "options": {
       "notSpecified": "Not specified",
+      "female": "Female",
+      "male": "Male",
       "preferNotToSay": "Prefer not to say",
       "noDisability": "No disability",
       "personWithDisability": "Person with disability",
@@ -284,7 +286,12 @@
       "parent": "Parent",
       "grandparent": "Grandparent",
       "sibling": "Sibling",
-      "other": "Other"
+      "other": "Other",
+      "general": "General",
+      "obc": "Other Backward Class (OBC)",
+      "sc": "Scheduled Caste (SC)",
+      "st": "Scheduled Tribe (ST)",
+      "ews": "Economically Weaker Section (EWS)"
     },
     "family": {
       "intro": "Household schemes add up dependants, so add everyone who is part of your family.",

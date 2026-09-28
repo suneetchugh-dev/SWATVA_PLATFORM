@@ -48,36 +48,41 @@ const RELATIONSHIP_VALUES = ['SPOUSE', 'CHILD', 'PARENT', 'GRANDPARENT', 'SIBLIN
 
 // Human labels for the social categories, which the backend does not name.
 const CATEGORY_LABELS = {
-  GENERAL: 'General',
-  OBC: 'Other Backward Class (OBC)',
-  SC: 'Scheduled Caste (SC)',
-  ST: 'Scheduled Tribe (ST)',
-  EWS: 'Economically Weaker Section (EWS)',
+  GENERAL: 'options.general',
+  OBC: 'options.obc',
+  SC: 'options.sc',
+  ST: 'options.st',
+  EWS: 'options.ews',
   OTHER: 'options.other',
 }
 
-const GENDER_LABELS = { FEMALE: 'Female', MALE: 'Male', OTHER: 'options.other', PREFER_NOT_TO_SAY: 'options.preferNotToSay' }
+const GENDER_LABELS = {
+  FEMALE: 'options.female',
+  MALE: 'options.male',
+  OTHER: 'options.other',
+  PREFER_NOT_TO_SAY: 'options.preferNotToSay',
+}
 const DISABILITY_LABELS = { NONE: 'options.noDisability', PERSON_WITH_DISABILITY: 'options.personWithDisability', NOT_DISCLOSED: 'options.preferNotToSay' }
 const RELATIONSHIP_LABELS = {
   SPOUSE: 'options.spouse', CHILD: 'options.child', PARENT: 'options.parent',
   GRANDPARENT: 'options.grandparent', SIBLING: 'options.sibling', OTHER: 'options.other',
 }
 
-
 const toNum = (v) => (v === '' || v == null ? null : Number(v))
 
 /**
- * Resolve an option label. A label is either an i18n key (translated) or a
- * literal proper noun such as "Scheduled Caste (SC)" that is correct as-is in
- * both languages.
+ * Resolve an option label. A label is an i18n key or literal string.
  */
 function useOptionLabels() {
   const { t } = useTranslation()
   return (value, table) => {
     if (value === '') return t('profile.options.notSpecified')
-    const label = table[value]
-    if (!label) return value
-    return t(`profile.${label}`)
+    const keyOrLabel = table[value]
+    if (!keyOrLabel) return value
+    if (keyOrLabel.startsWith('options.')) {
+      return t(`profile.${keyOrLabel}`, { defaultValue: value })
+    }
+    return t(`profile.${keyOrLabel}`, { defaultValue: keyOrLabel })
   }
 }
 

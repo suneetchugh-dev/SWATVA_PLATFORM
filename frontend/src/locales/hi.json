@@ -275,16 +275,23 @@
       "annualIncomeHint": "वैकल्पिक।"
     },
     "options": {
-      "notSpecified": "बताना अनावश्यक",
+      "notSpecified": "निर्दिष्ट नहीं",
+      "female": "महिला",
+      "male": "पुरुष",
       "preferNotToSay": "कहना न चाहें",
       "noDisability": "कोई दिव्यांगता नहीं",
       "personWithDisability": "दिव्यांगजन",
       "spouse": "पति/पत्नी",
-      "child": "बच्चा",
+      "child": "संतान",
       "parent": "माता-पिता",
       "grandparent": "दादा-दादी/नाना-नानी",
       "sibling": "भाई-बहन",
-      "other": "अन्य"
+      "other": "अन्य",
+      "general": "सामान्य (General)",
+      "obc": "अन्य पिछड़ा वर्ग (OBC)",
+      "sc": "अनुसूचित जाति (SC)",
+      "st": "अनुसूचित जनजाति (ST)",
+      "ews": "आर्थिक रूप से कमजोर वर्ग (EWS)"
     },
     "family": {
       "intro": "घर-आधारित योजनाएँ आश्रितों को गिनती हैं, इसलिए परिवार के सभी सदस्य जोड़ें।",
