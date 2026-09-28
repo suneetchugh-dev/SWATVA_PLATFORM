@@ -8,6 +8,8 @@ import {
   MessageSquare, 
   Bell, 
   User, 
+  UserCog,
+  ShieldCheck,
   ChevronLeft, 
   ChevronRight, 
   Check, 
@@ -198,6 +200,75 @@ export const PAGE_TOUR_CONFIGS = {
       titleHi: 'इतिहास व निर्यात',
       descEn: 'Export complete consultation records to Markdown or browse past dialogues.',
       descHi: 'पूरी बातचीत को डाउनलोड करें या पिछली चर्चाओं को पुनः देखें।'
+    }
+  ],
+  profile: [
+    {
+      id: 'profile-stepper',
+      target: '[data-tour="profile-stepper"]',
+      icon: UserCog,
+      titleEn: '4-Stage Profile Progression',
+      titleHi: '४-चरणीय प्रोफ़ाइल प्रगति',
+      descEn: 'Step-by-step intake covering Demographics, Socio-Economic Status, Vulnerabilities, and Household Members.',
+      descHi: 'जनसांख्यिकी, सामाजिक-आर्थिक स्थिति और पारिवारिक सदस्यों का विवरण चरणबद्ध रूप से भरें।'
+    },
+    {
+      id: 'profile-avatar',
+      target: '[data-tour="profile-avatar"]',
+      icon: User,
+      titleEn: 'Avatar & Identity Enclosure',
+      titleHi: 'प्रोफ़ाइल चित्र व पहचान',
+      descEn: 'Upload and preview your profile picture with instant offline sync across all devices.',
+      descHi: 'अपनी प्रोफ़ाइल फ़ोटो अपलोड करें जो आपके सभी डिवाइस पर तुरंत सिंक हो जाएगी।'
+    },
+    {
+      id: 'profile-actions',
+      target: '[data-tour="profile-actions"]',
+      icon: CheckCircle2,
+      titleEn: 'Dynamic Save & Validation',
+      titleHi: 'सुरक्षित सहेजें व सत्यापन',
+      descEn: 'Save your profile at any step to immediately unlock deterministic scheme matches.',
+      descHi: 'किसी भी चरण पर प्रोफ़ाइल सहेजें और तुरंत पात्र योजनाओं की गणना देखें।'
+    }
+  ],
+  transparency: [
+    {
+      id: 'transparency-form',
+      target: '[data-tour="transparency-form"]',
+      icon: ShieldCheck,
+      titleEn: 'Citizen Grievance & Integrity Intake',
+      titleHi: 'नागरिक शिकायत व पारदर्शिता प्रपत्र',
+      descEn: 'Submit confidential reports regarding scheme implementation, delays, or integrity concerns.',
+      descHi: 'योजना के क्रियान्वयन या भ्रष्टाचार संबंधी गोपनीय शिकायत दर्ज करें।'
+    },
+    {
+      id: 'transparency-stats',
+      target: '[data-tour="transparency-stats"]',
+      icon: Scale,
+      titleEn: 'Public Accountability Analytics',
+      titleHi: 'सार्वजनिक जवाबदेही आंकड़े',
+      descEn: 'Live statistics on filed, resolved, and verified grievance audits across state departments.',
+      descHi: 'विभिन्न सरकारी विभागों में दर्ज और निस्तारित शिकायतों की वास्तविक स्थिति देखें।'
+    }
+  ],
+  benefits: [
+    {
+      id: 'benefits-summary',
+      target: '[data-tour="benefits-summary"]',
+      icon: Scale,
+      titleEn: 'Unclaimed Financial Summary',
+      titleHi: 'अनुपलब्ध वित्तीय लाभ सारांश',
+      descEn: 'Accurate computation of total annual financial assistance you are entitled to claim.',
+      descHi: 'उन सभी वित्तीय लाभों का कुल वार्षिक हिसाब जो आपको प्राप्त होने चाहिए।'
+    },
+    {
+      id: 'benefits-list',
+      target: '[data-tour="benefits-list"]',
+      icon: CheckCircle2,
+      titleEn: 'Scheme-by-Scheme Value Breakdown',
+      titleHi: 'योजनावार लाभ विवरण',
+      descEn: 'Detailed financial value, DBT mode, and claim requirements for each scheme.',
+      descHi: 'प्रत्येक योजना से मिलने वाली राशि और डीबीटी (DBT) प्रक्रिया की जानकारी।'
     }
   ]
 };

@@ -402,12 +402,6 @@ export default function Documents() {
             />
           ) : (
             <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3 px-1">
-                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                  {t('documents.uploadedCount', { count: docCount })}
-                </p>
-              </div>
-
               <div data-tour="documents-grid" className="grid gap-3 sm:grid-cols-2">
               {docs.map((d) => {
                 const expired = isExpired(d.expiryDate)

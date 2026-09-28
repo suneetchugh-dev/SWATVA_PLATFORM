@@ -484,7 +484,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
           onClick={() => { playClick(); navigate('/team'); }}
           className="text-[11px] font-mono text-neutral-700 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white transition cursor-pointer font-medium hover:underline flex-shrink-0 whitespace-nowrap"
         >
-          By Team TheQuirkies &rarr;
+          {t('landing.footer.tagline') || 'BY TheQuirkies'}
         </button>
       </footer>
     </div>

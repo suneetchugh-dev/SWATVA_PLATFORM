@@ -17,6 +17,7 @@ import {
   Spinner,
   cx,
 } from '../components/ui'
+import { PageTourButton } from '../components/GuidedTour'
 
 /**
  * Progressive intake. Broken into steps so a citizen on a phone can stop after
@@ -382,10 +383,11 @@ export default function Profile() {
     <div>
       <PageHeader
         title={t('profile.title')}
+        actions={<PageTourButton pageKey="profile" />}
       />
 
       {/* Citizen Identity Profile Banner */}
-      <div className="mb-6 p-4 rounded-2xl neo-glass-card flex items-center justify-between gap-4">
+      <div data-tour="profile-avatar" className="mb-6 p-4 rounded-2xl neo-glass-card flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
           {/* Interactive Avatar with Refined Round Ring & Inner Pencil Edit Badge */}
           <div
@@ -489,7 +491,7 @@ export default function Profile() {
       )}
 
       {/* Step rail */}
-      <ol className="flex items-center gap-1.5 mb-6" aria-label="Profile steps">
+      <ol data-tour="profile-stepper" className="flex items-center gap-1.5 mb-6" aria-label="Profile steps">
         {STEPS.map((s, i) => {
           const isCurrent = i === step
           const isDone = i < step
@@ -658,7 +660,7 @@ export default function Profile() {
           ) : null}
         </div>
 
-        <div className="mt-8 pt-4 border-t border-neutral-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
+        <div data-tour="profile-actions" className="mt-8 pt-4 border-t border-neutral-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
           <Button
             variant="secondary"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
