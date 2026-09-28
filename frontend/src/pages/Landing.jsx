@@ -178,6 +178,7 @@ function SectionHeading({ title, desc, arrow, className = '' }) {
 
 export default function Landing() {
   const { t, i18n } = useTranslation()
+  const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi')
   const { dark, setDark } = useTheme()
   const [query, setQuery] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
@@ -430,7 +431,7 @@ export default function Landing() {
             <div className="flex items-center gap-2.5 min-w-0">
               <LoadingLogo size="h-7 w-7" animate={false} />
               <span className="font-bold tracking-tight text-sm text-neutral-950 dark:text-white whitespace-nowrap">
-                SWATVA
+                {t('common.appName')}
               </span>
             </div>
             <button
@@ -570,7 +571,7 @@ export default function Landing() {
 
         <div className="relative w-full max-w-4xl z-10 flex flex-col items-center">
           <h1 className="tracking-tight text-balance relative z-10 mb-4 flex flex-col items-center w-full">
-            <span className="relative inline-block max-w-fit group cursor-default whitespace-nowrap font-black text-[clamp(1.35rem,6.6vw,4rem)] leading-[1.18] bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 via-neutral-800 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400 py-1">
+            <span className="relative inline-block max-w-fit group cursor-default whitespace-nowrap font-black text-[clamp(1.35rem,6.6vw,4rem)] leading-[1.28] sm:leading-[1.25] bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 via-neutral-800 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400 pt-2 pb-1 px-1">
               <CurvyArrow 
                 direction="top-left" 
                 className="-left-12 sm:-left-24 -top-8 sm:-top-10"
@@ -1027,7 +1028,7 @@ export default function Landing() {
 
       {/* ----------------- Dynamic Pointillism Particle Canvas (from SAHNIRMAAN) */}
       <div className="w-full border-t border-neutral-200/50 dark:border-white/5 py-4">
-        <FooterParticles text="SWATVA" darkMode={dark} />
+        <FooterParticles text={isHindi ? 'स्वतवा' : 'SWATVA'} darkMode={dark} />
       </div>
 
       {/* -------------------------------------------- footer */}
@@ -1065,7 +1066,9 @@ export default function Landing() {
 
         <div className="flex items-center gap-2.5">
           <LoadingLogo size="h-7 w-7" animate={false} />
-          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">SWATVA</span>
+          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">
+            {isHindi ? 'स्वतवा' : 'SWATVA'}
+          </span>
           <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
           <Link
             to="/team"

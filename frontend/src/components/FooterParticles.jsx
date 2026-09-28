@@ -63,7 +63,7 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
       let fontSize = Math.floor(width / (text.length * 0.58));
       fontSize = Math.max(28, Math.min(fontSize, 110));
 
-      offCtx.font = '900 ' + fontSize + 'px "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      offCtx.font = '900 ' + fontSize + 'px "Space Grotesk", "Noto Sans Devanagari", "Mangal", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       offCtx.textAlign = 'center';
       offCtx.textBaseline = 'middle';
       offCtx.fillStyle = '#ffffff';
@@ -72,7 +72,7 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
       if (textMetrics.width > width * 0.92) {
         const scale = (width * 0.92) / textMetrics.width;
         fontSize = Math.floor(fontSize * scale);
-        offCtx.font = '900 ' + fontSize + 'px "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        offCtx.font = '900 ' + fontSize + 'px "Space Grotesk", "Noto Sans Devanagari", "Mangal", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       }
 
       const centerX = width / 2;

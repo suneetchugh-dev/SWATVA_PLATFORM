@@ -10,7 +10,8 @@ import { playClick } from '../utils/soundFx';
 import { signInWithGoogle, signInWithFirebaseEmail, registerWithFirebaseEmail } from '../lib/firebase';
 
 export default function Auth({ mode: initialMode = 'login' }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi');
   const navigate = useNavigate();
   const { dark } = useTheme();
 
@@ -223,14 +224,14 @@ export default function Auth({ mode: initialMode = 'login' }) {
     >
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center select-none z-0 overflow-hidden">
         <span className="text-[22vw] font-black tracking-tighter text-neutral-950/[0.04] dark:text-white/[0.06] leading-none font-mono">
-          SWATVA
+          {isHindi ? 'स्वतवा' : 'SWATVA'}
         </span>
       </div>
 
       <MinimalBrandHeader
         onBack={() => navigate('/')}
         backLabel={t('auth.backToHome') || 'Back to Platform'}
-        brandLabel="SWATVA"
+        brandLabel={t('common.appName') || 'SWATVA'}
         logoKey={loading ? 'busy' : 'idle'}
       />
 
@@ -485,10 +486,12 @@ export default function Auth({ mode: initialMode = 'login' }) {
       <footer className="fixed bottom-0 left-0 right-0 z-40 px-4 sm:px-12 py-2.5 sm:py-3 border-t border-neutral-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0c0c10]/90 backdrop-blur-xl flex items-center justify-between gap-2 sm:gap-3 shadow-sm pb-[calc(0.6rem+env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-2.5 min-w-0">
           <LoadingLogo size="h-6 w-6" animate={false} />
-          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">SWATVA</span>
+          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">
+            {isHindi ? 'स्वतवा' : 'SWATVA'}
+          </span>
           <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
           <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0">
-            CITIZEN EMPOWERMENT ARCHITECTURE
+            {t('auth.citizenEmpowermentArchitecture') || 'CITIZEN EMPOWERMENT ARCHITECTURE'}
           </span>
         </div>
         <Link
