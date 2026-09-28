@@ -1,7 +1,7 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { User, Mail, Lock, ArrowRight, LogIn, UserPlus, KeyRound, RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, ArrowRight, LogIn, UserPlus, KeyRound, RefreshCw, AlertTriangle } from 'lucide-react';
 import MinimalBrandHeader from '../components/MinimalBrandHeader';
 import { useTheme } from '../lib/theme';
 import { api, getToken, setToken, setStoredUser } from '../api/client';
@@ -28,10 +28,6 @@ export default function Auth({ mode: initialMode = 'login' }) {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const cardRef = useRef(null);
-  const [cardHeight, setCardHeight] = useState(null);
-  const animatingHeight = useRef(false);
-
   // Live countdown timer for Resend OTP service
   useEffect(() => {
     let interval = null;
@@ -48,44 +44,12 @@ export default function Auth({ mode: initialMode = 'login' }) {
   const switchMode = (next) => {
     if (next === mode) return;
     playClick();
-    const el = cardRef.current;
-    if (el) {
-      animatingHeight.current = true;
-      setCardHeight(el.offsetHeight);
-    }
     setError(null);
     setOtpMessage(null);
     setOtpStep('input');
     setOtpCode('');
     setMode(next);
   };
-
-  useLayoutEffect(() => {
-    const el = cardRef.current;
-    if (!el || !animatingHeight.current) return undefined;
-    const target = el.scrollHeight;
-    const frame = requestAnimationFrame(() => setCardHeight(target));
-    const settle = window.setTimeout(() => {
-      animatingHeight.current = false;
-      setCardHeight(null);
-    }, 380);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.clearTimeout(settle);
-    };
-  }, [mode, otpStep]);
-
-  const cardStyle = useMemo(
-    () =>
-      cardHeight == null
-        ? undefined
-        : {
-            height: `${cardHeight}px`,
-            overflow: 'hidden',
-            transition: 'height 300ms cubic-bezier(0.32, 0.72, 0, 1)',
-          },
-    [cardHeight],
-  );
 
   if (getToken()) {
     return <Navigate to="/app" replace />;
@@ -271,11 +235,9 @@ export default function Auth({ mode: initialMode = 'login' }) {
 
       <main className="flex-1 flex items-center justify-center p-2 sm:p-6 pt-16 sm:pt-20 pb-16 sm:pb-24 w-full z-10 my-auto">
         <div
-          ref={cardRef}
-          style={cardStyle}
           className="w-full max-w-[720px] p-4 sm:p-8 sm:pb-10 login-form-card"
         >
-          <h1 className="flex items-center justify-center gap-2 text-base sm:text-lg font-bold text-neutral-950 dark:text-white text-center mb-5 sm:mb-6 text-balance">
+          <h1 className="h-7 sm:h-8 flex items-center justify-center gap-2 text-base sm:text-lg font-bold text-neutral-950 dark:text-white text-center mb-5 sm:mb-6 whitespace-nowrap">
             {mode === 'login' && <><LogIn size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Sign in to SWATVA</span></>}
             {mode === 'register' && <><UserPlus size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>Create your SWATVA account</span></>}
           </h1>
@@ -351,7 +313,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
             onClick={handleGoogleSignIn}
             disabled={loading || googleLoading}
             data-sound="click"
-            className="w-full mb-4 flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl text-xs font-semibold tracking-wide border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-white/[0.05] hover:bg-neutral-50 dark:hover:bg-white/[0.08] active:scale-[0.99] text-neutral-800 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm cursor-pointer"
+            className="w-full h-11 mb-4 flex items-center justify-center gap-3 px-4 rounded-xl text-xs font-semibold tracking-wide border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-white/[0.05] hover:bg-neutral-50 dark:hover:bg-white/[0.08] active:scale-[0.99] text-neutral-800 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm cursor-pointer"
           >
             {googleLoading ? (
               <div className="w-4 h-4 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
@@ -375,7 +337,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 />
               </svg>
             )}
-            <span>{googleLoading ? 'Connecting to Google...' : mode === 'login' ? 'Sign in with Google' : 'Sign up with Google'}</span>
+            <span className="whitespace-nowrap">{googleLoading ? 'Connecting to Google...' : mode === 'login' ? 'Sign in with Google' : 'Sign up with Google'}</span>
           </button>
 
           <div className="relative flex items-center justify-center my-4">
@@ -495,9 +457,9 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 type="submit"
                 disabled={loading}
                 data-sound="click"
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-neutral-950 hover:bg-neutral-800 active:scale-[0.99] dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md cursor-pointer"
+                className="w-full h-11 flex items-center justify-center gap-2 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-neutral-950 hover:bg-neutral-800 active:scale-[0.99] dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md cursor-pointer"
               >
-                <span>
+                <span className="whitespace-nowrap">
                   {loading
                     ? 'Processing...'
                     : mode === 'login'
@@ -506,7 +468,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                     ? 'Send Verification OTP'
                     : 'Verify OTP & Create Account'}
                 </span>
-                <ArrowRight size={14} className="stroke-[2.2]" />
+                <ArrowRight size={14} className="stroke-[2.2] flex-shrink-0" />
               </button>
             </div>
           </form>
