@@ -86,7 +86,7 @@ public class EmailService {
     }
 
     private String buildOtpEmailHtml(String otp) {
-        return """
+        String template = """
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -118,7 +118,7 @@ public class EmailService {
                 <div class="content">
                   <p class="message">Hello,<br>Use the following verification code to authenticate your email address and continue.</p>
                   <div class="otp-box">
-                    <div class="otp-code">%s</div>
+                    <div class="otp-code">{{OTP}}</div>
                   </div>
                   <div class="expiry">⏱ Valid for <strong>5 minutes</strong></div>
                   <div class="security-note">
@@ -132,6 +132,7 @@ public class EmailService {
               </div>
             </body>
             </html>
-            """.formatted(otp);
+            """;
+        return template.replace("{{OTP}}", otp);
     }
 }
