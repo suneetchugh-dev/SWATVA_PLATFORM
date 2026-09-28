@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileStack, Plus, Trash2, Upload } from 'lucide-react'
+import { AlertTriangle, FileStack, Plus, Trash2, Upload } from 'lucide-react'
 import { api } from '../api/client'
+import DocumentReviewModal from '../components/DocumentReviewModal'
 import {
   Badge,
   Banner,
@@ -87,6 +88,8 @@ export default function Documents() {
   const [error, setError] = useState(null)
   const [busyId, setBusyId] = useState(null)
   const [activeTab, setActiveTab] = useState('locker') // 'locker' | 'add'
+  const [selectedReviewDoc, setSelectedReviewDoc] = useState(null)
+  const [selectedFile, setSelectedFile] = useState(null)
 
   const [docType, setDocType] = useState('AADHAAR')
   const [filename, setFilename] = useState('')
@@ -120,8 +123,22 @@ export default function Documents() {
   /** When a file is chosen, infer the doc type from the filename and pre-fill the display name.
    *  Actual upload happens only when the user clicks "Save document" so they can review first. */
   const handleFileChange = () => {
+    setError(null)
     const file = fileRef.current?.files?.[0]
-    if (!file) return
+    if (!file) {
+      setSelectedFile(null)
+      return
+    }
+
+    // Size limit guard: 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      setError(t('documents.fileTooLarge') || 'File size exceeds the 10MB limit.')
+      if (fileRef.current) fileRef.current.value = ''
+      setSelectedFile(null)
+      return
+    }
+
+    setSelectedFile(file)
 
     // Auto-fill display name from filename (strip extension)
     if (!filename) {
@@ -142,32 +159,29 @@ export default function Documents() {
   const register = async (event) => {
     event.preventDefault()
     setError(null)
+    const file = fileRef.current?.files?.[0] || selectedFile
+    if (!file) {
+      setError(t('documents.fileRequired') || 'A document file is required. Please choose a PDF or image file before saving.')
+      return
+    }
+
     setUploading(true)
     try {
-      const file = fileRef.current?.files?.[0]
-      if (file) {
-        const fd = new FormData()
-        fd.append('documentType', docType)
-        fd.append('file', file)
-        fd.append('filename', filename.trim() || file.name)
-        if (issueDate) fd.append('issueDate', issueDate)
-        if (expiryDate) fd.append('expiryDate', expiryDate)
-        if (authority.trim()) fd.append('issuingAuthority', authority.trim())
-        await api.documents.upload(fd)
-      } else {
-        await api.documents.register({
-          documentType: docType,
-          filename: filename.trim(),
-          issueDate: issueDate || null,
-          expiryDate: expiryDate || null,
-          issuingAuthority: authority.trim() || null,
-        })
-      }
+      const fd = new FormData()
+      fd.append('documentType', docType)
+      fd.append('file', file)
+      fd.append('filename', filename.trim() || file.name)
+      if (issueDate) fd.append('issueDate', issueDate)
+      if (expiryDate) fd.append('expiryDate', expiryDate)
+      if (authority.trim()) fd.append('issuingAuthority', authority.trim())
+      await api.documents.upload(fd)
+
       playClick()
       setFilename('')
       setIssueDate('')
       setExpiryDate('')
       setAuthority('')
+      setSelectedFile(null)
       if (fileRef.current) fileRef.current.value = ''
       load()
       setActiveTab('locker')
@@ -284,9 +298,30 @@ export default function Documents() {
                   <Card key={d.id} className="p-4 flex flex-col min-w-0 overflow-hidden">
                     <div className="flex items-start justify-between gap-3 min-w-0">
                       <div className="min-w-0 flex-1">
-                        <span className={cx('mono-badge inline-block rounded px-2 py-1 border', style)}>
-                          {t(`status.${d.status ?? 'ACTIVE'}`)}
-                        </span>
+                        {d.status === 'NEEDS_REVIEW' ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              playClick()
+                              setSelectedReviewDoc(d)
+                            }}
+                            className="mono-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-dashed border-amber-500/70 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 hover:border-amber-500 transition-all cursor-pointer group text-left"
+                            title={t('documents.clickToReview')}
+                            aria-label={`${t('status.NEEDS_REVIEW')} - ${t('documents.clickToReview')}`}
+                          >
+                            <AlertTriangle size={11} className="shrink-0 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+                            <span className="font-semibold underline decoration-dotted decoration-amber-500/60 underline-offset-2">
+                              {t(`status.${d.status}`)}
+                            </span>
+                            <span className="text-[10px] opacity-80 font-normal">
+                              • {t('documents.clickToReview')}
+                            </span>
+                          </button>
+                        ) : (
+                          <span className={cx('mono-badge inline-block rounded px-2 py-1 border', style)}>
+                            {t(`status.${d.status ?? 'ACTIVE'}`)}
+                          </span>
+                        )}
                         <p className="mt-2 text-sm font-semibold tracking-tight text-balance truncate">
                           {d.documentTypeName ?? d.documentType}
                         </p>
@@ -366,12 +401,13 @@ export default function Documents() {
             </Field>
 
             {/* File — infers type+name from filename on selection */}
-            <Field label={t('documents.file')} htmlFor="docFile" hint={t('documents.fileHint')}>
+            <Field label={t('documents.file')} htmlFor="docFile" hint={t('documents.fileHint')} required>
               <input
                 id="docFile"
                 ref={fileRef}
                 type="file"
-                accept="application/pdf,image/*"
+                required
+                accept="application/pdf,image/jpeg,image/png,image/webp"
                 onChange={handleFileChange}
                 className="w-full text-xs text-neutral-600 dark:text-neutral-300 file:mr-3 file:rounded-full file:border-0 file:bg-neutral-100 dark:file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-800 dark:file:text-neutral-100 cursor-pointer"
               />
@@ -419,7 +455,7 @@ export default function Documents() {
             )}
 
             <div className="sm:col-span-2 flex items-center gap-3 pt-2">
-              <Button type="submit" variant="accent" loading={uploading}>
+              <Button type="submit" variant="accent" loading={uploading} disabled={uploading || !selectedFile}>
                 <Upload size={15} />
                 {t('documents.save')}
               </Button>
@@ -434,6 +470,20 @@ export default function Documents() {
           </form>
         </Card>
       )}
+
+      {/* Verification Review Modal */}
+      <DocumentReviewModal
+        doc={selectedReviewDoc}
+        isOpen={Boolean(selectedReviewDoc)}
+        onClose={() => setSelectedReviewDoc(null)}
+        onReupload={(doc) => {
+          setSelectedReviewDoc(null)
+          if (doc.documentType) {
+            handleDocTypeChange(doc.documentType)
+          }
+          setActiveTab('add')
+        }}
+      />
     </div>
   )
 }
