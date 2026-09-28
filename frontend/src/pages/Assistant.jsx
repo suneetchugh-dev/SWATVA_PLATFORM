@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Check,
@@ -15,6 +16,8 @@ import {
   Trash2,
   Volume2,
   VolumeX,
+  Maximize2,
+  Minimize2,
   X,
 } from 'lucide-react'
 import { api } from '../api/client'
@@ -132,8 +135,9 @@ export default function Assistant() {
   const [copiedIndex, setCopiedIndex] = useState(null)
   const [voiceNotice, setVoiceNotice] = useState(null)
 
-  // History Drawer state
+  // History Drawer & Fullscreen state
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [historySearch, setHistorySearch] = useState('')
 
   const endRef = useRef(null)
@@ -163,16 +167,29 @@ export default function Assistant() {
     setActiveSpeakingIndex(null)
   }, [i18n.resolvedLanguage])
 
-  // Close drawer on ESC
+  // Close drawer or exit fullscreen on ESC and lock body scroll
   useEffect(() => {
+    if (isHistoryOpen || isFullscreen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isHistoryOpen) {
-        setIsHistoryOpen(false)
+      if (e.key === 'Escape') {
+        if (isFullscreen) {
+          setIsFullscreen(false)
+        } else if (isHistoryOpen) {
+          setIsHistoryOpen(false)
+        }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isHistoryOpen])
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isHistoryOpen, isFullscreen])
 
   // Sync active session changes to stored sessions
   const updateSessionInStorage = useCallback((currentSessionId, updatedMessages, newBackendSessionId, ungrounded) => {
@@ -488,11 +505,18 @@ export default function Assistant() {
   }, [sessions, historySearch])
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-13rem)] relative">
+    <div
+      className={cx(
+        'w-full transition-all duration-300',
+        isFullscreen
+          ? 'fixed inset-0 z-[9000] p-4 sm:p-6 bg-porcelain dark:bg-obsidian flex flex-col h-dvh max-h-dvh overflow-hidden'
+          : 'flex flex-col h-[calc(100dvh-13.5rem)] lg:h-[calc(100dvh-14rem)] max-h-[calc(100dvh-13.5rem)] min-h-[440px] relative overflow-hidden'
+      )}
+    >
       <PageHeader
         title={t('assistant.title')}
         desc={t('assistant.desc')}
-        className="mb-4"
+        className="mb-4 shrink-0"
         actions={
           <div className="flex items-center gap-1.5 sm:gap-2">
             <PageTourButton pageKey="assistant" />
@@ -560,7 +584,26 @@ export default function Assistant() {
         </div>
       ) : null}
 
-      <div data-tour="assistant-chat" className="flex-1 overflow-y-auto rounded-2xl border border-neutral-200 dark:border-white/10 p-4 sm:p-5 bg-white/50 dark:bg-white/[0.02]">
+      <div
+        data-tour="assistant-chat"
+        className="flex-1 overflow-y-auto overflow-x-hidden rounded-2xl border border-neutral-200 dark:border-white/10 p-4 sm:p-5 bg-white/50 dark:bg-white/[0.02] relative min-h-0"
+      >
+        {/* Top-Right Sticky Fullscreen Toggle Button inside Chat Window */}
+        <div className="sticky top-0 float-right z-20 -mr-1 -mt-1 ml-2 mb-2">
+          <button
+            type="button"
+            onClick={() => {
+              playClick()
+              setIsFullscreen((prev) => !prev)
+            }}
+            aria-label={isFullscreen ? t('assistant.exitFullscreen') : t('assistant.fullscreen')}
+            title={isFullscreen ? t('assistant.exitFullscreen') : t('assistant.fullscreen')}
+            className="p-1.5 rounded-xl bg-white/85 dark:bg-[#18191c]/90 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white border border-neutral-200/90 dark:border-white/15 shadow-2xs backdrop-blur-md transition-all duration-150 cursor-pointer select-none active:scale-95 flex items-center justify-center"
+          >
+            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+          </button>
+        </div>
+
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-8">
             <AIOrbFace size={76} state={sending ? 'thinking' : isListening ? 'listening' : 'idle'} className="mb-3" />
@@ -599,7 +642,7 @@ export default function Assistant() {
                       <Copy size={13} />
                     )}
                   </button>
-                  <p className="max-w-[85%] rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
+                  <p className="max-w-[85%] rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 break-words overflow-hidden">
                     {m.content}
                   </p>
                 </div>
@@ -609,7 +652,7 @@ export default function Assistant() {
                   <div className="flex-1 min-w-0">
                     <div
                       className={cx(
-                        'relative rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap',
+                        'relative rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden',
                         m.error
                           ? 'border border-amber-600/40 bg-amber-500/10'
                           : 'bg-white dark:bg-white/[0.05] border border-neutral-200 dark:border-white/10',
@@ -849,37 +892,38 @@ export default function Assistant() {
         </button>
       </form>
 
-      {/* History Slide-Over Drawer with smooth sliding transition */}
-      <div
-        className={cx(
-          'fixed inset-0 z-50 flex justify-end transition-all duration-300 pointer-events-none',
-          isHistoryOpen ? 'pointer-events-auto visible' : 'invisible delay-300'
-        )}
-        aria-hidden={!isHistoryOpen}
-      >
-        {/* Backdrop */}
+      {/* History Slide-Over Drawer with smooth sliding transition Portalled to document.body */}
+      {typeof document !== 'undefined' && createPortal(
         <div
           className={cx(
-            'fixed inset-0 bg-neutral-950/25 dark:bg-black/45 backdrop-blur-[2px] transition-opacity duration-300 ease-out',
-            isHistoryOpen ? 'opacity-100' : 'opacity-0'
+            'fixed inset-0 z-[100000] flex justify-end transition-all duration-300 pointer-events-none select-none',
+            isHistoryOpen ? 'pointer-events-auto visible' : 'invisible delay-300'
           )}
-          onClick={() => {
-            playClick()
-            setIsHistoryOpen(false)
-          }}
-          aria-hidden="true"
-        />
-
-        {/* Drawer Panel */}
-        <div
-          className={cx(
-            'relative w-full max-w-sm sm:max-w-md bg-white dark:bg-[#111114] border-l sm:border border-neutral-200/90 dark:border-white/10 rounded-l-3xl sm:rounded-3xl sm:my-3 sm:mr-3 sm:h-[calc(100dvh-1.5rem)] shadow-2xl flex flex-col h-full z-10 overflow-hidden',
-            'transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
-            isHistoryOpen ? 'translate-x-0' : 'translate-x-full'
-          )}
+          aria-hidden={!isHistoryOpen}
         >
+          {/* Full Screen Viewport Backdrop */}
+          <div
+            className={cx(
+              'fixed inset-0 bg-neutral-950/40 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 ease-out',
+              isHistoryOpen ? 'opacity-100' : 'opacity-0'
+            )}
+            onClick={() => {
+              playClick()
+              setIsHistoryOpen(false)
+            }}
+            aria-hidden="true"
+          />
+
+          {/* Drawer Panel */}
+          <div
+            className={cx(
+              'relative w-full max-w-sm sm:max-w-md bg-white dark:bg-[#121316] border-l border-neutral-200 dark:border-white/10 shadow-2xl flex flex-col h-full z-10 overflow-hidden',
+              'transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
+              isHistoryOpen ? 'translate-x-0' : 'translate-x-full'
+            )}
+          >
             {/* Header */}
-            <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between">
+            <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                   <MessageSquare size={16} />
@@ -899,7 +943,7 @@ export default function Assistant() {
                   playClick()
                   setIsHistoryOpen(false)
                 }}
-                className="h-8 w-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                className="h-8 w-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer active:scale-95"
                 aria-label={t('common.close')}
               >
                 <X size={16} />
@@ -907,7 +951,7 @@ export default function Assistant() {
             </div>
 
             {/* Search Input */}
-            <div className="p-4 border-b border-neutral-200/80 dark:border-white/5 bg-neutral-50/50 dark:bg-white/[0.01]">
+            <div className="p-4 border-b border-neutral-200/80 dark:border-white/5 bg-neutral-50/50 dark:bg-white/[0.01] shrink-0">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
@@ -930,7 +974,7 @@ export default function Assistant() {
             </div>
 
             {/* Sessions List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2.5 min-h-0">
               {filteredSessions.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-6 text-neutral-400">
                   <Clock size={32} strokeWidth={1.5} className="mb-2 opacity-50" />
@@ -998,7 +1042,7 @@ export default function Assistant() {
 
             {/* Footer */}
             {sessions.length > 0 && (
-              <div className="p-3.5 border-t border-neutral-200 dark:border-white/10 bg-neutral-50/70 dark:bg-white/[0.02] flex items-center justify-between">
+              <div className="p-3.5 border-t border-neutral-200 dark:border-white/10 bg-neutral-50/70 dark:bg-white/[0.02] flex items-center justify-between shrink-0">
                 <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
                   {sessions.length} {t('assistant.historyTitle').toLowerCase()}
                 </span>
@@ -1013,7 +1057,9 @@ export default function Assistant() {
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </div>,
+        document.body
+      )}
+    </div>
   )
 }

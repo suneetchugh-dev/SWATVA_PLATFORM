@@ -484,7 +484,9 @@
     "copy": "Copy message",
     "copied": "Copied!",
     "export": "Export Chat",
-    "exportSuccess": "Chat exported"
+    "exportSuccess": "Chat exported",
+    "fullscreen": "Full Screen",
+    "exitFullscreen": "Exit Full Screen"
   },
   "scheme": {
     "back": "Back",

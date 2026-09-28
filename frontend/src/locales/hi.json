@@ -484,7 +484,9 @@
     "copy": "संदेश कॉपी करें",
     "copied": "कॉपी हो गया!",
     "export": "चैट निर्यात करें",
-    "exportSuccess": "चैट निर्यात की गई"
+    "exportSuccess": "चैट निर्यात की गई",
+    "fullscreen": "फुलस्क्रीन",
+    "exitFullscreen": "फुलस्क्रीन से बाहर निकलें"
   },
   "scheme": {
     "back": "वापस",
