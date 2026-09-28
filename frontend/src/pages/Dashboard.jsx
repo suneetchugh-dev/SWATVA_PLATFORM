@@ -12,6 +12,7 @@ import {
 import { api } from '../api/client'
 import { Badge, Button, Card, PageHeader, Spinner, StatusPill, cx } from '../components/ui'
 import { PageTourButton } from '../components/GuidedTour'
+import { getLocalizedUserFirstName } from '../utils/userDisplay'
 
 /**
  * The signed-in landing view. Answers the three questions a citizen actually
@@ -103,19 +104,22 @@ function Loadable({ load, children, onRetry }) {
 }
 
 export default function Dashboard() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi')
   const [user, setUser] = useState(null)
 
   useEffect(() => {
     api.user.getMe().then(setUser).catch(() => {})
   }, [])
 
+  const citizenFirstName = getLocalizedUserFirstName(user, isHindi)
+
   return (
     <div className="space-y-6 mt-12 sm:mt-16 pt-2">
       <PageHeader
         arrowLabel={t('dashboard.badge')}
         arrowClassName="-left-8 sm:-left-20 -top-10 sm:-top-12"
-        title={t('dashboard.title', { name: user?.fullName?.split(' ')[0] || t('dashboard.citizen') })}
+        title={t('dashboard.title', { name: citizenFirstName || (isHindi ? 'नागरिक' : 'Citizen') })}
         desc={t('dashboard.desc')}
         actions={<PageTourButton pageKey="dashboard" />}
       />

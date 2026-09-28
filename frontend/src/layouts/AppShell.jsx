@@ -28,6 +28,7 @@ import ThemeToggle from '../components/ThemeToggle'
 import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
 import AIOrbIcon from '../components/AIOrbIcon'
+import { getLocalizedUserName } from '../utils/userDisplay'
 import { playClick } from '../utils/soundFx'
 
 // Routes are stable; only the labels are translated.
@@ -146,7 +147,7 @@ export default function AppShell() {
   }
 
   const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi')
-  const displayName = profileName || user?.fullName || (user?.email ? user.email.split('@')[0] : (isHindi ? 'नागरिक उपयोगकर्ता' : 'Citizen User'))
+  const displayName = profileName || getLocalizedUserName(user, isHindi)
   const photoURL = user?.photoURL
   const initial = (displayName[0] || (isHindi ? 'न' : 'S')).toUpperCase()
 
