@@ -689,12 +689,17 @@ export default function Profile() {
             </button>
 
             {step < STEPS.length - 1 && (
-              <Button
-                onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
+              <button
+                type="button"
+                onClick={() => {
+                  playClick()
+                  setStep((s) => Math.min(STEPS.length - 1, s + 1))
+                }}
+                className="group inline-flex items-center justify-center gap-1.5 h-10 px-5 rounded-xl text-xs font-bold bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-100 border border-neutral-800/80 dark:border-white/20 ring-1 ring-amber-400/40 hover:ring-amber-400/90 transition-all duration-200 cursor-pointer select-none active:scale-95 shadow-sm"
               >
-                {t('common.next')}
-                <ChevronRight size={15} />
-              </Button>
+                <span>{t('common.next')}</span>
+                <ChevronRight size={15} className="stroke-[2.2] text-amber-400 dark:text-amber-600 group-hover:translate-x-0.5 transition-transform duration-200" />
+              </button>
             )}
           </div>
         </div>
