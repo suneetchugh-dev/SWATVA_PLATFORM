@@ -230,13 +230,26 @@ export default function Dashboard() {
           <p className="mt-1.5 text-sm text-neutral-600 dark:text-neutral-300">
             {t('dashboard.reportBody')}
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button as={Link} to="/app/transparency" variant="secondary" size="sm">
-              <BadgeIndianRupee size={13} />
-              {t('dashboard.reportCta')}
+          <div className="mt-4 flex flex-wrap items-center gap-2.5">
+            <Button
+              as={Link}
+              to="/app/transparency"
+              variant="secondary"
+              size="sm"
+              className="gap-1.5 font-semibold"
+            >
+              <BadgeIndianRupee size={13} className="stroke-[2.2] text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>{t('dashboard.reportCta')}</span>
             </Button>
-            <Button as={Link} to="/app/matches" variant="ghost" size="sm">
-              {t('dashboard.browseSchemes')}
+            <Button
+              as={Link}
+              to="/app/matches"
+              variant="secondary"
+              size="sm"
+              className="gap-1.5 font-semibold"
+            >
+              <Scale size={13} className="stroke-[2.2] text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>{t('dashboard.browseSchemes')}</span>
             </Button>
           </div>
         </Card>
