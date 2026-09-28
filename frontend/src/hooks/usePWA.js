@@ -32,12 +32,13 @@ export function usePWA() {
       (typeof window.navigator !== 'undefined' && Boolean(window.navigator?.standalone)) ||
       (typeof document !== 'undefined' && typeof document.referrer === 'string' && document.referrer.includes('android-app://')));
 
-  // Register and manage service worker updates natively
+  // Register and manage service worker updates natively in production
   useEffect(() => {
     if (
       typeof window === 'undefined' ||
       typeof navigator === 'undefined' ||
-      !('serviceWorker' in navigator)
+      !('serviceWorker' in navigator) ||
+      import.meta.env.DEV
     ) {
       return;
     }

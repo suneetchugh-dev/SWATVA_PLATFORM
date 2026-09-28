@@ -223,8 +223,10 @@ export default function Landing() {
   // Sahnirmaan morphing navbar scroll engine
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40)
+      const scrollPos = window.scrollY || document.documentElement.scrollTop || window.pageYOffset || 0
+      setScrolled(scrollPos > 24)
     }
+    handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -285,7 +287,7 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-dvh w-full overflow-x-hidden bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white transition-colors">
+    <div className="min-h-dvh w-full overflow-x-clip bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white transition-colors">
       {/* ------------------------------------------------------ nav */}
       <header className={`portfolio-header ${scrolled ? 'scrolled' : ''}`}>
         {/* Left: Brand Logo & Name. Deliberately NOT `flex-1`: the header's own
