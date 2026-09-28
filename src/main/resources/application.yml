@@ -86,6 +86,11 @@ app:
     use-tls: ${QDRANT_USE_TLS:false}
     initialize-schema: ${QDRANT_INITIALIZE_SCHEMA:true}
 
+  resend:
+    api-key: ${RESEND_API_KEY:}
+    from-email: ${RESEND_FROM_EMAIL:Swatva AI <onboarding@resend.dev>}
+    api-url: ${RESEND_API_URL:https://api.resend.com/emails}
+
   security:
     jwt:
       # No default on purpose. Set JWT_SECRET in .env (32+ bytes) or the app refuses to start.
@@ -104,3 +109,4 @@ app:
     # working. This is why a bare "*" origin is rejected at startup.
     allow-credentials: true
     max-age-seconds: 3600
+
