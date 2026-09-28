@@ -35,10 +35,10 @@ export const TEAM_MEMBERS = [
     college: 'NIET (Computer Science & AI)',
     bio: 'Orchestrated the Qdrant vector database infrastructure, multi-document semantic retrieval, Groq AI tool pipelines, and transparent context grounding.',
     avatar: '/team/Rishit Roy.png',
-    fallbackAvatar: 'https://github.com/RishitRoy.png',
+    fallbackAvatar: 'https://github.com/rishit1711.png',
     tags: ['Qdrant', 'RAG Engine', 'Vector Embeddings', 'FastAPI/Java AI', 'Semantic Search'],
-    github: 'https://github.com/RishitRoy',
-    linkedin: 'https://www.linkedin.com/in/rishit-roy/'
+    github: 'https://github.com/rishit1711',
+    linkedin: 'https://www.linkedin.com/in/rishit-roy-383b04314/'
   },
   {
     id: 'prakhar',

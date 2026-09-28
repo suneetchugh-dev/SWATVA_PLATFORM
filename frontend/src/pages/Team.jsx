@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { 
   Code2, 
@@ -34,12 +35,56 @@ export default function Team() {
   const [lightboxTilt, setLightboxTilt] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
+    if (!lightboxMember) {
+      setLightboxTilt({ x: 0, y: 0 });
+      return;
+    }
+    document.documentElement.classList.add('lightbox-active');
+    document.body.style.overflow = 'hidden';
+
     const onKey = (e) => {
-      if (e.key === 'Escape' && lightboxMember) setLightboxMember(null);
+      if (e.key === 'Escape') {
+        playClick();
+        setLightboxMember(null);
+        setLightboxTilt({ x: 0, y: 0 });
+      } else if (e.key === 'ArrowLeft') {
+        const idx = TEAM_MEMBERS.findIndex((m) => m.id === lightboxMember.id);
+        if (idx !== -1) {
+          playClick();
+          setLightboxMember(TEAM_MEMBERS[(idx - 1 + TEAM_MEMBERS.length) % TEAM_MEMBERS.length]);
+          setLightboxTilt({ x: 0, y: 0 });
+        }
+      } else if (e.key === 'ArrowRight') {
+        const idx = TEAM_MEMBERS.findIndex((m) => m.id === lightboxMember.id);
+        if (idx !== -1) {
+          playClick();
+          setLightboxMember(TEAM_MEMBERS[(idx + 1) % TEAM_MEMBERS.length]);
+          setLightboxTilt({ x: 0, y: 0 });
+        }
+      }
     };
+
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      document.documentElement.classList.remove('lightbox-active');
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
   }, [lightboxMember]);
+
+  const handleLightboxMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+    const y = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+    setLightboxTilt({
+      x: Math.max(-1, Math.min(1, x)) * 10,
+      y: Math.max(-1, Math.min(1, y)) * -10,
+    });
+  };
+
+  const handleLightboxMouseLeave = () => {
+    setLightboxTilt({ x: 0, y: 0 });
+  };
 
   const handleBack = () => {
     playClick();
@@ -66,18 +111,31 @@ export default function Team() {
             <button
               type="button"
               onClick={handleBack}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-white/10 transition cursor-pointer select-none active:scale-95 shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-900 dark:bg-neutral-800/90 dark:hover:bg-neutral-700/90 dark:text-neutral-100 border border-neutral-200/80 dark:border-white/20 shadow-xs dark:shadow-md transition-all cursor-pointer select-none active:scale-95"
             >
-              <ArrowLeft size={13} />
+              <ArrowLeft size={13} className="text-neutral-700 dark:text-neutral-200" />
               <span>{isHindi ? 'वापस जाएं' : 'Back to App'}</span>
             </button>
           </div>
 
           {/* Absolute Mathematically Centered Logo */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto flex items-center justify-center">
-              <LoadingLogo animate={false} size="h-7 w-7" />
-            </div>
+            <button
+              type="button"
+              onClick={handleBack}
+              className="pointer-events-auto flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-full group"
+              title={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
+              aria-label={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
+            >
+              <div className="relative h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center flex-shrink-0">
+                {/* Amber Aura Glow matching login header */}
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 -m-2 rounded-full bg-amber-500/35 blur-lg scale-100 hidden dark:block pointer-events-none transition-all duration-300 ease-out group-hover:bg-amber-500/60 group-hover:blur-xl group-hover:scale-115"
+                />
+                <LoadingLogo animate={false} size="h-7 w-7 sm:h-8 sm:w-8" />
+              </div>
+            </button>
           </div>
 
           <div className="flex items-center gap-2 z-10">
@@ -127,7 +185,10 @@ export default function Team() {
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={() => setLightboxMember(member)}
+                      onClick={() => {
+                        playClick();
+                        setLightboxMember(member);
+                      }}
                       className="block group/avatar cursor-zoom-in focus:outline-none rounded-2xl"
                       title="View full photo"
                       aria-label={`View photo — ${member.name}`}
@@ -276,50 +337,85 @@ export default function Team() {
         </div>
       </main>
 
-      {/* Profile Photo Lightbox Viewer with 3D Tilt */}
-      {lightboxMember && (
+      {/* Profile Photo Lightbox Portalled to Document Body */}
+      {typeof document !== 'undefined' && lightboxMember && createPortal(
         <div
-          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-8 bg-black/80 dark:bg-[#080808]/92 backdrop-blur-md"
-          onClick={() => setLightboxMember(null)}
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200 select-none"
+          onClick={() => {
+            playClick();
+            setLightboxMember(null);
+            setLightboxTilt({ x: 0, y: 0 });
+          }}
           role="dialog"
           aria-modal="true"
+          aria-label={`Photo viewer - ${lightboxMember.name}`}
         >
+          {/* Ambient Golden Radial Glow Aura behind modal */}
           <div
-            className="relative max-w-sm sm:max-w-md w-full rounded-3xl overflow-hidden bg-white dark:bg-[#151618] border border-amber-500/60 dark:border-amber-400/50 shadow-2xl shadow-amber-500/10 dark:shadow-[0_0_50px_rgba(245,158,11,0.28)] transition-transform duration-300 ease-out"
-            style={{ transform: `perspective(800px) rotateX(${lightboxTilt.y}deg) rotateY(${lightboxTilt.x}deg) scale(1.015)` }}
-            onMouseMove={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const x = ((e.clientX - rect.left) / rect.width - 0.5) * 14;
-              const y = -((e.clientY - rect.top) / rect.height - 0.5) * 14;
-              setLightboxTilt({ x, y });
+            aria-hidden="true"
+            className="absolute w-[360px] sm:w-[480px] h-[360px] sm:h-[480px] rounded-full bg-amber-500/20 dark:bg-amber-400/25 blur-3xl pointer-events-none"
+          />
+
+          <div
+            onMouseMove={handleLightboxMouseMove}
+            onMouseLeave={handleLightboxMouseLeave}
+            style={{
+              transform: `perspective(900px) rotateX(${lightboxTilt.y}deg) rotateY(${lightboxTilt.x}deg) scale3d(1.015, 1.015, 1.015)`,
+              transition: lightboxTilt.x === 0 && lightboxTilt.y === 0 ? 'transform 0.4s ease-out' : 'transform 0.08s ease-out',
+              willChange: 'transform',
             }}
-            onMouseLeave={() => setLightboxTilt({ x: 0, y: 0 })}
+            className="relative max-w-sm sm:max-w-md w-full rounded-3xl overflow-hidden bg-white/95 dark:bg-[#121316] border-2 border-amber-500/60 dark:border-amber-400/50 shadow-2xl shadow-amber-500/25 dark:shadow-[0_0_60px_rgba(245,158,11,0.35)] backdrop-blur-2xl animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-3 right-3 z-10">
+            {/* Top Close Button */}
+            <div className="absolute top-3 right-3 z-20">
               <button
                 type="button"
-                onClick={() => setLightboxMember(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center bg-white/80 dark:bg-black/60 text-neutral-700 dark:text-neutral-200 hover:bg-white dark:hover:bg-black transition cursor-pointer border border-neutral-200 dark:border-white/10 shadow-xs"
+                onClick={() => {
+                  playClick();
+                  setLightboxMember(null);
+                  setLightboxTilt({ x: 0, y: 0 });
+                }}
+                className="w-8 h-8 rounded-full flex items-center justify-center bg-black/60 hover:bg-black/80 text-white transition-all cursor-pointer backdrop-blur-md border border-white/10 shadow-xs active:scale-95"
+                aria-label="Close photo"
               >
                 <X size={15} />
               </button>
             </div>
-            <img
-              src={lightboxMember.avatar}
-              alt={lightboxMember.name}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = lightboxMember.fallbackAvatar;
-              }}
-              className="w-full aspect-square object-cover bg-neutral-100 dark:bg-white/5"
-            />
-            <div className="p-5 text-center border-t border-neutral-200/70 dark:border-white/10">
-              <h3 className="text-base font-bold text-neutral-950 dark:text-white">{lightboxMember.name}</h3>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{memberTitle(lightboxMember)}</p>
+
+            {/* Profile Image View Area */}
+            <div className="relative w-full aspect-square bg-neutral-900 overflow-hidden flex items-center justify-center">
+              <img
+                src={lightboxMember.avatar}
+                alt={lightboxMember.name}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = lightboxMember.fallbackAvatar;
+                }}
+                className="w-full h-full object-cover select-none pointer-events-none"
+              />
+            </div>
+
+            {/* Member Details Footer inside Lightbox */}
+            <div className="p-5 text-center border-t border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#121316]">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <h3 className="text-base sm:text-lg font-bold text-neutral-950 dark:text-white">
+                  {lightboxMember.name}
+                </h3>
+                <span className="font-mono text-[9px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-500/30 font-bold uppercase">
+                  {lightboxMember.role}
+                </span>
+              </div>
+              <p className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                {lightboxMember.title}
+              </p>
+              <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
+                {lightboxMember.domain} · {lightboxMember.college}
+              </p>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
