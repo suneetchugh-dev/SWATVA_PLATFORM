@@ -171,7 +171,7 @@ export default function Team() {
           </span>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-neutral-950 dark:text-white mb-4 text-balance">
-            {isHindi ? 'अभियांत्रिकी एवं विकास टीम' : 'Meet TheQuirkies'}
+            {isHindi ? 'मीट द क्वर्कीज़' : 'Meet TheQuirkies'}
           </h1>
 
           <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed max-w-2xl mx-auto">

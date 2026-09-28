@@ -334,7 +334,7 @@ export default function AppShell() {
                           className="flex-shrink-0 text-neutral-400 dark:text-neutral-500 origin-center transform-gpu transition-transform duration-300 ease-out group-hover:scale-110 group-hover:text-neutral-950 dark:group-hover:text-white" 
                         />
                         <span className="text-xs font-medium text-neutral-700 dark:text-neutral-200 group-hover:text-neutral-950 dark:group-hover:text-white transition-colors truncate">
-                          {i18n.language === 'hi' ? 'टीम द क्वर्कीज़ से मिलें' : 'Meet TheQuirkies'}
+                          {i18n.language === 'hi' ? 'मीट द क्वर्कीज़' : 'Meet TheQuirkies'}
                         </span>
                       </span>
                       <ChevronRight size={14} className="text-neutral-300 dark:text-neutral-600 flex-shrink-0 group-hover:translate-x-0.5 group-hover:text-neutral-900 dark:group-hover:text-white transition-all duration-200" />
