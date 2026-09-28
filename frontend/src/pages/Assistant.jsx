@@ -510,7 +510,7 @@ export default function Assistant() {
         'w-full transition-all duration-300',
         isFullscreen
           ? 'fixed inset-0 z-[9000] p-4 sm:p-6 bg-porcelain dark:bg-obsidian flex flex-col h-dvh max-h-dvh overflow-hidden'
-          : 'flex flex-col h-[calc(100dvh-13.5rem)] lg:h-[calc(100dvh-14rem)] max-h-[calc(100dvh-13.5rem)] min-h-[440px] relative overflow-hidden'
+          : 'flex flex-col h-[calc(100dvh-13.5rem)] lg:h-[calc(100dvh-14rem)] max-h-[calc(100dvh-13.5rem)] min-h-[440px] relative pb-1.5'
       )}
     >
       <PageHeader
@@ -836,7 +836,7 @@ export default function Assistant() {
       <form
         data-tour="assistant-input"
         onSubmit={(e) => { e.preventDefault(); send() }}
-        className="mt-3.5 sm:mt-4 shrink-0 flex items-end gap-2.5 sm:gap-3"
+        className="mt-3 sm:mt-3.5 shrink-0 flex items-end gap-2.5 sm:gap-3 p-1.5 -m-1.5"
       >
         <textarea
           ref={inputRef}
@@ -852,10 +852,10 @@ export default function Assistant() {
           placeholder={isListening ? (t('assistant.voiceListening') || 'Listening… Speak now') : t('assistant.placeholder')}
           aria-label={t('assistant.placeholder')}
           className={cx(
-            'flex-1 resize-none rounded-2xl px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-[15px] bg-white/70 dark:bg-white/[0.04] border transition-all duration-200 focus:outline-none max-h-36 min-h-[50px] sm:min-h-[52px] leading-relaxed',
+            'flex-1 resize-none rounded-2xl px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-[15px] bg-white/70 dark:bg-white/[0.04] border transition-all duration-200 focus:outline-none max-h-36 min-h-[50px] sm:min-h-[52px] leading-relaxed shadow-xs',
             isListening
-              ? 'border-amber-500 ring-2 ring-amber-500/25 bg-amber-500/[0.04] dark:bg-amber-400/[0.03] shadow-[0_0_12px_rgba(245,158,11,0.12)]'
-              : 'border-neutral-300 dark:border-white/15 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/25'
+              ? 'border-amber-500 ring-2 ring-amber-500/30 bg-amber-500/[0.04] dark:bg-amber-400/[0.03] shadow-[0_0_14px_rgba(245,158,11,0.18)]'
+              : 'border-neutral-300 dark:border-white/15 focus:border-amber-500/80 focus:ring-2 focus:ring-amber-500/30 focus:shadow-[0_0_12px_rgba(245,158,11,0.12)]'
           )}
         />
 
@@ -866,10 +866,10 @@ export default function Assistant() {
           aria-label={t('assistant.voiceInput')}
           title={isListening ? (t('assistant.voiceStop') || 'Stop') : t('assistant.voiceInput')}
           className={cx(
-            'h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none',
+            'h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
             isListening
               ? 'bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/30 ring-2 ring-amber-400 ring-offset-2 ring-offset-white dark:ring-offset-obsidian scale-105 animate-pulse'
-              : 'border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-500/40 hover:bg-amber-500/5 shadow-xs'
+              : 'border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-500/40 hover:bg-amber-500/5 shadow-xs active:scale-95'
           )}
         >
           {isListening ? <MicOff size={19} className="font-bold" /> : <Mic size={19} />}
@@ -882,9 +882,9 @@ export default function Assistant() {
           aria-label={t('assistant.send')}
           title={t('assistant.send')}
           className={cx(
-            'h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 select-none cursor-pointer',
+            'h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
             text.trim() && !sending
-              ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-md shadow-amber-500/20 active:scale-95'
+              ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-md shadow-amber-500/25 active:scale-95 hover:scale-[1.02]'
               : 'border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.04] text-neutral-400 dark:text-neutral-600 cursor-not-allowed opacity-50'
           )}
         >
