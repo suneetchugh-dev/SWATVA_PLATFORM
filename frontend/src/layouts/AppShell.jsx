@@ -147,7 +147,7 @@ export default function AppShell() {
   }
 
   const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi')
-  const displayName = profileName || getLocalizedUserName(user, isHindi)
+  const displayName = getLocalizedUserName(profileName || user, isHindi)
   const photoURL = user?.photoURL
   const initial = (displayName[0] || (isHindi ? 'न' : 'S')).toUpperCase()
 
