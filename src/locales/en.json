@@ -229,6 +229,8 @@
     "signUpWithGoogle": "Sign up with Google",
     "orEmail": "or continue with email",
     "lastUsed": "Last used",
+    "continueAs": "Continue as {{name}}",
+    "useAnotherAccount": "Use another account",
     "otpNotReceived": "Didn't receive verification code?",
     "genericError": "Something went wrong. Please try again.",
     "reassurance": "Finding out what you qualify for is free and always will be. Never pay anyone to check.",
