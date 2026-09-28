@@ -26,6 +26,13 @@
           document.documentElement.classList.add('dark')
         }
       } catch (e) {}
+
+      // Early capture of PWA beforeinstallprompt so it is never missed by late React hydration
+      window.__deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        window.__deferredPrompt = e;
+      });
     </script>
   </head>
   <body>
