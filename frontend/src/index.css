@@ -1133,3 +1133,23 @@ select option,
   font-size: 13px !important;
   font-weight: 500 !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Seamless Page Route Navigation Transitions (Fade & Micro-Slide-Up)
+   ══════════════════════════════════════════════════════════════════════════ */
+@keyframes page-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition-enter {
+  animation: page-enter 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+

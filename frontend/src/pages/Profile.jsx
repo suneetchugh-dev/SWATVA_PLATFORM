@@ -382,11 +382,6 @@ export default function Profile() {
     <div>
       <PageHeader
         title={t('profile.title')}
-        actions={
-          <Button onClick={save} variant="accent" loading={saving}>
-            {saved ? t('common.saved') : t('profile.save')}
-          </Button>
-        }
       />
 
       {/* Citizen Identity Profile Banner */}
@@ -674,14 +669,24 @@ export default function Profile() {
           </Button>
 
           <div className="flex items-center gap-2.5">
-            <Button
+            <button
+              type="button"
               onClick={save}
-              variant={step === STEPS.length - 1 ? 'accent' : 'secondary'}
-              loading={saving}
+              disabled={saving}
+              className={cx(
+                'inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer select-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm',
+                saved
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 border border-emerald-500/50 ring-2 ring-emerald-500/30'
+                  : 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-100 border border-neutral-800/80 dark:border-white/20 ring-1 ring-amber-400/50 hover:ring-amber-400/90 shadow-amber-500/10'
+              )}
             >
-              <Check size={14} className="stroke-[2.5]" />
-              {saved ? t('common.saved') : t('profile.save')}
-            </Button>
+              {saving ? (
+                <Spinner size="sm" />
+              ) : (
+                <Check size={14} className={cx('stroke-[2.5]', saved ? 'text-emerald-400 dark:text-emerald-600' : 'text-amber-400 dark:text-amber-600')} />
+              )}
+              <span>{saved ? t('common.saved') : t('profile.save')}</span>
+            </button>
 
             {step < STEPS.length - 1 && (
               <Button

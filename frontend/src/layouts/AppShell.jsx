@@ -382,7 +382,7 @@ export default function AppShell() {
 
       <GuidedTour />
 
-      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-10 pb-28 lg:pb-10">
+      <main key={pathname} className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-10 pb-28 lg:pb-10 page-transition-enter">
         <Outlet />
       </main>
 
