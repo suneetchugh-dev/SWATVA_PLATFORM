@@ -25,6 +25,7 @@ import {
   Textarea,
   cx,
 } from '../components/ui'
+import { PageTourButton } from '../components/GuidedTour'
 
 const HISTORY_KEY = 'swatva_discover_history'
 const MAX_HISTORY = 10
@@ -111,9 +112,10 @@ export default function Discover() {
       <PageHeader
         title={t('discover.title')}
         desc={t('discover.desc')}
+        actions={<PageTourButton pageKey="discover" />}
       />
 
-      <Card as="form" onSubmit={submit} className="p-5 space-y-4">
+      <Card as="form" onSubmit={submit} className="p-5 space-y-4" data-tour="discover-input">
         <Field
           label={t('discover.prompt')}
           htmlFor="discover-description"
@@ -150,7 +152,7 @@ export default function Discover() {
 
         {/* Examples double as a discoverability device: the extractor keys off
             specific words, so showing them teaches the citizen what to write. */}
-        <div className="pt-1">
+        <div className="pt-1" data-tour="discover-examples">
           <p className="text-[11px] font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
             {t('discover.examples')}
           </p>

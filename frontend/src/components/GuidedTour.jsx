@@ -22,8 +22,9 @@ import { playClick } from '../utils/soundFx';
 
 const SEEN_KEY = 'swatva_tour_seen_v1';
 const TOUR_EVENT = 'swatva-start-tour';
+const PAGE_TOUR_EVENT = 'swatva-start-page-tour';
 
-const TOUR_STEPS = [
+export const GLOBAL_TOUR_STEPS = [
   {
     id: 'brand',
     target: '[data-tour="brand"]',
@@ -84,10 +85,122 @@ const TOUR_STEPS = [
     icon: User,
     titleEn: 'Citizen Profile & Preferences',
     titleHi: 'नागरिक प्रोफ़ाइल एवं सेटिंग्स',
-    descEn: 'Manage personal details, switch theme, toggle sensory audio feedback, or view Team ClusterGuilders.',
+    descEn: 'Manage personal details, switch theme, toggle sensory audio feedback, or view Team TheQuirkies.',
     descHi: 'अपनी प्रोफ़ाइल जानकारी प्रबंधित करें, थीम बदलें, और भाषा व प्राथमिकताओं को अनुकूलित करें।'
   }
 ];
+
+export const PAGE_TOUR_CONFIGS = {
+  dashboard: [
+    {
+      id: 'dashboard-missed',
+      target: '[data-tour="dashboard-missed-value"]',
+      icon: Scale,
+      titleEn: 'Unclaimed Value on the Table',
+      titleHi: 'अनुपलब्ध सरकारी लाभ राशि',
+      descEn: 'Calculates the total estimated annual value across all verified schemes you qualify for but have not claimed.',
+      descHi: 'उन सभी सरकारी योजनाओं के वार्षिक लाभ का कुल योग जिन्हें आप ले सकते हैं।'
+    },
+    {
+      id: 'dashboard-tiles',
+      target: '[data-tour="dashboard-tiles"]',
+      icon: LayoutDashboard,
+      titleEn: 'Eligibility Summary Matrix',
+      titleHi: 'पात्रता सारांश मैट्रिक्स',
+      descEn: 'High-level breakdown of all evaluated schemes categorized by Eligible, Needs Information, and Active applications.',
+      descHi: 'पात्र, अधूरी जानकारी व सक्रिय आवेदनों के अनुसार विभाजित योजनाएं देखें।'
+    }
+  ],
+  discover: [
+    {
+      id: 'discover-input',
+      target: '[data-tour="discover-input"]',
+      icon: Search,
+      titleEn: 'Natural Language Situation Intake',
+      titleHi: 'बोलचाल भाषा में स्थिति विवरण',
+      descEn: 'Type what you are going through in plain language or Hindi. SWATVA maps your narrative to statutory scheme criteria.',
+      descHi: 'अपनी या परिवार की स्थिति साधारण भाषा में लिखें। स्वत्व नियमों के अनुसार सही योजनाएं खोजेगा।'
+    },
+    {
+      id: 'discover-examples',
+      target: '[data-tour="discover-examples"]',
+      icon: Sparkles,
+      titleEn: 'Quick One-Tap Starters',
+      titleHi: 'त्वरित शुरुआत के उदाहरण',
+      descEn: 'Click any example scenario to test the life-event NLP extraction pipeline instantly.',
+      descHi: 'जीवन-घटना आधारित खोज की त्वरित जांच के लिए किसी भी उदाहरण पर क्लिक करें।'
+    }
+  ],
+  matches: [
+    {
+      id: 'matches-tabs',
+      target: '[data-tour="matches-tabs"]',
+      icon: Scale,
+      titleEn: 'Status Filtering Controls',
+      titleHi: 'पात्रता स्थिति फिल्टर',
+      descEn: 'Filter between Eligible schemes, those needing minor profile updates, and in-progress applications.',
+      descHi: 'पात्र योजनाओं और जिनमे अतिरिक्त जानकारी चाहिए, उनके बीच आसानी से फिल्टर करें।'
+    },
+    {
+      id: 'matches-cards',
+      target: '[data-tour="matches-cards"]',
+      icon: CheckCircle2,
+      titleEn: 'Deterministic Verdict Cards',
+      titleHi: 'सत्यापित योजना कार्ड',
+      descEn: 'Each card displays match percentages, required documents, and citations directly to the official government gazette.',
+      descHi: 'प्रत्येक कार्ड पात्रता प्रतिशत, आवश्यक दस्तावेज़ और आधिकारिक सरकारी पोर्टल लिंक दर्शाता है।'
+    }
+  ],
+  documents: [
+    {
+      id: 'documents-tabs',
+      target: '[data-tour="documents-tabs"]',
+      icon: FileStack,
+      titleEn: 'Locker & Upload Switcher',
+      titleHi: 'लॉकर व नया दस्तावेज़ जोड़ें',
+      descEn: 'Switch seamlessly between your verified document locker and uploading new credentials.',
+      descHi: 'सत्यापित दस्तावेज़ देखने और नया दस्तावेज़ अपलोड करने के बीच टॉगल करें।'
+    },
+    {
+      id: 'documents-grid',
+      target: '[data-tour="documents-grid"]',
+      icon: Check,
+      titleEn: 'Client-Side OCR & Verification',
+      titleHi: 'दस्तावेज़ ओसीआर व सत्यापन',
+      descEn: 'Inspect extracted document credentials, expiration dates, and review verification notices.',
+      descHi: 'निकाले गए विवरण, वैधता तिथि और सत्यापन स्थिति की जांच करें।'
+    }
+  ],
+  assistant: [
+    {
+      id: 'assistant-chat',
+      target: '[data-tour="assistant-chat"]',
+      icon: MessageSquare,
+      titleEn: 'Vernacular Scheme Consultation',
+      titleHi: 'क्षेत्रीय भाषा योजना संवाद',
+      descEn: 'Chat in Hindi or English with cited answers and statutory application readiness scores.',
+      descHi: 'पात्रता शर्तों और आवश्यक कागजात पर अपनी पसंदीदा भाषा में बातचीत करें।'
+    },
+    {
+      id: 'assistant-input',
+      target: '[data-tour="assistant-input"]',
+      icon: Sparkles,
+      titleEn: 'Voice Dictation & Smart Input',
+      titleHi: 'आवाज़ से बोलें (माइक) व संवाद',
+      descEn: 'Speak directly into your microphone or type queries to receive immediate verified guidance.',
+      descHi: 'माइक पर बोलकर या लिखकर योजनाओं के बारे में तुरंत जानकारी प्राप्त करें।'
+    },
+    {
+      id: 'assistant-actions',
+      target: '[data-tour="assistant-actions"]',
+      icon: Compass,
+      titleEn: 'Export & Consultation History',
+      titleHi: 'इतिहास व निर्यात',
+      descEn: 'Export complete consultation records to Markdown or browse past dialogues.',
+      descHi: 'पूरी बातचीत को डाउनलोड करें या पिछली चर्चाओं को पुनः देखें।'
+    }
+  ]
+};
 
 /**
  * First-Time Login Welcome Prompt Modal (SAHNIRMAAN obsidian aesthetic).
@@ -118,33 +231,26 @@ function WelcomeTourPromptModal({ isOpen, onClose, onAccept, isHindi }) {
         aria-labelledby="tour-prompt-title"
         className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-[#0a0b0e] border border-neutral-200/90 dark:border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.25)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.9)] p-6 sm:p-8 text-neutral-900 dark:text-white overflow-hidden animate-in zoom-in-95 duration-200"
       >
-        {/* Subtle Warm Amber Halo */}
-        <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-amber-500/[0.08] dark:bg-amber-500/[0.12] blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-40 h-40 rounded-full bg-amber-500/[0.06] dark:bg-amber-500/[0.10] blur-3xl pointer-events-none" />
+        {/* Glow ambient background aura */}
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-500/15 dark:bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Close Button */}
-        <button
-          onClick={() => {
-            playClick();
-            onClose();
-          }}
-          type="button"
-          aria-label={isHindi ? 'बंद करें' : 'Close'}
-          className="absolute top-4 right-4 h-8 w-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition cursor-pointer"
-        >
-          <X size={16} />
-        </button>
-
-        {/* Header Icon + Badge */}
-        <div className="flex items-center gap-2.5 mb-4">
-          <div className="h-10 w-10 rounded-2xl bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center shadow-md">
-            <Compass size={20} className="stroke-[2.2]" />
+        {/* Header Icon + Brand Pill */}
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-400/15 border border-amber-500/25 dark:border-amber-400/20 text-amber-950 dark:text-amber-200 text-xs font-semibold">
+            <Sparkles size={13} className="text-amber-600 dark:text-amber-400 animate-pulse" />
+            <span>{isHindi ? 'प्लेटफ़ॉर्म नेविगेशन गाइड' : 'Platform Navigation Tour'}</span>
           </div>
-          <div>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 border border-neutral-200/80 dark:border-white/15">
-              {isHindi ? 'नागरिक पोर्टल · त्वरित 1-मिनट दौरा' : 'Citizen Portal · Quick 1-Min Tour'}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playClick();
+              onClose();
+            }}
+            className="p-1 rounded-full text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition cursor-pointer"
+            aria-label="Close"
+          >
+            <X size={16} />
+          </button>
         </div>
 
         {/* Title & Subtitle */}
@@ -220,11 +326,12 @@ export default function GuidedTour() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [tourSteps, setTourSteps] = useState(GLOBAL_TOUR_STEPS);
   const [targetRect, setTargetRect] = useState(null);
   const isHindi = i18n.language === 'hi';
 
   const updatePosition = useCallback(() => {
-    const step = TOUR_STEPS[currentStep];
+    const step = tourSteps[currentStep];
     if (!step) return;
     const el = document.querySelector(step.target);
     if (el) {
@@ -240,7 +347,7 @@ export default function GuidedTour() {
     } else {
       setTargetRect(null);
     }
-  }, [currentStep]);
+  }, [currentStep, tourSteps]);
 
   // First-time login prompt detection (600ms grace period after load)
   useEffect(() => {
@@ -259,23 +366,39 @@ export default function GuidedTour() {
     };
   }, []);
 
-  // Listen to manual tour triggers (from preferences/help menu)
+  // Listen to manual tour triggers (Global or Page-Specific)
   useEffect(() => {
     const handleStartTour = () => {
       setShowPrompt(false);
+      setTourSteps(GLOBAL_TOUR_STEPS);
+      setCurrentStep(0);
+      setIsOpen(true);
+      playClick();
+    };
+
+    const handleStartPageTour = (e) => {
+      const pageKey = e?.detail?.pageKey;
+      const steps = PAGE_TOUR_CONFIGS[pageKey] || GLOBAL_TOUR_STEPS;
+      setShowPrompt(false);
+      setTourSteps(steps);
       setCurrentStep(0);
       setIsOpen(true);
       playClick();
     };
 
     window.addEventListener(TOUR_EVENT, handleStartTour);
-    return () => window.removeEventListener(TOUR_EVENT, handleStartTour);
+    window.addEventListener(PAGE_TOUR_EVENT, handleStartPageTour);
+    return () => {
+      window.removeEventListener(TOUR_EVENT, handleStartTour);
+      window.removeEventListener(PAGE_TOUR_EVENT, handleStartPageTour);
+    };
   }, []);
 
   const handlePromptAccept = useCallback(() => {
     setShowPrompt(false);
     localStorage.setItem(SEEN_KEY, '1');
     window.setTimeout(() => {
+      setTourSteps(GLOBAL_TOUR_STEPS);
       setCurrentStep(0);
       setIsOpen(true);
     }, 80);
@@ -311,7 +434,7 @@ export default function GuidedTour() {
         playClick();
         setIsOpen(false);
       } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
-        if (currentStep < TOUR_STEPS.length - 1) {
+        if (currentStep < tourSteps.length - 1) {
           playClick();
           setCurrentStep((prev) => prev + 1);
         } else {
@@ -328,12 +451,12 @@ export default function GuidedTour() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentStep]);
+  }, [isOpen, currentStep, tourSteps.length]);
 
-  const step = TOUR_STEPS[currentStep];
+  const step = tourSteps[currentStep];
   const IconComp = step?.icon || Compass;
   const isFirst = currentStep === 0;
-  const isLast = currentStep === TOUR_STEPS.length - 1;
+  const isLast = currentStep === tourSteps.length - 1;
 
   // Calculate popover positioning relative to highlighted element
   let popoverTop = 100;
@@ -420,7 +543,7 @@ export default function GuidedTour() {
                   <IconComp size={14} className="stroke-[2.2]" />
                 </div>
                 <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                  {isHindi ? `चरण ${currentStep + 1} / ${TOUR_STEPS.length}` : `Step ${currentStep + 1} of ${TOUR_STEPS.length}`}
+                  {isHindi ? `चरण ${currentStep + 1} / ${tourSteps.length}` : `Step ${currentStep + 1} of ${tourSteps.length}`}
                 </span>
               </div>
 
@@ -493,6 +616,30 @@ export default function GuidedTour() {
   return typeof document !== 'undefined' ? createPortal(tourContent, document.body) : tourContent;
 }
 
+export function PageTourButton({ pageKey, className = '' }) {
+  const { i18n } = useTranslation();
+  const isHindi = i18n.language === 'hi';
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        playClick();
+        window.dispatchEvent(new CustomEvent(PAGE_TOUR_EVENT, { detail: { pageKey } }));
+      }}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200/90 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs ${className}`}
+      aria-label={isHindi ? 'पेज गाइड' : 'Page Tour'}
+      title={isHindi ? 'पेज गाइड शुरू करें' : 'Start Page Tour Guide'}
+    >
+      <Compass size={13} className="text-amber-600 dark:text-amber-400" />
+      <span>{isHindi ? 'पेज गाइड' : 'Page Tour'}</span>
+    </button>
+  );
+}
+
 export function rerunGuidedTour() {
   window.dispatchEvent(new CustomEvent(TOUR_EVENT));
+}
+
+export function startPageTour(pageKey) {
+  window.dispatchEvent(new CustomEvent(PAGE_TOUR_EVENT, { detail: { pageKey } }));
 }

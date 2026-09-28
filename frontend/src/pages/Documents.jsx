@@ -18,6 +18,7 @@ import {
   cx,
 } from '../components/ui'
 import { playClick } from '../utils/soundFx'
+import { PageTourButton } from '../components/GuidedTour'
 
 /**
  * The document locker. Documents are stored in S3-compatible storage and tracked
@@ -310,43 +311,46 @@ export default function Documents() {
         title={t('documents.title')}
         desc={t('documents.desc')}
         actions={
-          <div className="p-1 rounded-full neo-glass-card inline-flex items-center">
-            <div className="relative grid grid-cols-2 gap-1 min-w-[240px] sm:min-w-[280px]">
-              <span
-                aria-hidden="true"
-                className={cx(
-                  'absolute inset-y-0 left-0 w-[calc(50%-2px)] rounded-full bg-neutral-950 dark:bg-white transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)]',
-                  activeTab === 'add' ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'
-                )}
-              />
-              <button
-                type="button"
-                onClick={() => { playClick(); setActiveTab('locker'); }}
-                aria-pressed={activeTab === 'locker'}
-                className={cx(
-                  'relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer',
-                  activeTab === 'locker'
-                    ? 'text-white dark:text-neutral-950'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
-                )}
-              >
-                <FileStack size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                <span>{t('documents.tabLockerCount', { n: docCount }) || `My Locker (${docCount})`}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => { playClick(); setActiveTab('add'); }}
-                aria-pressed={activeTab === 'add'}
-                className={cx(
-                  'relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer',
-                  activeTab === 'add'
-                    ? 'text-white dark:text-neutral-950'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
-                )}
-              >
-                <Plus size={13} className="stroke-[2.5] flex-shrink-0" aria-hidden="true" />
-                <span>{t('documents.tabAdd') || 'Add Document'}</span>
-              </button>
+          <div className="flex items-center gap-2">
+            <PageTourButton pageKey="documents" />
+            <div data-tour="documents-tabs" className="p-1 rounded-full neo-glass-card inline-flex items-center">
+              <div className="relative grid grid-cols-2 gap-1 min-w-[240px] sm:min-w-[280px]">
+                <span
+                  aria-hidden="true"
+                  className={cx(
+                    'absolute inset-y-0 left-0 w-[calc(50%-2px)] rounded-full bg-neutral-950 dark:bg-white transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)]',
+                    activeTab === 'add' ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'
+                  )}
+                />
+                <button
+                  type="button"
+                  onClick={() => { playClick(); setActiveTab('locker'); }}
+                  aria-pressed={activeTab === 'locker'}
+                  className={cx(
+                    'relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer',
+                    activeTab === 'locker'
+                      ? 'text-white dark:text-neutral-950'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+                  )}
+                >
+                  <FileStack size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
+                  <span>{t('documents.tabLockerCount', { n: docCount }) || `My Locker (${docCount})`}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { playClick(); setActiveTab('add'); }}
+                  aria-pressed={activeTab === 'add'}
+                  className={cx(
+                    'relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer',
+                    activeTab === 'add'
+                      ? 'text-white dark:text-neutral-950'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+                  )}
+                >
+                  <Plus size={13} className="stroke-[2.5] flex-shrink-0" aria-hidden="true" />
+                  <span>{t('documents.tabAdd') || 'Add Document'}</span>
+                </button>
+              </div>
             </div>
           </div>
         }
@@ -396,7 +400,7 @@ export default function Documents() {
                 </button>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div data-tour="documents-grid" className="grid gap-3 sm:grid-cols-2">
               {docs.map((d) => {
                 const expired = isExpired(d.expiryDate)
                 const style = STATUS_STYLES[d.status] ?? STATUS_STYLES.ACTIVE

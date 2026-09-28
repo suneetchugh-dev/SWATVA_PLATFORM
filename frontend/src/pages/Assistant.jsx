@@ -21,6 +21,7 @@ import { api } from '../api/client'
 import { Badge, Banner, Button, Card, PageHeader, StatusPill, cx } from '../components/ui'
 import AIOrbFace from '../components/AIOrbFace'
 import { playClick } from '../utils/soundFx'
+import { PageTourButton } from '../components/GuidedTour'
 import {
   isSpeechRecognitionSupported,
   isSpeechSynthesisSupported,
@@ -493,52 +494,55 @@ export default function Assistant() {
         desc={t('assistant.desc')}
         className="mb-4"
         actions={
-          <div className="flex items-center gap-2">
-            {messages.length > 0 && (
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <PageTourButton pageKey="assistant" />
+            <div data-tour="assistant-actions" className="flex items-center gap-1.5 sm:gap-2">
+              {messages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleExportChat}
+                  aria-label={t('assistant.export')}
+                  title={t('assistant.export')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs"
+                >
+                  <Download size={13} />
+                  <span>{t('assistant.export')}</span>
+                </button>
+              )}
+
               <button
                 type="button"
-                onClick={handleExportChat}
-                aria-label={t('assistant.export')}
-                title={t('assistant.export')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs"
+                onClick={() => {
+                  playClick()
+                  setIsHistoryOpen((prev) => !prev)
+                }}
+                aria-label={t('assistant.historyButton')}
+                className={cx(
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 cursor-pointer select-none',
+                  isHistoryOpen
+                    ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow-xs'
+                    : 'border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300'
+                )}
               >
-                <Download size={13} />
-                <span>{t('assistant.export')}</span>
+                <Clock size={13} />
+                <span>{t('assistant.historyButton')}</span>
+                {sessions.length > 0 && (
+                  <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-200 dark:bg-white/15 text-neutral-900 dark:text-white font-mono font-medium">
+                    {sessions.length}
+                  </span>
+                )}
               </button>
-            )}
 
-            <button
-              type="button"
-              onClick={() => {
-                playClick()
-                setIsHistoryOpen((prev) => !prev)
-              }}
-              aria-label={t('assistant.historyButton')}
-              className={cx(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 cursor-pointer select-none',
-                isHistoryOpen
-                  ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow-xs'
-                  : 'border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300'
-              )}
-            >
-              <Clock size={13} />
-              <span>{t('assistant.historyButton')}</span>
-              {sessions.length > 0 && (
-                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-200 dark:bg-white/15 text-neutral-900 dark:text-white font-mono font-medium">
-                  {sessions.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleNewChat}
-              aria-label={t('assistant.newChat')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 transition-all duration-200 cursor-pointer select-none shadow-xs"
-            >
-              <Plus size={13} />
-              <span>{t('assistant.newChat')}</span>
-            </button>
+              <button
+                type="button"
+                onClick={handleNewChat}
+                aria-label={t('assistant.newChat')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 transition-all duration-200 cursor-pointer select-none shadow-xs"
+              >
+                <Plus size={13} />
+                <span>{t('assistant.newChat')}</span>
+              </button>
+            </div>
           </div>
         }
       />
@@ -556,7 +560,7 @@ export default function Assistant() {
         </div>
       ) : null}
 
-      <div className="flex-1 overflow-y-auto rounded-2xl border border-neutral-200 dark:border-white/10 p-4 sm:p-5 bg-white/50 dark:bg-white/[0.02]">
+      <div data-tour="assistant-chat" className="flex-1 overflow-y-auto rounded-2xl border border-neutral-200 dark:border-white/10 p-4 sm:p-5 bg-white/50 dark:bg-white/[0.02]">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-8">
             <AIOrbFace size={76} state={sending ? 'thinking' : isListening ? 'listening' : 'idle'} className="mb-3" />
@@ -774,6 +778,7 @@ export default function Assistant() {
       ) : null}
 
       <form
+        data-tour="assistant-input"
         onSubmit={(e) => { e.preventDefault(); send() }}
         className="mt-3 shrink-0 flex items-end gap-2"
       >

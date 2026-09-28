@@ -7,10 +7,10 @@ import {
   Compass,
   FileStack,
   Scale,
-  UserCog,
 } from 'lucide-react'
 import { api } from '../api/client'
 import { Badge, Button, Card, PageHeader, Spinner, StatusPill, cx } from '../components/ui'
+import { PageTourButton } from '../components/GuidedTour'
 
 /**
  * The signed-in landing view. Answers the three questions a citizen actually
@@ -116,11 +116,12 @@ export default function Dashboard() {
         arrowClassName="-left-8 sm:-left-20 -top-10 sm:-top-12"
         title={t('dashboard.title', { name: user?.fullName?.split(' ')[0] || t('dashboard.citizen') })}
         desc={t('dashboard.desc')}
+        actions={<PageTourButton pageKey="dashboard" />}
       />
 
       {/* Missed value is the strongest single number we can show, so it gets
           the full-width accent card rather than one tile among four. */}
-      <Card accent className="p-6">
+      <Card accent className="p-6" data-tour="dashboard-missed-value">
         <Loadable
           load={() => api.benefits.getMissedValue()}
           onRetry={t('common.retry')}
@@ -141,16 +142,16 @@ export default function Dashboard() {
                   })}
                 </p>
               </div>
-              <Button as={Link} to="/app/benefits" variant="primary">
-                {t('dashboard.missedValueCta')}
-                <ArrowRight size={14} />
+              <Button as={Link} to="/app/benefits" variant="primary" className="group">
+                <span>{t('dashboard.missedValueCta')}</span>
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-200 ease-out" />
               </Button>
             </div>
           )}
         </Loadable>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" data-tour="dashboard-tiles">
         <Loadable load={() => api.eligibility.getMatches()} onRetry={t('common.retry')}>
           {(matches) => {
             const list = matches ?? []

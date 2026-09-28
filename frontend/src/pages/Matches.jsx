@@ -17,6 +17,7 @@ import {
 import { useSlidingPill, PILL_TRANSITION } from '../lib/useSlidingPill'
 import { playClick } from '../utils/soundFx'
 import AIOrbFace from '../components/AIOrbFace'
+import { PageTourButton } from '../components/GuidedTour'
 
 // Filter ids double as translation keys under matches.filters.*, except ALL.
 const FILTER_IDS = ['ELIGIBLE', 'NEEDS_INFORMATION', 'NOT_ELIGIBLE', 'ALL']
@@ -81,9 +82,12 @@ export default function Matches() {
         title={t('matches.title')}
         desc={t('matches.desc')}
         actions={
-          <Button variant="secondary" onClick={() => { playClick(); load(); }}>
-            {t('matches.recheck')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <PageTourButton pageKey="matches" />
+            <Button variant="secondary" onClick={() => { playClick(); load(); }}>
+              {t('matches.recheck')}
+            </Button>
+          </div>
         }
       />
 
@@ -112,7 +116,7 @@ export default function Matches() {
       ) : (
         <>
           {/* Filter Pills with smooth sliding background pill */}
-          <div className="w-full max-w-full overflow-x-auto no-scrollbar pb-1 mb-6">
+          <div data-tour="matches-tabs" className="w-full max-w-full overflow-x-auto no-scrollbar pb-1 mb-6">
             <div className="p-1 rounded-full neo-glass-card inline-flex items-center min-w-max">
               <div ref={filterTrackRef} className="relative flex items-center gap-1 min-w-max px-0.5" role="tablist" aria-label="Filter matches">
                 {filterPill ? (
@@ -171,7 +175,7 @@ export default function Matches() {
               body={t('matches.nothingBody')}
             />
           ) : (
-            <div className="flex flex-col gap-3">
+            <div data-tour="matches-cards" className="flex flex-col gap-3">
               {visible.map((r) => {
                 const open = openId === r.schemeId
                 const needsInfo = (r.missingInformation ?? []).length > 0
