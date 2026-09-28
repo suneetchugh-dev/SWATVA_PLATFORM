@@ -39,7 +39,13 @@ globalThis.document = {
   querySelector: () => null,
   querySelectorAll: () => [],
   getElementById: () => null,
-  body: { classList: { toggle() {}, add() {}, remove() {} } },
+  nodeType: 9,
+  body: {
+    nodeType: 1,
+    classList: { toggle() {}, add() {}, remove() {} },
+    appendChild() {},
+    removeChild() {},
+  },
 }
 
 const matchMedia = () => ({

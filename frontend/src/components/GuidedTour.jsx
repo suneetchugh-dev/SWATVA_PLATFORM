@@ -701,7 +701,14 @@ export default function GuidedTour() {
     </>
   );
 
-  return typeof document !== 'undefined' ? createPortal(tourContent, document.body) : tourContent;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if ((!isOpen && !showPrompt) || !mounted || typeof document === 'undefined') return null;
+
+  return createPortal(tourContent, document.body);
 }
 
 export function PageTourButton({ pageKey, className = '' }) {
