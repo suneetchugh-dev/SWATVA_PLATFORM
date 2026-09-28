@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowRight,
+  Check,
   Clock,
   Compass,
   Search,
@@ -224,7 +225,7 @@ export default function Discover() {
                   key={i}
                   className="flex items-start gap-2 text-sm text-neutral-600 dark:text-neutral-300"
                 >
-                  <span className="mt-1.5 h-1 w-1 rounded-full bg-amber-500 flex-shrink-0" />
+                  <Check size={13} className="mt-0.5 text-neutral-400 dark:text-neutral-500 flex-shrink-0 stroke-[2.2]" />
                   {c}
                 </li>
               ))}

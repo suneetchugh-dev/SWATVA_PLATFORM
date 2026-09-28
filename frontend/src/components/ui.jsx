@@ -113,7 +113,7 @@ export function Card({ as: Tag = 'div', accent = false, className = '', children
  * Verdict chips are a different component on purpose — see StatusPill, where
  * amber means "eligible" and carries meaning rather than decoration.
  */
-export function Badge({ children, className = '', dot = true }) {
+export function Badge({ children, className = '', icon: Icon = null }) {
   return (
     <span
       className={cx(
@@ -121,12 +121,7 @@ export function Badge({ children, className = '', dot = true }) {
         className,
       )}
     >
-      {dot ? (
-        <span
-          aria-hidden="true"
-          className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500/70 group-hover:scale-125 group-hover:bg-amber-500 transition-all duration-300"
-        />
-      ) : null}
+      {Icon ? <Icon size={12} className="flex-shrink-0" /> : null}
       {children}
     </span>
   )

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
+  Activity,
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
@@ -797,10 +798,7 @@ export default function Landing() {
                   <span className="text-xs font-mono font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                     {t('landing.bento.card2Tag')}
                   </span>
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-600 dark:bg-amber-400" />
-                  </span>
+                  <Activity size={14} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2]" />
                 </div>
                 <h3 className="text-base font-bold text-neutral-950 dark:text-white mb-4 tracking-tight">
                   {t('landing.bento.card2Title')}

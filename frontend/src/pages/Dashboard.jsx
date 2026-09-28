@@ -7,6 +7,7 @@ import {
   Compass,
   FileStack,
   Scale,
+  UserCog,
 } from 'lucide-react'
 import { api } from '../api/client'
 import { Badge, Button, Card, PageHeader, Spinner, StatusPill, cx } from '../components/ui'

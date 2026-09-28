@@ -745,8 +745,7 @@ export default function Assistant() {
             {sending ? (
               <div className="flex items-center gap-2.5 text-xs text-neutral-500 dark:text-neutral-400">
                 <AIOrbFace size={24} state="thinking" className="flex-shrink-0" />
-                <span className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="font-medium text-neutral-600 dark:text-neutral-300">
                   {t('assistant.thinking')}
                 </span>
               </div>
@@ -759,10 +758,7 @@ export default function Assistant() {
       {voiceNotice ? (
         <div className="mt-2.5 px-3.5 py-2 rounded-2xl bg-amber-500/10 dark:bg-amber-400/[0.08] backdrop-blur-md border border-amber-500/25 dark:border-amber-400/20 text-xs text-amber-950 dark:text-amber-200 flex items-center justify-between shadow-xs animate-fade-in">
           <span className="flex items-center gap-2.5 font-medium">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
-            </span>
+            <Mic size={14} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2] flex-shrink-0" />
             <span>{voiceNotice}</span>
           </span>
           {isListening ? (
