@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Code2, 
   Users2, 
@@ -390,27 +390,14 @@ export default function Team() {
           <LoadingLogo size="h-7 w-7" animate={false} />
           <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">SWATVA</span>
           <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
-          <button
-            type="button"
-            onClick={() => {
-              playClick();
-              window.dispatchEvent(new CustomEvent('swatva-trigger-particle-dissolve'));
-              setTimeout(() => {
-                if (window.lenis) {
-                  window.lenis.scrollTo(0, { duration: 1.2 });
-                } else {
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-              }, 80);
-              setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('swatva-reset-particles'));
-              }, 1600);
-            }}
-            title={isHindi ? 'शीर्ष पर वापस जाएं' : 'Back to top'}
+          <Link
+            to="/team"
+            onClick={playClick}
+            title={isHindi ? 'हमारी टीम से मिलें' : 'Meet our team'}
             className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
           >
             {isHindi ? 'द क्वर्कीज़ द्वारा' : 'BY TheQuirkies'}
-          </button>
+          </Link>
         </div>
 
         <div className="flex items-center gap-4 text-[11px] text-neutral-600 dark:text-neutral-300 font-medium">

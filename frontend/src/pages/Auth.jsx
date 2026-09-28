@@ -265,7 +265,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 }`}
               >
                 <LogIn size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                <span>Sign In to Account</span>
+                <span>Sign In</span>
               </button>
               <button
                 type="button"
@@ -278,7 +278,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 }`}
               >
                 <UserPlus size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                <span>Create New Account</span>
+                <span>Create Account</span>
               </button>
             </div>
           </div>

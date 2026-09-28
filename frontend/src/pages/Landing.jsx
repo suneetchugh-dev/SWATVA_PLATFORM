@@ -570,7 +570,7 @@ export default function Landing() {
 
         <div className="relative w-full max-w-4xl z-10 flex flex-col items-center">
           <h1 className="tracking-tight text-balance relative z-10 mb-4 flex flex-col items-center w-full">
-            <span className="relative inline-block max-w-fit group cursor-default whitespace-nowrap font-black text-[clamp(1.35rem,6.6vw,4rem)] leading-[1.18] bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 via-neutral-800 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400">
+            <span className="relative inline-block max-w-fit group cursor-default whitespace-nowrap font-black text-[clamp(1.35rem,6.6vw,4rem)] leading-[1.18] bg-clip-text text-transparent bg-gradient-to-b from-neutral-950 via-neutral-800 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400 py-1">
               <CurvyArrow 
                 direction="top-left" 
                 className="-left-12 sm:-left-24 -top-8 sm:-top-10"

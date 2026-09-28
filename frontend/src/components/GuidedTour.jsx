@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { playClick } from '../utils/soundFx';
+import LoadingLogo from './LoadingLogo';
 
 const SEEN_KEY = 'swatva_tour_seen_v1';
 const TOUR_EVENT = 'swatva-start-tour';
@@ -308,7 +309,7 @@ function WelcomeTourPromptModal({ isOpen, onClose, onAccept, isHindi }) {
         {/* Header Icon + Brand Pill */}
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-400/15 border border-amber-500/25 dark:border-amber-400/20 text-amber-950 dark:text-amber-200 text-xs font-semibold">
-            <Sparkles size={13} className="text-amber-600 dark:text-amber-400 animate-pulse" />
+            <LoadingLogo size="h-4 w-4" animate={false} className="flex-shrink-0" />
             <span>{isHindi ? 'प्लेटफ़ॉर्म नेविगेशन गाइड' : 'Platform Navigation Tour'}</span>
           </div>
           <button

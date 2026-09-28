@@ -471,8 +471,8 @@ export default function Assistant() {
         },
         onResult: (final) => {
           setText(final)
-          setVoiceNotice(null)
-          setIsListening(false)
+          setVoiceNotice(t('assistant.voiceListening') || 'Listening… Speak now')
+          // With continuous=true, don't stop — let user explicitly click MicOff
         },
         onError: (e) => {
           console.warn('Speech recognition error:', e)
@@ -571,13 +571,6 @@ export default function Assistant() {
         }
       />
 
-      {sawUngrounded ? (
-        <div className="mb-3 shrink-0">
-          <Banner tone="info" title={t('assistant.ungroundedTitle')}>
-            {t('assistant.ungroundedBody')}
-          </Banner>
-        </div>
-      ) : null}
       {error ? (
         <div className="mb-3 shrink-0">
           <Banner tone="error" title={t('assistant.errorTitle')}>{error}</Banner>
@@ -777,9 +770,27 @@ export default function Assistant() {
                     ) : null}
 
                     {m.citations?.length ? (
-                      <p className="mt-2 text-[11px] text-neutral-500 dark:text-neutral-400">
-                        {t('assistant.sources', { list: m.citations.slice(0, 3).join(' · ') })}
-                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1 items-center">
+                        <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
+                          {t('assistant.sourcesLabel') || 'Sources:'}
+                        </span>
+                        {m.citations.slice(0, 3).map((cite, ci) =>
+                          cite.startsWith('http') ? (
+                            <a
+                              key={ci}
+                              href={cite}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-0.5 text-[11px] text-amber-700 dark:text-amber-400 hover:underline font-medium break-all"
+                            >
+                              {cite}
+                              <ExternalLink size={10} className="flex-shrink-0 ml-0.5" />
+                            </a>
+                          ) : (
+                            <span key={ci} className="text-[11px] text-neutral-500 dark:text-neutral-400">{cite}</span>
+                          )
+                        )}
+                      </div>
                     ) : null}
                   </div>
                 </div>
@@ -799,20 +810,9 @@ export default function Assistant() {
       </div>
 
       {voiceNotice ? (
-        <div className="mt-2.5 px-3.5 py-2 rounded-2xl bg-amber-500/10 dark:bg-amber-400/[0.08] backdrop-blur-md border border-amber-500/25 dark:border-amber-400/20 text-xs text-amber-950 dark:text-amber-200 flex items-center justify-between shadow-xs animate-fade-in">
-          <span className="flex items-center gap-2.5 font-medium">
-            <Mic size={14} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2] flex-shrink-0" />
-            <span>{voiceNotice}</span>
-          </span>
-          {isListening ? (
-            <button
-              type="button"
-              onClick={handleToggleListening}
-              className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 hover:bg-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 text-amber-950 dark:text-amber-100 border border-amber-500/30 dark:border-amber-400/25 transition-all duration-150 cursor-pointer active:scale-95"
-            >
-              {t('assistant.voiceStop') || 'Stop'}
-            </button>
-          ) : null}
+        <div className="mt-2.5 px-3.5 py-2 rounded-2xl bg-amber-500/10 dark:bg-amber-400/[0.08] backdrop-blur-md border border-amber-500/25 dark:border-amber-400/20 text-xs text-amber-950 dark:text-amber-200 flex items-center gap-2.5 shadow-xs animate-fade-in">
+          <Mic size={14} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2] flex-shrink-0" />
+          <span className="font-medium">{voiceNotice}</span>
         </div>
       ) : null}
 
