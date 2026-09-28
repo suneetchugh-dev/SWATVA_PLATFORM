@@ -145,9 +145,10 @@ export default function AppShell() {
     navigate('/', { replace: true })
   }
 
-  const displayName = profileName || user?.fullName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
+  const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi')
+  const displayName = profileName || user?.fullName || (user?.email ? user.email.split('@')[0] : (isHindi ? 'नागरिक उपयोगकर्ता' : 'Citizen User'))
   const photoURL = user?.photoURL
-  const initial = (displayName[0] || 'S').toUpperCase()
+  const initial = (displayName[0] || (isHindi ? 'न' : 'S')).toUpperCase()
 
   return (
     <div className="min-h-dvh w-full bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">

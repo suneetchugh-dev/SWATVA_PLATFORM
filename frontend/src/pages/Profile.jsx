@@ -483,8 +483,8 @@ export default function Profile() {
 
   const current = STEPS[step]
   const user = getStoredUser()
-  const displayName = user?.fullName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
-  const initial = (displayName[0] || 'S').toUpperCase()
+  const displayName = user?.fullName || (user?.email ? user.email.split('@')[0] : (isHindi ? 'नागरिक उपयोगकर्ता' : 'Citizen User'))
+  const initial = (displayName[0] || (isHindi ? 'न' : 'S')).toUpperCase()
   const isEmailUser = currentUser?.provider !== 'firebase-google'
 
   return (
