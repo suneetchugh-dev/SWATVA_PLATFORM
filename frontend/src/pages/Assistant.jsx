@@ -814,9 +814,21 @@ export default function Assistant() {
           {isListening ? <MicOff size={18} className="font-bold" /> : <Mic size={18} />}
         </button>
 
-        <Button type="submit" variant="accent" disabled={!text.trim() || sending} aria-label={t('assistant.send')}>
-          <Send size={15} />
-        </Button>
+        {/* Send Button */}
+        <button
+          type="submit"
+          disabled={!text.trim() || sending}
+          aria-label={t('assistant.send')}
+          title={t('assistant.send')}
+          className={cx(
+            'h-[46px] w-[46px] rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 select-none cursor-pointer',
+            text.trim() && !sending
+              ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-md shadow-amber-500/20 active:scale-95'
+              : 'border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.04] text-neutral-400 dark:text-neutral-600 cursor-not-allowed opacity-50'
+          )}
+        >
+          <Send size={16} className="stroke-[2.2]" />
+        </button>
       </form>
 
       {/* History Slide-Over Drawer with smooth sliding transition */}

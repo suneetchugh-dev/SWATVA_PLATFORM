@@ -117,7 +117,6 @@ export default function Discover() {
         <Field
           label={t('discover.prompt')}
           htmlFor="discover-description"
-          hint={t('discover.promptHint')}
         >
           <Textarea
             id="discover-description"
@@ -134,17 +133,13 @@ export default function Discover() {
             required
             minLength={5}
             maxLength={2000}
-            aria-describedby="discover-kb-hint"
           />
-          <p id="discover-kb-hint" className="mt-1 text-[11px] text-neutral-400 dark:text-neutral-500">
-            {t('discover.kbHint')}
-          </p>
         </Field>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={loading || description.trim().length < 5}>
-            <Search size={13} />
-            {loading ? t('common.searching') : t('discover.submit')}
+          <Button type="submit" disabled={loading || description.trim().length < 5} className="group">
+            <Search size={13} className={loading ? 'animate-spin' : 'group-hover:scale-110 transition-transform duration-200'} />
+            <span>{loading ? t('common.searching') : t('discover.submit')}</span>
           </Button>
           {loading ? (
             <span className="text-neutral-500 dark:text-neutral-400">

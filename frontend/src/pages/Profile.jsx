@@ -590,7 +590,7 @@ export default function Profile() {
           ) : null}
         </div>
 
-        <div className="mt-8 flex items-center justify-between gap-3">
+        <div className="mt-8 pt-4 border-t border-neutral-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
           <Button
             variant="secondary"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
@@ -599,13 +599,26 @@ export default function Profile() {
             <ChevronLeft size={15} />
             {t('common.back')}
           </Button>
-          <Button
-            onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
-            disabled={step === STEPS.length - 1}
-          >
-            {t('common.next')}
-            <ChevronRight size={15} />
-          </Button>
+
+          <div className="flex items-center gap-2.5">
+            <Button
+              onClick={save}
+              variant={step === STEPS.length - 1 ? 'accent' : 'secondary'}
+              loading={saving}
+            >
+              <Check size={14} className="stroke-[2.5]" />
+              {saved ? t('common.saved') : t('profile.save')}
+            </Button>
+
+            {step < STEPS.length - 1 && (
+              <Button
+                onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
+              >
+                {t('common.next')}
+                <ChevronRight size={15} />
+              </Button>
+            )}
+          </div>
         </div>
       </Card>
     </div>

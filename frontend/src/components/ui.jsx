@@ -254,8 +254,8 @@ export function EmptyState({ icon: Icon, title, body, action }) {
   return (
     <Card className="px-6 py-14 flex flex-col items-center text-center">
       {Icon ? (
-        <span className="h-11 w-11 flex items-center justify-center rounded-xl bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
-          <Icon size={19} strokeWidth={2} />
+        <span className="h-11 w-11 flex items-center justify-center rounded-xl bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 shadow-sm animate-in zoom-in-75 fade-in duration-300 transition-transform hover:scale-105">
+          <Icon size={19} strokeWidth={2} className="animate-in fade-in duration-500" />
         </span>
       ) : null}
       <h3 className="mt-4 text-base font-bold tracking-tight">{title}</h3>

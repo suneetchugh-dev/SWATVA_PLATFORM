@@ -258,7 +258,6 @@ export default function AppShell() {
                           setIsAccountOpen(false)
                           navigate('/app/profile')
                         }}
-                        title={i18n.language === 'hi' ? 'प्रोफ़ाइल सेट करें' : 'Set Up Profile'}
                         aria-label={i18n.language === 'hi' ? 'प्रोफ़ाइल सेट करें' : 'Set Up Profile'}
                         className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors duration-200 cursor-pointer"
                       >

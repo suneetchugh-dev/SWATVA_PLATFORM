@@ -625,7 +625,7 @@
     "desc": "Describe your situation in your own words and we will surface the schemes most likely to help.",
     "prompt": "Your situation",
     "promptHint": "A sentence or two is enough.",
-    "placeholder": "e.g. My daughter has just started college in Bengaluru and our family income is around 3 lakh per year.",
+    "placeholder": "e.g. My daughter has just started college and our family income is around ₹3,00,000 per year. (Press Ctrl + Enter to search)",
     "submit": "Find schemes",
     "failed": "We could not run that search. Please try again.",
     "failedTitle": "Search failed",
