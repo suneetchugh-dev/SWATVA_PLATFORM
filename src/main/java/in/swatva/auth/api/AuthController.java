@@ -78,11 +78,11 @@ public class AuthController {
                                   @NotBlank @Size(min = 6, max = 6) String otp) { }
     public record RegisterOtpRequest(@NotBlank @Size(max = 100) String fullName,
                                      @NotBlank @Email @Size(max = 120) String email,
-                                     @NotBlank @Size(min = 8, max = 72) String password,
+                                     @NotBlank @Size(min = 6, max = 72) String password,
                                      @NotBlank @Size(min = 6, max = 6) String otp) { }
     public record RegisterRequest(@NotBlank @Size(max = 100) String fullName,
                                   @NotBlank @Email @Size(max = 120) String email,
-                                  @NotBlank @Size(min = 8, max = 72) String password) { }
+                                  @NotBlank @Size(min = 6, max = 72) String password) { }
     public record LoginRequest(@NotBlank @Email @Size(max = 120) String email,
                                @NotBlank @Size(max = 72) String password) { }
     public record FirebaseLoginRequest(String fullName,
