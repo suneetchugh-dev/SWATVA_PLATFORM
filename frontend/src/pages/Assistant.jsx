@@ -710,21 +710,35 @@ export default function Assistant() {
         </Button>
       </form>
 
-      {/* History Slide-Over Drawer */}
-      {isHistoryOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-neutral-950/40 backdrop-blur-xs transition-opacity duration-200"
-            onClick={() => {
-              playClick()
-              setIsHistoryOpen(false)
-            }}
-            aria-hidden="true"
-          />
+      {/* History Slide-Over Drawer with smooth sliding transition */}
+      <div
+        className={cx(
+          'fixed inset-0 z-50 flex justify-end transition-all duration-300 pointer-events-none',
+          isHistoryOpen ? 'pointer-events-auto visible' : 'invisible delay-300'
+        )}
+        aria-hidden={!isHistoryOpen}
+      >
+        {/* Backdrop */}
+        <div
+          className={cx(
+            'fixed inset-0 bg-neutral-950/40 backdrop-blur-xs transition-opacity duration-300 ease-out',
+            isHistoryOpen ? 'opacity-100' : 'opacity-0'
+          )}
+          onClick={() => {
+            playClick()
+            setIsHistoryOpen(false)
+          }}
+          aria-hidden="true"
+        />
 
-          {/* Drawer Panel */}
-          <div className="relative w-full max-w-sm sm:max-w-md bg-white dark:bg-neutral-900 border-l border-neutral-200 dark:border-white/10 shadow-2xl flex flex-col h-full z-10 animate-fade-in">
+        {/* Drawer Panel */}
+        <div
+          className={cx(
+            'relative w-full max-w-sm sm:max-w-md bg-white dark:bg-neutral-900 border-l border-neutral-200 dark:border-white/10 shadow-2xl flex flex-col h-full z-10',
+            'transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
+            isHistoryOpen ? 'translate-x-0' : 'translate-x-full'
+          )}
+        >
             {/* Header */}
             <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -861,7 +875,6 @@ export default function Assistant() {
             )}
           </div>
         </div>
-      )}
-    </div>
+      </div>
   )
 }
