@@ -21,7 +21,8 @@ export default function PWAInstallBanner() {
   const isExcludedRoute =
     location.pathname.startsWith('/app') ||
     location.pathname === '/login' ||
-    location.pathname === '/register';
+    location.pathname === '/register' ||
+    location.pathname === '/team';
 
   useEffect(() => {
     try {

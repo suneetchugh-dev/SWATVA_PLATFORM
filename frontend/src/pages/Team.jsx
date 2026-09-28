@@ -61,24 +61,26 @@ export default function Team() {
 
       {/* Header Bar */}
       <header className="sticky top-0 z-40 pt-3 px-3 sm:px-5">
-        <div className="mx-auto max-w-6xl neo-glass-card px-4 py-2.5 flex items-center justify-between gap-4">
-          <div className="flex items-center">
+        <div className="mx-auto max-w-6xl neo-glass-card px-4 py-2.5 relative flex items-center justify-between">
+          <div className="flex items-center z-10">
             <button
               type="button"
               onClick={handleBack}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-white/10 transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-white/10 transition cursor-pointer select-none active:scale-95 shadow-2xs"
             >
               <ArrowLeft size={13} />
               <span>{isHindi ? 'वापस जाएं' : 'Back to App'}</span>
             </button>
           </div>
 
-          {/* Center Logo with No Text */}
-          <div className="flex items-center justify-center">
-            <LoadingLogo animate={false} />
+          {/* Absolute Mathematically Centered Logo */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="pointer-events-auto flex items-center justify-center">
+              <LoadingLogo animate={false} size="h-7 w-7" />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 z-10">
             <ThemeToggle darkMode={dark} toggleTheme={toggle} />
           </div>
         </div>
