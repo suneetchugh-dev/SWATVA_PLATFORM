@@ -1,8 +1,9 @@
 import React from 'react';
 
 /**
- * AIOrbIcon - Custom SVG Icon representing SWATVA's AI Orb Assistant.
- * Designed to seamlessly blend with Lucide icons (stroke-based, 24x24 viewBox).
+ * AIOrbIcon - Outline SVG icon matching SWATVA's AI Assistant Orb.
+ * Uses the exact signature droplet/leaf silhouette (rounded-[50%_50%_2px_50%])
+ * with expressive eyes and welcoming smile from AIOrbFace.jsx.
  */
 export default function AIOrbIcon({ size = 16, className = '', strokeWidth = 2, ...props }) {
   return (
@@ -19,15 +20,17 @@ export default function AIOrbIcon({ size = 16, className = '', strokeWidth = 2, 
       aria-hidden="true"
       {...props}
     >
-      {/* Main AI Orb */}
-      <circle cx="12" cy="12" r="8.5" />
-      {/* Expressive AI Mascot Eyes */}
-      <circle cx="9.5" cy="11" r="1.1" fill="currentColor" stroke="none" />
-      <circle cx="14.5" cy="11" r="1.1" fill="currentColor" stroke="none" />
-      {/* Gentle Welcoming Smile */}
-      <path d="M9.8 14.5a3 3 0 0 0 4.4 0" strokeWidth="1.6" />
-      {/* Top-Right AI Sparkle Indicator */}
-      <path d="M19 2.5v3M17.5 4h3" strokeWidth="1.5" />
+      {/* Signature SWATVA AI Orb droplet outline (50% 50% 2px 50%) */}
+      <path d="M 12 2.5 A 9.5 9.5 0 0 0 2.5 12 A 9.5 9.5 0 0 0 12 21.5 L 19.5 21.5 A 2 2 0 0 0 21.5 19.5 L 21.5 12 A 9.5 9.5 0 0 0 12 2.5 Z" />
+      {/* AI Assistant Eyes (from AIOrbFace) */}
+      <circle cx="9.2" cy="11.2" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="14.8" cy="11.2" r="1.3" fill="currentColor" stroke="none" />
+      {/* AI Assistant Smile (from AIOrbFace) */}
+      <path
+        d="M 9.8 15 Q 12 17.2 14.2 15"
+        strokeWidth={typeof strokeWidth === 'number' ? strokeWidth * 0.8 : 1.6}
+        fill="none"
+      />
     </svg>
   );
 }
