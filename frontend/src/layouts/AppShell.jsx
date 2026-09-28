@@ -28,6 +28,7 @@ import ThemeToggle from '../components/ThemeToggle'
 import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
 import AIOrbIcon from '../components/AIOrbIcon'
+import { getLocalizedUserName } from '../utils/userDisplay'
 import { playClick } from '../utils/soundFx'
 
 // Routes are stable; only the labels are translated.
@@ -145,9 +146,10 @@ export default function AppShell() {
     navigate('/', { replace: true })
   }
 
-  const displayName = profileName || user?.fullName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
+  const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi')
+  const displayName = getLocalizedUserName(profileName || user, isHindi)
   const photoURL = user?.photoURL
-  const initial = (displayName[0] || 'S').toUpperCase()
+  const initial = (displayName[0] || (isHindi ? 'न' : 'S')).toUpperCase()
 
   return (
     <div className="min-h-dvh w-full bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">
@@ -334,7 +336,7 @@ export default function AppShell() {
                           className="flex-shrink-0 text-neutral-400 dark:text-neutral-500 origin-center transform-gpu transition-transform duration-300 ease-out group-hover:scale-110 group-hover:text-neutral-950 dark:group-hover:text-white" 
                         />
                         <span className="text-xs font-medium text-neutral-700 dark:text-neutral-200 group-hover:text-neutral-950 dark:group-hover:text-white transition-colors truncate">
-                          Meet TheQuirkies
+                          {i18n.language === 'hi' ? 'मीट द क्वर्कीज़' : 'Meet TheQuirkies'}
                         </span>
                       </span>
                       <ChevronRight size={14} className="text-neutral-300 dark:text-neutral-600 flex-shrink-0 group-hover:translate-x-0.5 group-hover:text-neutral-900 dark:group-hover:text-white transition-all duration-200" />

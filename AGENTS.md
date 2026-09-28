@@ -133,6 +133,9 @@ docker compose up -d
 
 ## UI & Design System Rules
 
+> **🚨 MANDATORY: Before creating or editing any component, page, or feature — read [`docs/UI_RULES.md`](./docs/UI_RULES.md) first.**
+> It defines translation requirements, responsive breakpoints, accessibility rules, component patterns, and the pre-commit checklist. Every UI PR must satisfy all rules in that file.
+
 - **NEVER USE 🟢, 🔴, 🟡, 🔵 ORBS OR ANY COLOURED STATUS BALLS ANYWHERE IN CODE, UI, OR DOCUMENTATION.**
 - Do not use emoji circle orbs or floating colored ball elements as status markers.
 - Always use semantic, accessible SVG icons (from `lucide-react`, e.g., `CheckCircle2`, `AlertCircle`, `XCircle`, `Info`, `Clock`, `Sparkles`, `Activity`) styled with appropriate typographic hierarchy.

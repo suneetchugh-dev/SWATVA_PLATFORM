@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { playClick } from '../utils/soundFx';
+import LoadingLogo from './LoadingLogo';
 
 const SEEN_KEY = 'swatva_tour_seen_v1';
 const TOUR_EVENT = 'swatva-start-tour';
@@ -308,7 +309,7 @@ function WelcomeTourPromptModal({ isOpen, onClose, onAccept, isHindi }) {
         {/* Header Icon + Brand Pill */}
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-400/15 border border-amber-500/25 dark:border-amber-400/20 text-amber-950 dark:text-amber-200 text-xs font-semibold">
-            <Sparkles size={13} className="text-amber-600 dark:text-amber-400 animate-pulse" />
+            <LoadingLogo size="h-4 w-4" animate={false} className="flex-shrink-0" />
             <span>{isHindi ? 'प्लेटफ़ॉर्म नेविगेशन गाइड' : 'Platform Navigation Tour'}</span>
           </div>
           <button
@@ -679,6 +680,20 @@ export default function GuidedTour() {
               >
                 {isHindi ? 'दौरा छोड़ें' : 'Skip'}
               </button>
+            </div>
+
+            {/* Keyboard shortcut hint — desktop only (hidden on touch/small screens) */}
+            <div className="hidden sm:flex items-center justify-center gap-3 mt-3 pt-2.5 border-t border-neutral-100 dark:border-white/5">
+              <span className="flex items-center gap-1 text-[10px] text-neutral-400 dark:text-neutral-500">
+                <kbd className="inline-flex items-center justify-center w-5 h-5 rounded border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.04] font-mono text-[9px] text-neutral-500 dark:text-neutral-400 shadow-sm">←</kbd>
+                <kbd className="inline-flex items-center justify-center w-5 h-5 rounded border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.04] font-mono text-[9px] text-neutral-500 dark:text-neutral-400 shadow-sm">→</kbd>
+                <span className="ml-0.5">{isHindi ? 'नेविगेट करें' : 'navigate'}</span>
+              </span>
+              <span className="w-px h-3 bg-neutral-200 dark:bg-white/10" aria-hidden="true" />
+              <span className="flex items-center gap-1 text-[10px] text-neutral-400 dark:text-neutral-500">
+                <kbd className="inline-flex items-center justify-center px-1.5 h-5 rounded border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.04] font-mono text-[9px] text-neutral-500 dark:text-neutral-400 shadow-sm">Esc</kbd>
+                <span>{isHindi ? 'छोड़ें' : 'to skip'}</span>
+              </span>
             </div>
           </div>
         </div>

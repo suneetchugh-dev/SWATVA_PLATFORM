@@ -307,7 +307,7 @@ export default function PreferencesModal({ isOpen, onClose }) {
           <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 ml-7 leading-snug">
             {currentLang === 'hi' 
               ? 'भाषा, थीम, स्पर्श प्रतिक्रिया और इंटरैक्टिव भौतिकी को अनुकूलित करें।' 
-              : 'Customize dialect pipelines, sensory sound effects, and kinetic physics.'}
+              : 'Customize language, audio, motion, and display settings.'}
           </p>
         </div>
 
@@ -407,7 +407,7 @@ export default function PreferencesModal({ isOpen, onClose }) {
                     {currentLang === 'hi' ? 'स्पर्श व ध्वनि प्रतिक्रिया' : 'Sensory & Audio Feedback'}
                   </div>
                   <div className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5 break-words">
-                    {currentLang === 'hi' ? 'बटन क्लिक, नियम मिलान और दस्तावेज़ सत्यापन पर स्पर्श ध्वनि।' : 'Low-latency haptic clicks, eligibility verification, and completion chimes.'}
+                    {currentLang === 'hi' ? 'बटन क्लिक, नियम मिलान और दस्तावेज़ सत्यापन पर स्पर्श ध्वनि।' : 'Click sounds, chimes on eligibility matches and document uploads.'}
                   </div>
                 </div>
               </div>
@@ -553,7 +553,7 @@ export default function PreferencesModal({ isOpen, onClose }) {
                     {currentLang === 'hi' ? 'गति एवं काइनेटिक एनिमेशन' : 'Motion & Kinetic Physics'}
                   </div>
                   <div className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5 break-words">
-                    {currentLang === 'hi' ? 'स्लॉट-रील रोलर, लेजिस स्मूथ स्क्रॉलिंग और कण भौतिकी।' : 'Kinetic slot-reel headlines, Lenis smooth scrolling, and pointillism particle dispersion.'}
+                    {currentLang === 'hi' ? 'स्लॉट-रील रोलर, लेजिस स्मूथ स्क्रॉलिंग और कण भौतिकी।' : 'Smooth scrolling, kinetic headlines, and particle animations.'}
                   </div>
                 </div>
               </div>

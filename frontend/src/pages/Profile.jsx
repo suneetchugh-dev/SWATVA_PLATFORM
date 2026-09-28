@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { AlertCircle, Camera, Check, ChevronLeft, ChevronRight, Pencil, Trash2, UserRound, Wand2, X } from 'lucide-react'
 import { api, getStoredUser, setStoredUser } from '../api/client'
 import { playClick } from '../utils/soundFx'
+import { getLocalizedUserName } from '../utils/userDisplay'
 
 import { INDIAN_STATES } from '../lib/india'
 import {
@@ -483,8 +484,8 @@ export default function Profile() {
 
   const current = STEPS[step]
   const user = getStoredUser()
-  const displayName = user?.fullName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
-  const initial = (displayName[0] || 'S').toUpperCase()
+  const displayName = getLocalizedUserName(user, isHindi)
+  const initial = (displayName[0] || (isHindi ? 'न' : 'S')).toUpperCase()
   const isEmailUser = currentUser?.provider !== 'firebase-google'
 
   return (
@@ -519,7 +520,7 @@ export default function Profile() {
       />
 
       {/* Citizen Identity Profile Banner */}
-      <div data-tour="profile-avatar" className="mb-6 p-4 rounded-2xl neo-glass-card flex items-center justify-between gap-4">
+      <div data-tour="profile-avatar" className="mb-6 p-4 rounded-2xl neo-glass-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
           {/* Interactive Avatar with Refined Round Ring & Inner Pencil Edit Badge */}
           <div

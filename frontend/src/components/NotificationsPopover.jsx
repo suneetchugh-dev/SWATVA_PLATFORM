@@ -128,6 +128,17 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
     } catch {}
   };
 
+  const dismissNotification = (id) => {
+    playClick();
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    // Also mark as read in localStorage so it doesn't reappear on re-mount
+    setReadIds((prev) => {
+      const next = prev.includes(id) ? prev : [...prev, id];
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
   const clearAll = () => {
     playClick();
     markAllAsRead();
@@ -214,12 +225,12 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
             return (
               <div
                 key={notif.id}
-                onClick={() => markAsRead(notif.id, notif.link)}
-                className={`p-3.5 flex items-start space-x-3 transition cursor-pointer ${
+                className={`group/notif relative p-3.5 flex items-start space-x-3 transition cursor-pointer ${
                   isRead
                     ? 'opacity-70 hover:opacity-100 bg-white dark:bg-[#151618] hover:bg-neutral-50 dark:hover:bg-white/[0.04]'
                     : 'bg-neutral-50 dark:bg-[#121315] hover:bg-neutral-100 dark:hover:bg-[#1a1b1e]'
                 }`}
+                onClick={() => markAsRead(notif.id, notif.link)}
               >
                 {getTypeIcon(notif.type, notif.icon)}
                 <div className="flex-1 min-w-0">
@@ -235,9 +246,21 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
                     {notif.desc}
                   </p>
                 </div>
-                {!isRead && (
-                  <Sparkles size={12} className="text-amber-600 dark:text-amber-400 mt-1 flex-shrink-0" />
-                )}
+                <div className="flex items-center gap-1 ml-1 flex-shrink-0">
+                  {!isRead && (
+                    <Sparkles size={12} className="text-amber-600 dark:text-amber-400 mt-1 flex-shrink-0" />
+                  )}
+                  {/* Per-notification dismiss button */}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); dismissNotification(notif.id); }}
+                    title={i18n.language === 'hi' ? 'हटाएं' : 'Dismiss'}
+                    aria-label={i18n.language === 'hi' ? 'यह सूचना हटाएं' : 'Dismiss notification'}
+                    className="opacity-0 group-hover/notif:opacity-100 focus:opacity-100 p-1 rounded-md text-neutral-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer mt-0.5"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
               </div>
             );
           })

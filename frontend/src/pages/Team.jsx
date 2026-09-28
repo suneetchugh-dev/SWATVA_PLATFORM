@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Code2, 
   Users2, 
@@ -99,6 +99,38 @@ export default function Team() {
     setLightboxTilt({ x: 0, y: 0 });
   };
 
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
+
+  const handleLightboxTouchStart = (e) => {
+    if (e.touches && e.touches[0]) {
+      touchStartXRef.current = e.touches[0].clientX;
+      touchStartYRef.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleLightboxTouchEnd = (e) => {
+    if (!lightboxMember || !e.changedTouches || !e.changedTouches[0]) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+
+    // Check for horizontal swipe with low vertical displacement
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaY) < 60) {
+      const idx = TEAM_MEMBERS.findIndex((m) => m.id === lightboxMember.id);
+      if (idx !== -1) {
+        playClick();
+        if (deltaX < 0) {
+          // Swipe left -> Next member
+          setLightboxMember(TEAM_MEMBERS[(idx + 1) % TEAM_MEMBERS.length]);
+        } else {
+          // Swipe right -> Prev member
+          setLightboxMember(TEAM_MEMBERS[(idx - 1 + TEAM_MEMBERS.length) % TEAM_MEMBERS.length]);
+        }
+        setLightboxTilt({ x: 0, y: 0 });
+      }
+    }
+  };
+
   const handleBack = () => {
     playClick();
     if (getToken()) {
@@ -109,11 +141,11 @@ export default function Team() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300 relative bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white">
+    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300 relative bg-porcelain dark:bg-obsidian text-neutral-950 dark:text-white overflow-x-hidden">
       {/* Monumental Background Watermark */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center select-none z-0 overflow-hidden">
         <span className="text-[18vw] font-black tracking-tighter text-neutral-950/[0.03] dark:text-white/[0.04] leading-none font-mono">
-          THEQUIRKIES
+          {isHindi ? 'द क्वर्कीज़' : 'THEQUIRKIES'}
         </span>
       </div>
 
@@ -167,16 +199,16 @@ export default function Team() {
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 mb-3 shadow-sm">
             <Users2 size={13} className="text-amber-400 dark:text-amber-500" />
-            TheQuirkies
+            {isHindi ? 'द क्वर्कीज़' : 'TheQuirkies'}
           </span>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-neutral-950 dark:text-white mb-4 text-balance">
-            {isHindi ? 'अभियांत्रिकी एवं विकास टीम' : 'Meet TheQuirkies'}
+            {isHindi ? 'मीट द क्वर्कीज़' : 'Meet TheQuirkies'}
           </h1>
 
           <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed max-w-2xl mx-auto">
             {isHindi
-              ? 'SWATVA सार्वजनिक कल्याण प्लेटफ़ॉर्म के पीछे समर्पित डेवलपर्स और सिस्टम आर्किटेक्ट्स।'
+              ? 'स्वतवा सार्वजनिक कल्याण प्लेटफ़ॉर्म के पीछे समर्पित डेवलपर्स और सिस्टम आर्किटेक्ट्स।'
               : 'The multidisciplinary engineering team behind SWATVA — deterministic welfare evaluation, vernacular RAG intelligence, and zero-middleman civic infrastructure.'}
           </p>
         </div>
@@ -206,7 +238,7 @@ export default function Team() {
                     >
                       <img 
                         src={member.avatar} 
-                        alt={member.name}
+                        alt={isHindi ? member.nameHi : member.name}
                         loading="lazy"
                         onError={(e) => {
                           e.currentTarget.onerror = null;
@@ -216,7 +248,9 @@ export default function Team() {
                       />
                     </button>
                     <div className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 flex items-center justify-center font-mono text-[9px] font-bold shadow-xs">
-                      {member.role === 'Team Leader' ? 'LEAD' : 'DEV'}
+                      {isHindi
+                        ? (member.role === 'Team Leader' ? 'लीड' : 'डेव')
+                        : (member.role === 'Team Leader' ? 'LEAD' : 'DEV')}
                     </div>
                   </div>
 
@@ -253,27 +287,27 @@ export default function Team() {
                 {/* Info */}
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="text-base font-bold text-neutral-950 dark:text-white tracking-tight min-w-0">
-                    {member.name}
+                    {isHindi ? member.nameHi : member.name}
                   </h3>
                   <span className="font-mono text-[9px] px-2 py-0.5 rounded bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 font-bold uppercase whitespace-nowrap">
-                    {member.role}
+                    {isHindi ? member.roleHi : member.role}
                   </span>
                 </div>
 
                 <div className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 mt-1">
-                  {member.title}
+                  {isHindi ? member.titleHi : member.title}
                 </div>
                 <div className="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mt-0.5 mb-3">
-                  {member.domain} · {member.college}
+                  {isHindi ? member.domainHi : member.domain} · {isHindi ? member.collegeHi : member.college}
                 </div>
                 <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
-                  {member.bio}
+                  {isHindi ? member.bioHi : member.bio}
                 </p>
               </div>
 
               {/* Tags */}
               <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-white/5 flex flex-wrap gap-1.5">
-                {member.tags.map((tag) => (
+                {(isHindi && member.tagsHi ? member.tagsHi : member.tags).map((tag) => (
                   <span 
                     key={tag}
                     className="font-mono text-[9px] px-2 py-0.5 rounded-md bg-neutral-100/80 dark:bg-white/5 text-neutral-600 dark:text-neutral-400 border border-neutral-200/60 dark:border-white/5"
@@ -290,10 +324,10 @@ export default function Team() {
         <div id="pillars" className="p-6 sm:p-10 rounded-3xl neo-glass-card mb-10 sm:mb-12">
           <div className="mb-6 pb-4 border-b border-neutral-200/60 dark:border-white/10">
             <span className="font-mono text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-bold block mb-1">
-              SYSTEM FOUNDATIONS
+              {isHindi ? 'सिस्टम की नींव' : 'SYSTEM FOUNDATIONS'}
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-neutral-950 dark:text-white">
-              Architectural Pillars
+              {isHindi ? 'आर्किटेक्चरल स्तंभ' : 'Architectural Pillars'}
             </h2>
           </div>
 
@@ -302,8 +336,12 @@ export default function Team() {
               <div key={idx} className="p-4 rounded-2xl bg-neutral-100/60 dark:bg-white/[0.03] border border-neutral-200/40 dark:border-white/5 flex flex-col justify-between">
                 <div>
                   <div className="font-mono text-xs font-black text-neutral-400 mb-2">0{idx + 1}.</div>
-                  <h4 className="text-xs font-bold text-neutral-900 dark:text-white mb-1.5">{pillar.title}</h4>
-                  <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed">{pillar.desc}</p>
+                  <h4 className="text-xs font-bold text-neutral-900 dark:text-white mb-1.5">
+                    {isHindi ? pillar.titleHi : pillar.title}
+                  </h4>
+                  <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                    {isHindi ? pillar.descHi : pillar.desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -315,10 +353,10 @@ export default function Team() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 pb-6 border-b border-neutral-200/60 dark:border-white/10">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-bold block mb-1">
-                TELEMETRY & VERIFICATION
+                {isHindi ? 'टेलीमेट्री एवं सत्यापन' : 'TELEMETRY & VERIFICATION'}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-neutral-950 dark:text-white">
-                Platform Benchmarks
+                {isHindi ? 'प्लेटफ़ॉर्म बेंचमार्क' : 'Platform Benchmarks'}
               </h2>
             </div>
             <button
@@ -337,10 +375,10 @@ export default function Team() {
                   {stat.value}
                 </div>
                 <div className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-                  {stat.label}
+                  {isHindi ? stat.labelHi : stat.label}
                 </div>
                 <div className="text-[10px] text-neutral-400 font-mono mt-0.5">
-                  {stat.detail}
+                  {isHindi && stat.detailHi ? stat.detailHi : stat.detail}
                 </div>
               </div>
             ))}
@@ -350,7 +388,7 @@ export default function Team() {
 
       {/* ----------------- Dynamic Pointillism Particle Canvas */}
       <div className="w-full border-t border-neutral-200/50 dark:border-white/5 py-4">
-        <FooterParticles text="THEQUIRKIES" darkMode={dark} />
+        <FooterParticles text={isHindi ? 'द क्वर्कीज़' : 'THEQUIRKIES'} darkMode={dark} />
       </div>
 
       {/* -------------------------------------------- footer */}
@@ -388,11 +426,18 @@ export default function Team() {
 
         <div className="flex items-center gap-2.5">
           <LoadingLogo size="h-7 w-7" animate={false} />
-          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">SWATVA</span>
-          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
-          <span className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium">
-            {isHindi ? 'द क्वर्कीज़ द्वारा' : 'BY TheQuirkies'}
+          <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">
+            {isHindi ? 'स्वतवा' : 'SWATVA'}
           </span>
+          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
+          <Link
+            to="/team"
+            onClick={playClick}
+            title={isHindi ? 'हमारी टीम से मिलें' : 'Meet our team'}
+            className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {isHindi ? 'द क्वर्कीज़ द्वारा' : 'BY TheQuirkies'}
+          </Link>
         </div>
 
         <div className="flex items-center gap-4 text-[11px] text-neutral-600 dark:text-neutral-300 font-medium">
@@ -472,7 +517,7 @@ export default function Team() {
           }}
           role="dialog"
           aria-modal="true"
-          aria-label={`Photo viewer - ${lightboxMember.name}`}
+          aria-label={`Photo viewer - ${isHindi ? lightboxMember.nameHi : lightboxMember.name}`}
         >
           {/* Ambient Golden Radial Glow Aura behind modal */}
           <div
@@ -483,12 +528,14 @@ export default function Team() {
           <div
             onMouseMove={handleLightboxMouseMove}
             onMouseLeave={handleLightboxMouseLeave}
+            onTouchStart={handleLightboxTouchStart}
+            onTouchEnd={handleLightboxTouchEnd}
             style={{
               transform: `perspective(900px) rotateX(${lightboxTilt.y}deg) rotateY(${lightboxTilt.x}deg) scale3d(1.015, 1.015, 1.015)`,
               transition: lightboxTilt.x === 0 && lightboxTilt.y === 0 ? 'transform 0.4s ease-out' : 'transform 0.08s ease-out',
               willChange: 'transform',
             }}
-            className="relative max-w-sm sm:max-w-md w-full rounded-3xl overflow-hidden bg-white/95 dark:bg-[#121316] border-2 border-amber-500/60 dark:border-amber-400/50 shadow-2xl shadow-amber-500/25 dark:shadow-[0_0_60px_rgba(245,158,11,0.35)] backdrop-blur-2xl animate-in zoom-in-95 duration-200"
+            className="relative max-w-sm sm:max-w-md w-full max-h-[92vh] flex flex-col rounded-3xl overflow-hidden bg-white/95 dark:bg-[#121316] border-2 border-amber-500/60 dark:border-amber-400/50 shadow-2xl shadow-amber-500/25 dark:shadow-[0_0_60px_rgba(245,158,11,0.35)] backdrop-blur-2xl animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top Close Button */}
@@ -511,7 +558,7 @@ export default function Team() {
             <div className="relative w-full aspect-square bg-neutral-900 overflow-hidden flex items-center justify-center">
               <img
                 src={lightboxMember.avatar}
-                alt={lightboxMember.name}
+                alt={isHindi ? lightboxMember.nameHi : lightboxMember.name}
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = lightboxMember.fallbackAvatar;
@@ -524,17 +571,17 @@ export default function Team() {
             <div className="p-5 text-center border-t border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#121316]">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <h3 className="text-base sm:text-lg font-bold text-neutral-950 dark:text-white">
-                  {lightboxMember.name}
+                  {isHindi ? lightboxMember.nameHi : lightboxMember.name}
                 </h3>
                 <span className="font-mono text-[9px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-500/30 font-bold uppercase">
-                  {lightboxMember.role}
+                  {isHindi ? lightboxMember.roleHi : lightboxMember.role}
                 </span>
               </div>
               <p className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-                {lightboxMember.title}
+                {isHindi ? lightboxMember.titleHi : lightboxMember.title}
               </p>
               <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
-                {lightboxMember.domain} · {lightboxMember.college}
+                {isHindi ? lightboxMember.domainHi : lightboxMember.domain} · {isHindi ? lightboxMember.collegeHi : lightboxMember.college}
               </p>
             </div>
           </div>

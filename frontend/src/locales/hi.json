@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "SWATVA",
+    "appName": "स्वतवा",
     "loading": "लोड हो रहा है",
     "loadingShort": "लोड हो रहा है…",
     "back": "वापस",
@@ -189,7 +189,7 @@
       "body": "प्रोफ़ाइल बनाने में दो मिनट। हर मेल की व्याख्या साथ।"
     },
     "footer": {
-      "tagline": "BY TheQuirkies"
+      "tagline": "द क्वर्कीज़ द्वारा"
     }
   },
   "auth": {
@@ -225,8 +225,13 @@
     "verifyingOtp": "सत्यापित किया जा रहा है...",
     "usePassword": "पासवर्ड से साइन इन करें",
     "useOtp": "ईमेल ओटीपी से साइन इन करें",
+    "signInWithGoogle": "Google से साइन इन करें",
+    "signUpWithGoogle": "Google से खाता बनाएँ",
+    "orEmail": "या ईमेल से जारी रखें",
+    "otpNotReceived": "सत्यापन कोड नहीं मिला?",
     "genericError": "कुछ गड़बड़ हो गई। कृपया फिर कोशिश करें।",
-    "reassurance": "पात्रता जानना निःशुल्क है और सदा रहेगा। जाँच के लिए किसी को कभी भुगतान न करें।"
+    "reassurance": "पात्रता जानना निःशुल्क है और सदा रहेगा। जाँच के लिए किसी को कभी भुगतान न करें।",
+    "citizenEmpowermentArchitecture": "नागरिक सशक्तिकरण आर्किटेक्चर"
   },
   "profile": {
     "badge": "चरण दर चरण",

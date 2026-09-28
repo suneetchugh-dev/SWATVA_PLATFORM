@@ -471,8 +471,8 @@ export default function Assistant() {
         },
         onResult: (final) => {
           setText(final)
-          setVoiceNotice(null)
-          setIsListening(false)
+          setVoiceNotice(t('assistant.voiceListening') || 'Listening… Speak now')
+          // With continuous=true, don't stop — let user explicitly click MicOff
         },
         onError: (e) => {
           console.warn('Speech recognition error:', e)
@@ -510,7 +510,7 @@ export default function Assistant() {
         'w-full transition-all duration-300',
         isFullscreen
           ? 'fixed inset-0 z-[9000] p-4 sm:p-6 bg-porcelain dark:bg-obsidian flex flex-col h-dvh max-h-dvh overflow-hidden'
-          : 'flex flex-col h-[calc(100dvh-13.5rem)] lg:h-[calc(100dvh-14rem)] max-h-[calc(100dvh-13.5rem)] min-h-[440px] relative overflow-hidden'
+          : 'flex flex-col h-[calc(100dvh-13.5rem)] lg:h-[calc(100dvh-14rem)] max-h-[calc(100dvh-13.5rem)] min-h-[440px] relative pb-1.5'
       )}
     >
       <PageHeader
@@ -571,13 +571,6 @@ export default function Assistant() {
         }
       />
 
-      {sawUngrounded ? (
-        <div className="mb-3 shrink-0">
-          <Banner tone="info" title={t('assistant.ungroundedTitle')}>
-            {t('assistant.ungroundedBody')}
-          </Banner>
-        </div>
-      ) : null}
       {error ? (
         <div className="mb-3 shrink-0">
           <Banner tone="error" title={t('assistant.errorTitle')}>{error}</Banner>
@@ -586,7 +579,7 @@ export default function Assistant() {
 
       <div
         data-tour="assistant-chat"
-        className="flex-1 overflow-y-auto overflow-x-hidden rounded-2xl border border-neutral-200 dark:border-white/10 p-4 sm:p-5 bg-white/50 dark:bg-white/[0.02] relative min-h-0"
+        className="flex-1 overflow-y-auto overflow-x-hidden rounded-2xl sm:rounded-3xl border border-neutral-200 dark:border-white/10 p-4 sm:p-6 md:p-8 bg-white/50 dark:bg-white/[0.02] relative min-h-0"
       >
         {/* Top-Right Sticky Fullscreen Toggle Button inside Chat Window */}
         <div className="sticky top-0 float-right z-20 -mr-1 -mt-1 ml-2 mb-2">
@@ -625,10 +618,10 @@ export default function Assistant() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 sm:gap-6">
             {messages.map((m, i) =>
               m.role === 'user' ? (
-                <div key={i} className="flex justify-end items-start gap-1.5 group">
+                <div key={i} className="flex justify-end items-start gap-2 group">
                   <button
                     type="button"
                     onClick={() => handleCopy(i, m.content)}
@@ -642,17 +635,17 @@ export default function Assistant() {
                       <Copy size={13} />
                     )}
                   </button>
-                  <p className="max-w-[85%] rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 break-words overflow-hidden">
+                  <p className="max-w-[85%] rounded-2xl rounded-br-sm px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-[15px] bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 break-words overflow-hidden shadow-xs leading-relaxed">
                     {m.content}
                   </p>
                 </div>
               ) : (
-                <div key={i} className="flex items-start gap-2.5 max-w-[92%] group">
+                <div key={i} className="flex items-start gap-3 sm:gap-3.5 max-w-[94%] group">
                   <AIOrbFace size={28} state={m.error ? 'error' : activeSpeakingIndex === i ? 'speaking' : 'done'} className="flex-shrink-0 mt-1" />
                   <div className="flex-1 min-w-0">
                     <div
                       className={cx(
-                        'relative rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden',
+                        'relative rounded-2xl rounded-tl-sm px-4 sm:px-5 py-3.5 sm:py-4 text-sm sm:text-[15px] leading-relaxed whitespace-pre-wrap break-words overflow-hidden shadow-xs',
                         m.error
                           ? 'border border-amber-600/40 bg-amber-500/10'
                           : 'bg-white dark:bg-white/[0.05] border border-neutral-200 dark:border-white/10',
@@ -723,18 +716,18 @@ export default function Assistant() {
                     </div>
 
                     {m.readiness ? (
-                      <div className="mt-2.5">
-                        <Card accent className="p-3.5">
+                      <div className="mt-3">
+                        <Card accent className="p-4 sm:p-5">
                           <div className="flex items-center justify-between gap-3">
                             <span className="text-xs font-semibold">{t('assistant.readiness')}</span>
                             <span className="mono-badge text-amber-700 dark:text-amber-400">
                               {m.readiness.readinessPercentage}%
                             </span>
                           </div>
-                          <div className="mt-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                          <div className="mt-2.5 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
                             <div className="h-full rounded-full bg-amber-500" style={{ width: `${m.readiness.readinessPercentage}%` }} />
                           </div>
-                          <p className="mt-2 text-[11px] text-neutral-600 dark:text-neutral-300">
+                          <p className="mt-2.5 text-[11px] text-neutral-600 dark:text-neutral-300">
                             {t('assistant.docsReady', {
                               count: m.readiness.totalRequired,
                               done: m.readiness.completedDocuments,
@@ -752,20 +745,20 @@ export default function Assistant() {
                     ) : null}
 
                     {m.benefits?.length ? (
-                      <div className="mt-2.5 flex flex-col gap-1.5">
+                      <div className="mt-3 flex flex-col gap-2">
                         {m.benefits.map((b) => (
-                          <Card key={b.schemeId} className="p-3">
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <Card key={b.schemeId} className="p-3.5 sm:p-4">
+                            <div className="flex items-center gap-2 flex-wrap mb-1.5">
                               <StatusPill status={b.matchStatus} />
                               <span className="mono-badge text-neutral-400">{b.matchPercentage}%</span>
                             </div>
-                            <p className="text-xs font-semibold text-balance">{b.schemeName}</p>
+                            <p className="text-xs sm:text-sm font-semibold text-balance">{b.schemeName}</p>
                             {b.officialSourceUrl ? (
                               <a
                                 href={b.officialSourceUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                                className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline"
                               >
                                 Official source
                                 <ExternalLink size={10} />
@@ -777,9 +770,27 @@ export default function Assistant() {
                     ) : null}
 
                     {m.citations?.length ? (
-                      <p className="mt-2 text-[11px] text-neutral-500 dark:text-neutral-400">
-                        {t('assistant.sources', { list: m.citations.slice(0, 3).join(' · ') })}
-                      </p>
+                      <div className="mt-2.5 sm:mt-3 flex flex-wrap gap-1.5 items-center">
+                        <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
+                          {t('assistant.sourcesLabel') || 'Sources:'}
+                        </span>
+                        {m.citations.slice(0, 3).map((cite, ci) =>
+                          cite.startsWith('http') ? (
+                            <a
+                              key={ci}
+                              href={cite}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] text-amber-700 dark:text-amber-400 hover:underline font-medium break-all px-2 py-0.5 rounded-md bg-amber-500/10 dark:bg-amber-400/[0.08] border border-amber-500/20"
+                            >
+                              <span>{cite.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}</span>
+                              <ExternalLink size={10} className="flex-shrink-0 ml-0.5" />
+                            </a>
+                          ) : (
+                            <span key={ci} className="text-[11px] text-neutral-500 dark:text-neutral-400">{cite}</span>
+                          )
+                        )}
+                      </div>
                     ) : null}
                   </div>
                 </div>
@@ -799,20 +810,9 @@ export default function Assistant() {
       </div>
 
       {voiceNotice ? (
-        <div className="mt-2.5 px-3.5 py-2 rounded-2xl bg-amber-500/10 dark:bg-amber-400/[0.08] backdrop-blur-md border border-amber-500/25 dark:border-amber-400/20 text-xs text-amber-950 dark:text-amber-200 flex items-center justify-between shadow-xs animate-fade-in">
-          <span className="flex items-center gap-2.5 font-medium">
-            <Mic size={14} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2] flex-shrink-0" />
-            <span>{voiceNotice}</span>
-          </span>
-          {isListening ? (
-            <button
-              type="button"
-              onClick={handleToggleListening}
-              className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 hover:bg-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 text-amber-950 dark:text-amber-100 border border-amber-500/30 dark:border-amber-400/25 transition-all duration-150 cursor-pointer active:scale-95"
-            >
-              {t('assistant.voiceStop') || 'Stop'}
-            </button>
-          ) : null}
+        <div className="mt-2.5 px-3.5 py-2 rounded-2xl bg-amber-500/10 dark:bg-amber-400/[0.08] backdrop-blur-md border border-amber-500/25 dark:border-amber-400/20 text-xs text-amber-950 dark:text-amber-200 flex items-center gap-2.5 shadow-xs animate-fade-in">
+          <Mic size={14} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2] flex-shrink-0" />
+          <span className="font-medium">{voiceNotice}</span>
         </div>
       ) : null}
 
@@ -836,7 +836,7 @@ export default function Assistant() {
       <form
         data-tour="assistant-input"
         onSubmit={(e) => { e.preventDefault(); send() }}
-        className="mt-3 shrink-0 flex items-end gap-2"
+        className="mt-3 sm:mt-3.5 shrink-0 flex items-end gap-2.5 sm:gap-3 p-1.5 -m-1.5"
       >
         <textarea
           ref={inputRef}
@@ -852,10 +852,10 @@ export default function Assistant() {
           placeholder={isListening ? (t('assistant.voiceListening') || 'Listening… Speak now') : t('assistant.placeholder')}
           aria-label={t('assistant.placeholder')}
           className={cx(
-            'flex-1 resize-none rounded-2xl px-4 py-3 text-sm bg-white/70 dark:bg-white/[0.04] border transition-all duration-200 focus:outline-none max-h-32 min-h-[46px]',
+            'flex-1 resize-none rounded-2xl px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-[15px] bg-white/70 dark:bg-white/[0.04] border transition-all duration-200 focus:outline-none max-h-36 min-h-[50px] sm:min-h-[52px] leading-relaxed shadow-xs',
             isListening
-              ? 'border-amber-500 ring-2 ring-amber-500/25 bg-amber-500/[0.04] dark:bg-amber-400/[0.03] shadow-[0_0_12px_rgba(245,158,11,0.12)]'
-              : 'border-neutral-300 dark:border-white/15 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/25'
+              ? 'border-amber-500 ring-2 ring-amber-500/30 bg-amber-500/[0.04] dark:bg-amber-400/[0.03] shadow-[0_0_14px_rgba(245,158,11,0.18)]'
+              : 'border-neutral-300 dark:border-white/15 focus:border-amber-500/80 focus:ring-2 focus:ring-amber-500/30 focus:shadow-[0_0_12px_rgba(245,158,11,0.12)]'
           )}
         />
 
@@ -866,13 +866,13 @@ export default function Assistant() {
           aria-label={t('assistant.voiceInput')}
           title={isListening ? (t('assistant.voiceStop') || 'Stop') : t('assistant.voiceInput')}
           className={cx(
-            'h-[46px] w-[46px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none',
+            'h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
             isListening
               ? 'bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/30 ring-2 ring-amber-400 ring-offset-2 ring-offset-white dark:ring-offset-obsidian scale-105 animate-pulse'
-              : 'border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-500/40 hover:bg-amber-500/5 shadow-xs'
+              : 'border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-500/40 hover:bg-amber-500/5 shadow-xs active:scale-95'
           )}
         >
-          {isListening ? <MicOff size={18} className="font-bold" /> : <Mic size={18} />}
+          {isListening ? <MicOff size={19} className="font-bold" /> : <Mic size={19} />}
         </button>
 
         {/* Send Button */}
@@ -882,13 +882,13 @@ export default function Assistant() {
           aria-label={t('assistant.send')}
           title={t('assistant.send')}
           className={cx(
-            'h-[46px] w-[46px] rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 select-none cursor-pointer',
+            'h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
             text.trim() && !sending
-              ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-md shadow-amber-500/20 active:scale-95'
+              ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-md shadow-amber-500/25 active:scale-95 hover:scale-[1.02]'
               : 'border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.04] text-neutral-400 dark:text-neutral-600 cursor-not-allowed opacity-50'
           )}
         >
-          <Send size={16} className="stroke-[2.2]" />
+          <Send size={17} className="stroke-[2.2]" />
         </button>
       </form>
 

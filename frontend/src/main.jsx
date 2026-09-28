@@ -9,6 +9,7 @@ import { ThemeProvider } from './lib/theme'
 import SplashLoader from './components/SplashLoader'
 import { Spinner } from './components/ui'
 import ScrollToTop from './components/ScrollToTop'
+import SmoothScroll from './components/SmoothScroll'
 import { initGlobalClickSound } from './utils/soundFx'
 
 initGlobalClickSound()
@@ -102,6 +103,7 @@ if (!container.__reactRoot) {
 container.__reactRoot.render(
   <StrictMode>
     <ThemeProvider>
+      <SmoothScroll />
       <OfflineBanner />
       <PWAUpdateToast />
       <SplashLoader />
