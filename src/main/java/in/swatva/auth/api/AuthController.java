@@ -47,9 +47,42 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(new AuthResponse(token, "Bearer", user.getId(), user.getEmail())));
     }
 
+    @PostMapping("/send-otp")
+    public ResponseEntity<ApiResponse<AuthService.OtpResponse>> sendOtp(@Valid @RequestBody SendOtpRequest request) {
+        AuthService.OtpResponse response = authService.sendOtp(request.email());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<ApiResponse<AuthService.OtpResponse>> resendOtp(@Valid @RequestBody SendOtpRequest request) {
+        AuthService.OtpResponse response = authService.resendOtp(request.email());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        User user = authService.verifyOtpUser(request.email(), request.otp());
+        String token = jwtService.createToken(user.getEmail());
+        return ResponseEntity.ok(ApiResponse.success(new AuthResponse(token, "Bearer", user.getId(), user.getEmail())));
+    }
+
+    @PostMapping("/register-otp")
+    public ResponseEntity<ApiResponse<AuthResponse>> registerOtp(@Valid @RequestBody RegisterOtpRequest request) {
+        User user = authService.registerWithOtp(request.fullName(), request.email(), request.password(), request.otp());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(AuthResponse.from(user, jwtService.createToken(user.getEmail()))));
+    }
+
+    public record SendOtpRequest(@NotBlank @Email @Size(max = 120) String email) { }
+    public record VerifyOtpRequest(@NotBlank @Email @Size(max = 120) String email,
+                                  @NotBlank @Size(min = 6, max = 6) String otp) { }
+    public record RegisterOtpRequest(@NotBlank @Size(max = 100) String fullName,
+                                     @NotBlank @Email @Size(max = 120) String email,
+                                     @NotBlank @Size(min = 6, max = 72) String password,
+                                     @NotBlank @Size(min = 6, max = 6) String otp) { }
     public record RegisterRequest(@NotBlank @Size(max = 100) String fullName,
                                   @NotBlank @Email @Size(max = 120) String email,
-                                  @NotBlank @Size(min = 8, max = 72) String password) { }
+                                  @NotBlank @Size(min = 6, max = 72) String password) { }
     public record LoginRequest(@NotBlank @Email @Size(max = 120) String email,
                                @NotBlank @Size(max = 72) String password) { }
     public record FirebaseLoginRequest(String fullName,

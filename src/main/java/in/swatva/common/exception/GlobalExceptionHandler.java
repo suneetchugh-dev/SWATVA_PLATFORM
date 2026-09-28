@@ -29,12 +29,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException exception) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();
+        StringBuilder combinedMessage = new StringBuilder();
         exception.getBindingResult().getAllErrors().forEach(error -> {
             if (error instanceof FieldError fieldError) {
                 fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
+                if (!combinedMessage.isEmpty()) combinedMessage.append(". ");
+                combinedMessage.append(fieldError.getField()).append(": ").append(fieldError.getDefaultMessage());
             }
         });
-        return response(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "Request validation failed", fieldErrors);
+        String message = combinedMessage.isEmpty() ? "Request validation failed" : combinedMessage.toString();
+        return response(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", message, fieldErrors);
     }
 
     @ExceptionHandler(DuplicateEmailException.class)

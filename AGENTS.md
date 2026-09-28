@@ -131,6 +131,16 @@ docker compose up -d
 - `frontend/src/locales/{en,hi}.json` — UI copy; keep the two catalogues at parity
 - `frontend/tailwind.config.js` — the design-system token source; it deliberately removes the blue/green/teal/slate families so banned classes fail to compile
 
+## UI & Design System Rules
+
+> **🚨 MANDATORY: Before creating or editing any component, page, or feature — read [`docs/UI_RULES.md`](./docs/UI_RULES.md) first.**
+> It defines translation requirements, responsive breakpoints, accessibility rules, component patterns, and the pre-commit checklist. Every UI PR must satisfy all rules in that file.
+
+- **NEVER USE 🟢, 🔴, 🟡, 🔵 ORBS OR ANY COLOURED STATUS BALLS ANYWHERE IN CODE, UI, OR DOCUMENTATION.**
+- Do not use emoji circle orbs or floating colored ball elements as status markers.
+- Always use semantic, accessible SVG icons (from `lucide-react`, e.g., `CheckCircle2`, `AlertCircle`, `XCircle`, `Info`, `Clock`, `Sparkles`, `Activity`) styled with appropriate typographic hierarchy.
+- Any animations on SVG icons or indicators must be subtle, smooth, and professional.
+
 ## Changing or adding functionality
 
 - Preserve existing endpoint paths, response envelopes, repository method contracts, entity table/column names, and seeded source-backed facts unless the task explicitly changes them.

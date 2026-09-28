@@ -279,9 +279,9 @@ public class ChatService {
                                   String groundedContextText,
                                   ChatSession session) {
         String langName = switch (language) {
-            case "hi" -> "Hindi (हिंदी)";
+            case "hi" -> "Hindi (हिंदी / Hinglish)";
             case "kn" -> "Kannada (ಕನ್ನಡ)";
-            default -> "English";
+            default -> "English (or mirror the citizen's language if they ask in Hindi or another Indian language)";
         };
 
         StringBuilder historyStr = new StringBuilder();
@@ -293,11 +293,14 @@ public class ChatService {
         }
 
         return """
-                You are Swatva AI, an empathetic Indian government scheme discovery assistant.
+                You are Swatva AI, an empathetic and highly knowledgeable Indian government scheme discovery assistant.
+                You are fluent in English, Hindi (हिंदी / Hinglish), and Indian regional languages.
                 You must answer the citizen strictly and ONLY based on the verified grounded context below.
                 
                 LANGUAGE REQUIREMENT:
-                - Answer strictly in: %s.
+                - Primary target language: %s.
+                - If the citizen asks in Hindi, Hinglish, or requests to speak in Hindi/another language, respond fluently in that requested language (Hindi/Hinglish/Regional).
+                - NEVER say you can only speak English. You are fully multilingual and can converse warmly in Hindi, Hinglish, Kannada, and other Indian languages.
                 
                 CRITICAL CONSTRAINTS:
                 - Do NOT independently invent, assume, or fabricate scheme rules, documents, or benefits.
@@ -598,11 +601,7 @@ public class ChatService {
     }
 
     private String detectLanguage(ChatRequest request, ChatSession session) {
-        if (request.normalizedLanguage() != null) {
-            return request.normalizedLanguage();
-        }
-
-        String text = request.message();
+        String text = request.message() != null ? request.message() : "";
         if (DEVANAGARI_PATTERN.matcher(text).find()) {
             return "hi";
         }
@@ -611,11 +610,18 @@ public class ChatService {
         }
 
         String lower = text.toLowerCase(Locale.ROOT);
-        if (lower.contains("mere liye") || lower.contains("kya chahiye") || lower.contains("yojana") || lower.contains("kaun si")) {
+        if (lower.contains("mere liye") || lower.contains("kya chahiye") || lower.contains("yojana") || lower.contains("kaun si")
+                || lower.contains("hindi") || lower.contains("baat") || lower.contains("madad") || lower.contains("kaise")
+                || lower.contains("batao") || lower.contains("namaste") || lower.contains("karen") || lower.contains("karo")
+                || lower.contains("chahiye") || lower.contains("kisan") || lower.contains("samjhao")) {
             return "hi";
         }
-        if (lower.contains("nanage") || lower.contains("yavudu") || lower.contains("beku") || lower.contains("yojane")) {
+        if (lower.contains("nanage") || lower.contains("yavudu") || lower.contains("beku") || lower.contains("yojane") || lower.contains("kannada")) {
             return "kn";
+        }
+
+        if (request.normalizedLanguage() != null && !request.normalizedLanguage().isBlank()) {
+            return request.normalizedLanguage();
         }
 
         if (session != null && session.getLanguage() != null && !session.getLanguage().isBlank()) {
