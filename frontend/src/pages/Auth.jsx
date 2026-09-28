@@ -14,7 +14,6 @@ export default function Auth({ mode: initialMode = 'login' }) {
   const { dark } = useTheme();
 
   const [mode, setMode] = useState(initialMode); // 'login' | 'register'
-  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -143,12 +142,6 @@ export default function Auth({ mode: initialMode = 'login' }) {
     setLoading(true);
 
     const emailTrimmed = email.trim();
-    const nameTrimmed = fullName.trim();
-    if (!nameTrimmed) {
-      setError('Please enter your full name.');
-      setLoading(false);
-      return;
-    }
     if (!emailTrimmed) {
       setError('Please enter a valid email address.');
       setLoading(false);
@@ -201,7 +194,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
     playClick();
 
     const emailTrimmed = email.trim();
-    const nameTrimmed = fullName.trim();
+    const nameTrimmed = emailTrimmed.includes('@') ? emailTrimmed.split('@')[0] : 'Citizen';
     const otpTrimmed = otpCode.trim();
 
     if (!otpTrimmed || otpTrimmed.length !== 6) {
@@ -394,29 +387,6 @@ export default function Auth({ mode: initialMode = 'login' }) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'register' && (
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
-                  Full Name
-                </label>
-                <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
-                  <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
-                    <User size={16} />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    disabled={mode === 'register' && otpStep === 'otp_verify'}
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Your full name"
-                    autoComplete="name"
-                    className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 disabled:opacity-70"
-                  />
-                </div>
-              </div>
-            )}
-
             <div>
               <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
                 Email address
