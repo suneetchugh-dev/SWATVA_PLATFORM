@@ -15,8 +15,22 @@ export default function Auth({ mode: initialMode = 'login' }) {
   const navigate = useNavigate();
   const { dark } = useTheme();
 
+  const [lastAuthMethod] = useState(() => {
+    try {
+      return localStorage.getItem('swatva_last_auth_method');
+    } catch {
+      return null;
+    }
+  });
+
   const [mode, setMode] = useState(initialMode); // 'login' | 'register'
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => {
+    try {
+      return localStorage.getItem('swatva_last_auth_email') || '';
+    } catch {
+      return '';
+    }
+  });
   const [password, setPassword] = useState('');
 
   // OTP Validation state & Resend service
@@ -89,6 +103,11 @@ export default function Auth({ mode: initialMode = 'login' }) {
         if (authData?.accessToken) {
           setToken(authData.accessToken);
         }
+
+        try {
+          localStorage.setItem('swatva_last_auth_method', 'google');
+          if (userEmail) localStorage.setItem('swatva_last_auth_email', userEmail);
+        } catch {}
 
         navigate('/app', { replace: true });
       }
@@ -172,6 +191,10 @@ export default function Auth({ mode: initialMode = 'login' }) {
     try {
       await api.auth.registerWithOtp(nameTrimmed, emailTrimmed, password, otpTrimmed);
       registerWithFirebaseEmail(nameTrimmed, emailTrimmed, password).catch(() => {});
+      try {
+        localStorage.setItem('swatva_last_auth_method', 'email');
+        localStorage.setItem('swatva_last_auth_email', emailTrimmed);
+      } catch {}
       navigate('/app', { replace: true });
     } catch (err) {
       setError(err?.message || 'Invalid or expired OTP code. Please check your email and try again.');
@@ -205,6 +228,10 @@ export default function Auth({ mode: initialMode = 'login' }) {
     try {
       await api.auth.login(emailTrimmed, password);
       signInWithFirebaseEmail(emailTrimmed, password).catch(() => {});
+      try {
+        localStorage.setItem('swatva_last_auth_method', 'email');
+        localStorage.setItem('swatva_last_auth_email', emailTrimmed);
+      } catch {}
       playClick();
       navigate('/app', { replace: true });
     } catch (err) {
@@ -315,7 +342,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
             onClick={handleGoogleSignIn}
             disabled={loading || googleLoading}
             data-sound="click"
-            className="w-full h-11 mb-4 flex items-center justify-center gap-3 px-4 rounded-xl text-xs font-semibold tracking-wide border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-white/[0.05] hover:bg-neutral-50 dark:hover:bg-white/[0.08] active:scale-[0.99] text-neutral-800 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm cursor-pointer"
+            className="w-full h-11 mb-4 relative flex items-center justify-center gap-3 px-4 rounded-xl text-xs font-semibold tracking-wide border border-neutral-200/80 dark:border-white/10 bg-white dark:bg-white/[0.05] hover:bg-neutral-50 dark:hover:bg-white/[0.08] active:scale-[0.99] text-neutral-800 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm cursor-pointer"
           >
             {googleLoading ? (
               <div className="w-4 h-4 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
@@ -346,12 +373,24 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 ? (t('auth.signInWithGoogle') || 'Sign in with Google')
                 : (t('auth.signUpWithGoogle') || 'Sign up with Google')}
             </span>
+            {mode === 'login' && lastAuthMethod === 'google' && (
+              <span className="absolute right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                {t('auth.lastUsed') || 'Last used'}
+              </span>
+            )}
           </button>
 
           <div className="relative flex items-center justify-center my-4">
             <div className="border-t border-neutral-200/80 dark:border-white/10 w-full" />
-            <span className="bg-white dark:bg-[#121216] px-3 text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 shrink-0">
-              {t('auth.orEmail') || 'or continue with email'}
+            <span className="bg-white dark:bg-[#121216] px-3 flex items-center gap-2 text-[10px] uppercase font-mono tracking-widest text-neutral-400 dark:text-neutral-500 shrink-0">
+              <span>{t('auth.orEmail') || 'or continue with email'}</span>
+              {mode === 'login' && lastAuthMethod === 'email' && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  {t('auth.lastUsed') || 'Last used'}
+                </span>
+              )}
             </span>
             <div className="border-t border-neutral-200/80 dark:border-white/10 w-full" />
           </div>
