@@ -378,6 +378,7 @@ export default function Profile() {
   const user = getStoredUser()
   const displayName = user?.fullName || (user?.email ? user.email.split('@')[0] : 'Citizen User')
   const initial = (displayName[0] || 'S').toUpperCase()
+  const isEmailUser = currentUser?.provider !== 'firebase-google'
 
   return (
     <div>
@@ -413,9 +414,20 @@ export default function Profile() {
         <div className="flex items-center gap-3.5 min-w-0">
           {/* Interactive Avatar with Refined Round Ring & Inner Pencil Edit Badge */}
           <div
-            className="relative group/avatar cursor-pointer shrink-0"
-            onClick={() => avatarInputRef.current?.click()}
-            title={isHindi ? 'प्रोफ़ाइल फ़ोटो बदलें' : 'Change profile photo'}
+            className={cx(
+              'relative group/avatar shrink-0 select-none',
+              isEmailUser ? 'cursor-pointer' : 'cursor-default'
+            )}
+            onClick={() => {
+              if (isEmailUser) {
+                avatarInputRef.current?.click()
+              }
+            }}
+            title={
+              isEmailUser
+                ? (isHindi ? 'अपनी पसंद की प्रोफ़ाइल फ़ोटो चुनें' : 'Choose custom profile picture')
+                : (isHindi ? 'Google प्रोफ़ाइल फ़ोटो से सिंक किया गया' : 'Synced with Google Account')
+            }
           >
             <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-neutral-100 dark:bg-white/10 border border-neutral-200/80 dark:border-white/20 ring-2 ring-offset-2 ring-offset-white dark:ring-offset-[#121216] ring-amber-400/90 shadow-[0_0_12px_rgba(245,158,11,0.35)] flex items-center justify-center font-bold text-base uppercase text-neutral-800 dark:text-neutral-200 relative transition-transform duration-300 ease-out group-hover/avatar:scale-[1.02]">
               {currentUser?.photoURL ? (
@@ -424,19 +436,23 @@ export default function Profile() {
                 initial
               )}
 
-              {/* Bottom inner shade with small pencil icon inside the pic */}
-              <div className="absolute inset-x-0 bottom-0 py-0.5 bg-black/50 backdrop-blur-[1.5px] flex items-center justify-center transition-colors duration-200 group-hover/avatar:bg-black/70">
-                <Pencil size={9} className="text-white drop-shadow-sm stroke-[2.2]" />
-              </div>
+              {/* Bottom inner shade with small pencil icon inside the pic - only for email users */}
+              {isEmailUser && (
+                <div className="absolute inset-x-0 bottom-0 py-0.5 bg-black/50 backdrop-blur-[1.5px] flex items-center justify-center transition-colors duration-200 group-hover/avatar:bg-black/70">
+                  <Pencil size={9} className="text-white drop-shadow-sm stroke-[2.2]" />
+                </div>
+              )}
             </div>
 
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={handleAvatarUpload}
-              className="hidden"
-            />
+            {isEmailUser && (
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+            )}
           </div>
 
           <div className="min-w-0">
@@ -444,7 +460,7 @@ export default function Profile() {
               <h2 className="text-sm font-bold text-neutral-900 dark:text-white truncate">
                 {displayName}
               </h2>
-              {currentUser?.photoURL && (
+              {currentUser?.photoURL && isEmailUser && (
                 <button
                   type="button"
                   onClick={handleRemoveAvatar}

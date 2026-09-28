@@ -315,7 +315,7 @@ export function Select({
   }
 
   return (
-    <div ref={containerRef} className={cx('relative w-full select-none', className)}>
+    <div ref={containerRef} className={cx('relative w-full select-none', isOpen ? 'z-[60]' : 'z-10', className)}>
       {/* Hidden native select for standard form accessibility / tests */}
       <select
         id={id}
@@ -368,12 +368,12 @@ export function Select({
         />
       </button>
 
-      {/* Floating Popover List */}
+      {/* Floating Popover List (Floats above card boundaries) */}
       {isOpen && (
         <div
           role="listbox"
           className={cx(
-            'absolute left-0 right-0 top-full mt-1.5 z-50 overflow-hidden',
+            'absolute left-0 right-0 top-full mt-1.5 z-[100] overflow-hidden',
             'rounded-2xl border border-neutral-200/90 dark:border-white/15',
             'bg-white/95 dark:bg-[#121212]/95 backdrop-blur-xl',
             'shadow-[0_12px_36px_-6px_rgba(0,0,0,0.18),0_0_24px_-4px_rgba(245,158,11,0.08)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.8),0_0_30px_rgba(245,158,11,0.1)]',
