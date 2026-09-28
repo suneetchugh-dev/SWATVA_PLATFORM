@@ -110,9 +110,10 @@ export default function Dashboard() {
   }, [])
 
   return (
-    <div className="space-y-6 mt-10 sm:mt-12">
+    <div className="space-y-6 mt-12 sm:mt-16 pt-2">
       <PageHeader
         arrowLabel={t('dashboard.badge')}
+        arrowClassName="-left-8 sm:-left-20 -top-10 sm:-top-12"
         title={t('dashboard.title', { name: user?.fullName?.split(' ')[0] || t('dashboard.citizen') })}
         desc={t('dashboard.desc')}
       />

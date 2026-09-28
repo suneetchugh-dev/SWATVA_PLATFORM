@@ -62,7 +62,7 @@ export default function Team() {
       {/* Header Bar */}
       <header className="sticky top-0 z-40 pt-3 px-3 sm:px-5">
         <div className="mx-auto max-w-6xl neo-glass-card px-4 py-2.5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center">
             <button
               type="button"
               onClick={handleBack}
@@ -71,13 +71,11 @@ export default function Team() {
               <ArrowLeft size={13} />
               <span>{isHindi ? 'वापस जाएं' : 'Back to App'}</span>
             </button>
-            <div className="h-4 w-px bg-neutral-200 dark:bg-white/10" />
-            <div className="flex items-center gap-2">
-              <LoadingLogo animate={false} />
-              <span className="font-bold text-sm tracking-tight text-neutral-950 dark:text-white">
-                SWATVA
-              </span>
-            </div>
+          </div>
+
+          {/* Center Logo with No Text */}
+          <div className="flex items-center justify-center">
+            <LoadingLogo animate={false} />
           </div>
 
           <div className="flex items-center gap-2">

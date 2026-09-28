@@ -389,7 +389,7 @@ export default function Documents() {
                     playClick()
                     setIsClearModalOpen(true)
                   }}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/25 bg-red-500/10 hover:bg-red-500/20 active:scale-95 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs font-semibold shadow-2xs transition-all cursor-pointer"
                 >
                   <Trash2 size={13} className="stroke-[2.2]" />
                   <span>{t('documents.removeAll') || 'Remove all documents'}</span>

@@ -329,18 +329,10 @@ export default function PreferencesModal({ isOpen, onClose }) {
                   <div className="text-[11px] sm:text-xs font-semibold text-neutral-950 dark:text-white leading-snug">
                     {currentLang === 'hi' ? 'इंटरफ़ेस थीम' : 'Interface Theme'}
                   </div>
-                  <div className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-neutral-400 leading-none mt-0.5">
-                    {dark 
-                      ? (currentLang === 'hi' ? 'डार्क मोड (सक्रिय)' : 'Obsidian Dark (Active)') 
-                      : (currentLang === 'hi' ? 'लाइट मोड (सक्रिय)' : 'Porcelain Light (Active)')}
-                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 flex-shrink-0">
-                <span className="text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                  {dark ? 'DARK' : 'LIGHT'}
-                </span>
+              <div className="flex items-center flex-shrink-0">
                 <ThemeToggle 
                   darkMode={dark} 
                   toggleTheme={() => {
@@ -750,8 +742,10 @@ export default function PreferencesModal({ isOpen, onClose }) {
                 onClick={() => {
                   playClick();
                   onClose();
-                  // Dispatch tour trigger event
-                  window.dispatchEvent(new CustomEvent('swatva-start-tour'));
+                  // Dispatch tour trigger event after preferences modal finishes unmounting
+                  window.setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('swatva-start-tour'));
+                  }, 120);
                 }}
                 className="w-full py-2 rounded-xl bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 text-xs font-bold tracking-tight hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
               >

@@ -481,10 +481,10 @@ export default function Auth({ mode: initialMode = 'login' }) {
         </span>
         <button
           type="button"
-          onClick={() => { playClick(); navigate('/'); }}
+          onClick={() => { playClick(); navigate('/team'); }}
           className="text-[11px] font-mono text-neutral-700 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white transition cursor-pointer font-medium hover:underline flex-shrink-0 whitespace-nowrap"
         >
-          Explore Platform &rarr;
+          By Team TheQuirkies &rarr;
         </button>
       </footer>
     </div>

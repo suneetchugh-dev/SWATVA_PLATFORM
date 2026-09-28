@@ -113,8 +113,8 @@ export default function Matches() {
         <>
           {/* Filter Pills with smooth sliding background pill */}
           <div className="w-full max-w-full overflow-x-auto no-scrollbar pb-1 mb-6">
-            <div className="p-1 rounded-full neo-glass-card inline-flex items-center">
-              <div ref={filterTrackRef} className="relative flex items-center gap-1" role="tablist" aria-label="Filter matches">
+            <div className="p-1 rounded-full neo-glass-card inline-flex items-center min-w-max">
+              <div ref={filterTrackRef} className="relative flex items-center gap-1 min-w-max px-0.5" role="tablist" aria-label="Filter matches">
                 {filterPill ? (
                   <span
                     aria-hidden="true"

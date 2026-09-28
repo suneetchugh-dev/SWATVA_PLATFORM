@@ -367,6 +367,7 @@
     "tabLocker": "My Locker",
     "tabAdd": "Add Document",
     "tabLockerCount": "My Locker ({{n}})",
+    "addTitle": "Add a new document",
     "addIntro": "Upload your document to safely store it and enable automated extraction and verification.",
     "type": "Document type",
     "file": "File",

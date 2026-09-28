@@ -6,6 +6,7 @@
  * a banned colour cannot even be spelled.
  */
 import { useTranslation } from 'react-i18next'
+import { ChevronDown } from 'lucide-react'
 import CurvyArrow from './CurvyArrow'
 import LoadingLogo from './LoadingLogo'
 
@@ -197,9 +198,21 @@ export function Input({ className = '', ...rest }) {
 
 export function Select({ className = '', children, ...rest }) {
   return (
-    <select className={cx(CONTROL_BASE, 'cursor-pointer', className)} {...rest}>
-      {children}
-    </select>
+    <div className="relative w-full">
+      <select
+        className={cx(
+          CONTROL_BASE,
+          'appearance-none pr-9 cursor-pointer font-medium shadow-2xs',
+          className
+        )}
+        {...rest}
+      >
+        {children}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-400 dark:text-neutral-500">
+        <ChevronDown size={14} className="stroke-[2.2]" />
+      </div>
+    </div>
   )
 }
 
@@ -209,9 +222,9 @@ export function Textarea({ className = '', ...rest }) {
 
 /* ------------------------------------------------------------------ Layout */
 
-export function PageHeader({ arrowLabel, title, desc, actions, className = '' }) {
+export function PageHeader({ arrowLabel, arrowClassName = '', title, desc, actions, className = '' }) {
   return (
-    <header className={cx('flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8', className)}>
+    <header className={cx('flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 pt-2 sm:pt-3', className)}>
       <div className="relative max-w-2xl">
         {/* Hand-drawn arrow + tag, matching the landing hero. Preferred over the
             flat amber `Badge` because it reads as a hand-annotated callout
@@ -219,15 +232,15 @@ export function PageHeader({ arrowLabel, title, desc, actions, className = '' })
         {arrowLabel ? (
           <CurvyArrow
             direction="top-left"
-            className="-left-6 sm:-left-16 -top-7 sm:-top-9"
+            className={cx('-left-4 sm:-left-12 -top-9 sm:-top-11', arrowClassName)}
             label={arrowLabel}
           />
         ) : null}
-        <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold tracking-tight text-balance">
+        <h1 className="mt-4 sm:mt-5 text-2xl sm:text-3xl font-extrabold tracking-tight text-balance">
           {title}
         </h1>
         {desc ? (
-          <p className="mt-2.5 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 text-balance">
+          <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 text-balance">
             {desc}
           </p>
         ) : null}

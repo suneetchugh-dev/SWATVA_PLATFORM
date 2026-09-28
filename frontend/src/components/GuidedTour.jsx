@@ -289,16 +289,20 @@ export default function GuidedTour() {
   useEffect(() => {
     if (!isOpen) return;
     updatePosition();
+    const t1 = window.setTimeout(updatePosition, 50);
+    const t2 = window.setTimeout(updatePosition, 200);
 
     const handleResize = () => updatePosition();
     window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleResize, { passive: true });
 
     return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleResize);
     };
-  }, [isOpen, updatePosition]);
+  }, [isOpen, updatePosition, currentStep]);
 
   useEffect(() => {
     if (!isOpen) return;
