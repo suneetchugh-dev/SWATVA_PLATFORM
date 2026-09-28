@@ -638,14 +638,6 @@ export default function GuidedTour() {
 
             {/* Action Controls */}
             <div className="flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-white/5">
-              <button
-                type="button"
-                onClick={() => { playClick(); setIsOpen(false); }}
-                className="text-[11px] font-semibold text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 transition cursor-pointer"
-              >
-                {isHindi ? 'दौरा छोड़ें' : 'Skip'}
-              </button>
-
               <div className="flex items-center gap-1.5">
                 {!isFirst && (
                   <button
@@ -655,6 +647,7 @@ export default function GuidedTour() {
                       setCurrentStep((prev) => prev - 1);
                     }}
                     className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-white/20 transition cursor-pointer inline-flex items-center gap-1"
+                    title={isHindi ? 'पिछला (बायाँ तीर कुंजी)' : 'Back (Left Arrow)'}
                   >
                     <ChevronLeft size={13} />
                     <span>{isHindi ? 'पीछे' : 'Back'}</span>
@@ -672,11 +665,20 @@ export default function GuidedTour() {
                     }
                   }}
                   className="px-3 py-1 rounded-lg text-xs font-bold bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:opacity-90 active:scale-95 transition cursor-pointer inline-flex items-center gap-1 shadow-sm"
+                  title={isHindi ? 'अगला (दायाँ तीर कुंजी)' : 'Next (Right Arrow)'}
                 >
                   <span>{isLast ? (isHindi ? 'पूर्ण' : 'Finish') : (isHindi ? 'आगे' : 'Next')}</span>
                   {isLast ? <Check size={13} /> : <ChevronRight size={13} />}
                 </button>
               </div>
+
+              <button
+                type="button"
+                onClick={() => { playClick(); setIsOpen(false); }}
+                className="text-[11px] font-semibold text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 transition cursor-pointer"
+              >
+                {isHindi ? 'दौरा छोड़ें' : 'Skip'}
+              </button>
             </div>
           </div>
         </div>

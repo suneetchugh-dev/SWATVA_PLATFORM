@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, ArrowRight, LogIn, UserPlus, KeyRound, RefreshCw, AlertTriangle } from 'lucide-react';
 import MinimalBrandHeader from '../components/MinimalBrandHeader';
@@ -479,13 +479,13 @@ export default function Auth({ mode: initialMode = 'login' }) {
         <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0">
           SWATVA · CITIZEN EMPOWERMENT ARCHITECTURE
         </span>
-        <button
-          type="button"
-          onClick={() => { playClick(); navigate('/team'); }}
-          className="text-[11px] font-mono text-neutral-700 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white transition cursor-pointer font-medium hover:underline flex-shrink-0 whitespace-nowrap"
+        <Link
+          to="/team"
+          onClick={playClick}
+          className="text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer hover:underline flex-shrink-0 whitespace-nowrap"
         >
           {t('landing.footer.tagline') || 'BY TheQuirkies'}
-        </button>
+        </Link>
       </footer>
     </div>
   );

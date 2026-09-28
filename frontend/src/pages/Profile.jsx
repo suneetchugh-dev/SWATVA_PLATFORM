@@ -280,6 +280,36 @@ export default function Profile() {
     return () => { cancelled = true }
   }, [])
 
+  // Keyboard navigation for step wizard (ArrowLeft and ArrowRight)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't intercept arrow keys if user is typing in an input, textarea, or select
+      const tag = document.activeElement?.tagName?.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return
+
+      if (e.key === 'ArrowLeft') {
+        setStep((s) => {
+          if (s > 0) {
+            playClick()
+            return s - 1
+          }
+          return s
+        })
+      } else if (e.key === 'ArrowRight') {
+        setStep((s) => {
+          if (s < STEPS.length - 1) {
+            playClick()
+            return s + 1
+          }
+          return s
+        })
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   const set = (key) => (event) => {
     setSaved(false)
     setForm((f) => ({ ...f, [key]: event.target.value }))
@@ -472,13 +502,15 @@ export default function Profile() {
               }}
               title={t('profile.autoFillHint') || 'Auto-fill profile details from your uploaded documents'}
               aria-label={t('profile.autoFillBtn') || 'Auto-fill'}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 text-amber-800 dark:text-amber-300 transition-all duration-200 cursor-pointer shadow-xs select-none disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 text-amber-800 dark:text-amber-300 transition-all duration-200 cursor-pointer shadow-xs select-none disabled:opacity-60 min-w-[86px] justify-center"
             >
-              {filling ? (
-                <Spinner size="sm" className="text-amber-600 dark:text-amber-400" />
-              ) : (
-                <Wand2 size={13} className="text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-              )}
+              <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
+                {filling ? (
+                  <span className="w-3.5 h-3.5 rounded-full border-[1.5px] border-amber-500/30 border-t-amber-600 dark:border-t-amber-400 animate-spin" />
+                ) : (
+                  <Wand2 size={13} className="text-amber-600 dark:text-amber-400 stroke-[2.2]" />
+                )}
+              </div>
               <span>{filling ? (t('common.loading') || 'Extracting...') : (t('profile.autoFillBtn') || 'Auto-fill')}</span>
             </button>
             <PageTourButton pageKey="profile" />
@@ -737,15 +769,38 @@ export default function Profile() {
         </div>
 
         <div data-tour="profile-actions" className="mt-8 pt-4 border-t border-neutral-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
-          <Button
-            variant="secondary"
-            onClick={() => setStep((s) => Math.max(0, s - 1))}
-            disabled={step === 0}
-          >
-            <ChevronLeft size={15} />
-            {t('common.back')}
-          </Button>
+          {/* Left Button Group: Back & Next together */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                playClick()
+                setStep((s) => Math.max(0, s - 1))
+              }}
+              disabled={step === 0}
+              title={isHindi ? 'पिछला चरण (बायाँ तीर कुंजी)' : 'Previous step (Left Arrow key)'}
+            >
+              <ChevronLeft size={15} />
+              <span>{t('common.back')}</span>
+            </Button>
 
+            {step < STEPS.length - 1 && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  playClick()
+                  setStep((s) => Math.min(STEPS.length - 1, s + 1))
+                }}
+                title={isHindi ? 'अगला चरण (दायाँ तीर कुंजी)' : 'Next step (Right Arrow key)'}
+                className="group"
+              >
+                <span>{t('common.next')}</span>
+                <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+              </Button>
+            )}
+          </div>
+
+          {/* Right Button: Save Profile */}
           <div className="flex items-center gap-2.5">
             <button
               type="button"
@@ -758,27 +813,15 @@ export default function Profile() {
                   : 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-100 border border-neutral-800/80 dark:border-white/20 ring-1 ring-amber-400/50 hover:ring-amber-400/90 shadow-amber-500/10'
               )}
             >
-              {saving ? (
-                <Spinner size="sm" />
-              ) : (
-                <Check size={14} className={cx('stroke-[2.5]', saved ? 'text-emerald-400 dark:text-emerald-600' : 'text-amber-400 dark:text-amber-600')} />
-              )}
+              <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
+                {saving ? (
+                  <span className="w-3.5 h-3.5 rounded-full border-[1.5px] border-current/30 border-t-current animate-spin" />
+                ) : (
+                  <Check size={14} className={cx('stroke-[2.5]', saved ? 'text-emerald-400 dark:text-emerald-600' : 'text-amber-400 dark:text-amber-600')} />
+                )}
+              </div>
               <span>{saved ? t('common.saved') : t('profile.save')}</span>
             </button>
-
-            {step < STEPS.length - 1 && (
-              <button
-                type="button"
-                onClick={() => {
-                  playClick()
-                  setStep((s) => Math.min(STEPS.length - 1, s + 1))
-                }}
-                className="group inline-flex items-center justify-center gap-1.5 h-10 px-5 rounded-xl text-xs font-bold bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-100 border border-neutral-800/80 dark:border-white/20 ring-1 ring-amber-400/40 hover:ring-amber-400/90 transition-all duration-200 cursor-pointer select-none active:scale-95 shadow-sm"
-              >
-                <span>{t('common.next')}</span>
-                <ChevronRight size={15} className="stroke-[2.2] text-amber-400 dark:text-amber-600 group-hover:translate-x-0.5 transition-transform duration-200" />
-              </button>
-            )}
           </div>
         </div>
       </Card>
