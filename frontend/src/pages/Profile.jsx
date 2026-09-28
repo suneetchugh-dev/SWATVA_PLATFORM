@@ -383,7 +383,29 @@ export default function Profile() {
     <div>
       <PageHeader
         title={t('profile.title')}
-        actions={<PageTourButton pageKey="profile" />}
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={filling}
+              onClick={() => {
+                playClick()
+                fillFromDocuments()
+              }}
+              title={t('profile.autoFillHint') || 'Auto-fill profile details from your uploaded documents'}
+              aria-label={t('profile.autoFillBtn') || 'Auto-fill'}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 text-amber-800 dark:text-amber-300 transition-all duration-200 cursor-pointer shadow-xs select-none disabled:opacity-50"
+            >
+              {filling ? (
+                <Spinner size="sm" className="text-amber-600 dark:text-amber-400" />
+              ) : (
+                <Sparkles size={13} className="text-amber-600 dark:text-amber-400 stroke-[2.2]" />
+              )}
+              <span>{filling ? (t('common.loading') || 'Extracting...') : (t('profile.autoFillBtn') || 'Auto-fill')}</span>
+            </button>
+            <PageTourButton pageKey="profile" />
+          </div>
+        }
       />
 
       {/* Citizen Identity Profile Banner */}
@@ -443,7 +465,6 @@ export default function Profile() {
         <ProfileHealthGauge percentage={complete} isHindi={isHindi} />
       </div>
 
-
       {error ? (
         <div className="mb-6">
           <Banner tone="error" title={t('profile.errorTitle')}>
@@ -459,34 +480,19 @@ export default function Profile() {
         </div>
       ) : null}
 
-      {/* Auto-fill from documents — only show when profile is sparse */}
-      {complete < 60 && (
-        <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-2xl border border-amber-400/30 bg-amber-50 dark:bg-amber-500/[0.08] px-4 py-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-              {t('profile.autoFillTitle')}
-            </p>
-            <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
-              {fillResult === 'ok'
+      {/* Dynamic Auto-fill result status banner */}
+      {fillResult && (
+        <div className="mb-5">
+          <Banner
+            tone={fillResult === 'ok' ? 'info' : fillResult === 'none' ? 'warn' : 'error'}
+            title={
+              fillResult === 'ok'
                 ? t('profile.autoFillOk')
                 : fillResult === 'none'
                 ? t('profile.autoFillNone')
-                : fillResult === 'error'
-                ? t('profile.autoFillError')
-                : t('profile.autoFillHint')}
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            loading={filling}
-            onClick={fillFromDocuments}
-            className="shrink-0 text-amber-700 dark:text-amber-300 border border-amber-400/40 hover:bg-amber-100 dark:hover:bg-amber-500/10"
-          >
-            <Sparkles size={13} />
-            {t('profile.autoFillBtn')}
-          </Button>
+                : t('profile.autoFillError')
+            }
+          />
         </div>
       )}
 
