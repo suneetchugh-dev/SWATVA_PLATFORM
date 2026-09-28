@@ -456,7 +456,9 @@
     "voiceListening": "Listening… Speak now",
     "voiceNotSupported": "Voice recognition is not supported in this browser",
     "voiceSpeak": "Read aloud",
-    "voiceStop": "Stop audio readout",
+    "voiceStopRecording": "Stop recording",
+    "voiceStopReadout": "Stop audio readout",
+    "voiceReadingAloud": "Reading aloud…",
     "openers": {
       "0": "What am I eligible for?",
       "1": "What documents do I need for my top scheme?",

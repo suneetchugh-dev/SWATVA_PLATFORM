@@ -755,23 +755,49 @@ export default function Assistant() {
         )}
       </div>
 
-      {voiceNotice ? (
+      {/* Active Voice Dictation Indicator Banner */}
+      {isListening && (
+        <div className="mt-2.5 px-3.5 py-2 rounded-2xl bg-red-500/10 dark:bg-red-500/15 backdrop-blur-md border border-red-500/25 dark:border-red-400/20 text-xs text-red-950 dark:text-red-200 flex items-center justify-between shadow-xs animate-fade-in">
+          <span className="flex items-center gap-2.5 font-medium">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+            </span>
+            <span className="font-semibold">{t('assistant.voiceListening') || 'Listening… Speak now'}</span>
+          </span>
+          <button
+            type="button"
+            onClick={handleToggleListening}
+            className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-600 hover:bg-red-700 text-white shadow-xs transition-all duration-150 cursor-pointer active:scale-95"
+          >
+            {t('assistant.voiceStopRecording') || 'Stop recording'}
+          </button>
+        </div>
+      )}
+
+      {/* Active Audio Readout (TTS) Indicator Banner */}
+      {activeSpeakingIndex !== null && !isListening && (
         <div className="mt-2.5 px-3.5 py-2 rounded-2xl bg-amber-500/10 dark:bg-amber-400/[0.08] backdrop-blur-md border border-amber-500/25 dark:border-amber-400/20 text-xs text-amber-950 dark:text-amber-200 flex items-center justify-between shadow-xs animate-fade-in">
           <span className="flex items-center gap-2.5 font-medium">
-            <Mic size={14} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2] flex-shrink-0" />
-            <span>{voiceNotice}</span>
+            <Volume2 size={15} className="text-amber-600 dark:text-amber-400 animate-pulse stroke-[2.2] flex-shrink-0" />
+            <span className="font-semibold">{t('assistant.voiceReadingAloud') || 'Reading aloud…'}</span>
           </span>
-          {isListening ? (
-            <button
-              type="button"
-              onClick={handleToggleListening}
-              className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 hover:bg-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 text-amber-950 dark:text-amber-100 border border-amber-500/30 dark:border-amber-400/25 transition-all duration-150 cursor-pointer"
-            >
-              {t('assistant.voiceStop')}
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={() => { playClick(); stopSpeaking(); setActiveSpeakingIndex(null); }}
+            className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/20 hover:bg-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 text-amber-950 dark:text-amber-100 border border-amber-500/30 dark:border-amber-400/25 transition-all duration-150 cursor-pointer active:scale-95"
+          >
+            {t('assistant.voiceStopReadout') || 'Stop audio readout'}
+          </button>
         </div>
-      ) : null}
+      )}
+
+      {/* Fallback voice notice (e.g. unsupported browser) */}
+      {voiceNotice && !isListening && activeSpeakingIndex === null && (
+        <div className="mt-2.5 px-3.5 py-2 rounded-2xl bg-neutral-100 dark:bg-white/5 backdrop-blur-md border border-neutral-200 dark:border-white/10 text-xs text-neutral-700 dark:text-neutral-300 flex items-center justify-between shadow-xs animate-fade-in">
+          <span>{voiceNotice}</span>
+        </div>
+      )}
 
       <form
         data-tour="assistant-input"
@@ -794,7 +820,7 @@ export default function Assistant() {
           className={cx(
             'flex-1 resize-none rounded-2xl px-4 py-3 text-sm bg-white/70 dark:bg-white/[0.04] border transition-all duration-200 focus:outline-none max-h-32 min-h-[46px]',
             isListening
-              ? 'border-amber-500 ring-2 ring-amber-500/25 bg-amber-500/[0.04] dark:bg-amber-400/[0.03] shadow-[0_0_12px_rgba(245,158,11,0.12)]'
+              ? 'border-red-500/80 ring-2 ring-red-500/25 bg-red-500/[0.03] dark:bg-red-400/[0.03] shadow-[0_0_12px_rgba(239,68,68,0.15)] placeholder:text-red-600/70 dark:placeholder:text-red-400/70'
               : 'border-neutral-300 dark:border-white/15 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/25'
           )}
         />
@@ -804,11 +830,11 @@ export default function Assistant() {
           type="button"
           onClick={handleToggleListening}
           aria-label={t('assistant.voiceInput')}
-          title={isListening ? t('assistant.voiceStop') : t('assistant.voiceInput')}
+          title={isListening ? (t('assistant.voiceStopRecording') || 'Stop recording') : t('assistant.voiceInput')}
           className={cx(
             'h-[46px] w-[46px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none',
             isListening
-              ? 'bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/30 ring-2 ring-amber-400 ring-offset-2 ring-offset-white dark:ring-offset-obsidian scale-105 animate-pulse'
+              ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/35 ring-2 ring-red-400 ring-offset-2 ring-offset-white dark:ring-offset-obsidian scale-105 animate-pulse'
               : 'border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-500/40 hover:bg-amber-500/5 shadow-xs'
           )}
         >
