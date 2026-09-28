@@ -497,18 +497,15 @@ export default function Assistant() {
           <div className="flex items-center gap-1.5 sm:gap-2">
             <PageTourButton pageKey="assistant" />
             <div data-tour="assistant-actions" className="flex items-center gap-1.5 sm:gap-2">
-              {messages.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleExportChat}
-                  aria-label={t('assistant.export')}
-                  title={t('assistant.export')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs"
-                >
-                  <Download size={13} />
-                  <span>{t('assistant.export')}</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleNewChat}
+                aria-label={t('assistant.newChat')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 transition-all duration-200 cursor-pointer select-none shadow-xs"
+              >
+                <Plus size={13} />
+                <span>{t('assistant.newChat')}</span>
+              </button>
 
               <button
                 type="button"
@@ -533,15 +530,18 @@ export default function Assistant() {
                 )}
               </button>
 
-              <button
-                type="button"
-                onClick={handleNewChat}
-                aria-label={t('assistant.newChat')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 transition-all duration-200 cursor-pointer select-none shadow-xs"
-              >
-                <Plus size={13} />
-                <span>{t('assistant.newChat')}</span>
-              </button>
+              {messages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleExportChat}
+                  aria-label={t('assistant.export')}
+                  title={t('assistant.export')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs"
+                >
+                  <Download size={13} />
+                  <span>{t('assistant.export')}</span>
+                </button>
+              )}
             </div>
           </div>
         }

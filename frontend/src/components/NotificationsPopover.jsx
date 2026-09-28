@@ -155,10 +155,10 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
   return (
     <div 
       ref={popoverRef}
-      className="absolute right-0 top-11 w-[calc(100vw-1.5rem)] max-w-xs sm:max-w-none sm:w-96 rounded-2xl bg-white/95 dark:bg-[#121216]/95 border border-neutral-200/80 dark:border-white/10 shadow-2xl backdrop-blur-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans"
+      className="absolute right-0 top-11 w-[calc(100vw-1.5rem)] max-w-xs sm:max-w-none sm:w-96 rounded-2xl bg-white dark:bg-[#151618] border border-neutral-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-white/5">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-white/5 bg-white dark:bg-[#151618]">
         <div className="flex items-center space-x-2">
           <div className="h-6 w-6 rounded-lg bg-neutral-100 dark:bg-white/5 flex items-center justify-center">
             <Bell size={13} className="text-neutral-900 dark:text-white" />
@@ -197,9 +197,9 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
       </div>
 
       {/* Notifications List */}
-      <div className="max-h-80 overflow-y-auto divide-y divide-neutral-100 dark:divide-white/5 custom-scrollbar">
+      <div className="max-h-80 overflow-y-auto divide-y divide-neutral-100 dark:divide-white/5 custom-scrollbar bg-white dark:bg-[#151618]">
         {notifications.length === 0 ? (
-          <div className="p-8 text-center">
+          <div className="p-8 text-center bg-white dark:bg-[#151618]">
             <ShieldCheck size={28} className="mx-auto text-neutral-300 dark:text-neutral-600 mb-2" />
             <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
               {i18n.language === 'hi' ? 'कोई नई सूचना नहीं है' : 'No new notifications'}
@@ -217,8 +217,8 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
                 onClick={() => markAsRead(notif.id, notif.link)}
                 className={`p-3.5 flex items-start space-x-3 transition cursor-pointer ${
                   isRead
-                    ? 'opacity-70 hover:opacity-100 bg-transparent hover:bg-neutral-50 dark:hover:bg-white/[0.02]'
-                    : 'bg-neutral-50/80 dark:bg-white/[0.04] hover:bg-neutral-100/80 dark:hover:bg-white/[0.06]'
+                    ? 'opacity-70 hover:opacity-100 bg-white dark:bg-[#151618] hover:bg-neutral-50 dark:hover:bg-white/[0.04]'
+                    : 'bg-neutral-50 dark:bg-[#121315] hover:bg-neutral-100 dark:hover:bg-[#1a1b1e]'
                 }`}
               >
                 {getTypeIcon(notif.type, notif.icon)}
@@ -246,7 +246,7 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
 
       {/* Footer */}
       {notifications.length > 0 && (
-        <div className="p-2 bg-neutral-50/80 dark:bg-[#0c0c0e]/80 border-t border-neutral-100 dark:border-white/5 flex items-center justify-end px-3">
+        <div className="p-2 bg-neutral-50 dark:bg-[#101113] border-t border-neutral-100 dark:border-white/5 flex items-center justify-end px-3">
           <button
             type="button"
             onClick={clearAll}
