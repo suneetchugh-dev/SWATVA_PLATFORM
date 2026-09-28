@@ -869,7 +869,7 @@ export default function Assistant() {
         {/* Backdrop */}
         <div
           className={cx(
-            'fixed inset-0 bg-neutral-950/40 backdrop-blur-xs transition-opacity duration-300 ease-out',
+            'fixed inset-0 bg-neutral-950/25 dark:bg-black/45 backdrop-blur-[2px] transition-opacity duration-300 ease-out',
             isHistoryOpen ? 'opacity-100' : 'opacity-0'
           )}
           onClick={() => {
@@ -882,7 +882,7 @@ export default function Assistant() {
         {/* Drawer Panel */}
         <div
           className={cx(
-            'relative w-full max-w-sm sm:max-w-md bg-white dark:bg-neutral-900 border-l border-neutral-200 dark:border-white/10 shadow-2xl flex flex-col h-full z-10',
+            'relative w-full max-w-sm sm:max-w-md bg-white dark:bg-[#111114] border-l sm:border border-neutral-200/90 dark:border-white/10 rounded-l-3xl sm:rounded-3xl sm:my-3 sm:mr-3 sm:h-[calc(100dvh-1.5rem)] shadow-2xl flex flex-col h-full z-10 overflow-hidden',
             'transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
             isHistoryOpen ? 'translate-x-0' : 'translate-x-full'
           )}
