@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, FileStack, Plus, Trash2, Upload } from 'lucide-react'
+import { AlertTriangle, FileStack, Info, Plus, Trash2, Upload } from 'lucide-react'
 import { api } from '../api/client'
 import DocumentReviewModal from '../components/DocumentReviewModal'
 import ClearDocumentsModal from '../components/ClearDocumentsModal'
@@ -29,6 +29,19 @@ const DOC_TYPES = [
   'RESIDENCE_PROOF', 'BANK_ACCOUNT', 'ELECTRICITY_CONNECTION',
   'EDUCATION_CERTIFICATE', 'OFFICIAL_ID', 'OTHER',
 ]
+
+/**
+ * Single-instance document types: Only one active document of these types
+ * is maintained per citizen. Uploading a new one replaces the existing record.
+ * Multi-instance types (e.g. Education Certificates, Electricity Bills, Income/Caste renewals)
+ * allow multiple active entries.
+ */
+const SINGLE_INSTANCE_DOC_TYPES = new Set([
+  'AADHAAR',
+  'RATION_CARD',
+  'BANK_ACCOUNT',
+  'RESIDENCE_PROOF',
+])
 
 /**
  * Per-document-type field visibility rules.
@@ -132,6 +145,10 @@ export default function Documents() {
   }
 
   const fieldCfg = DOC_FIELD_CONFIG[docType] ?? DOC_FIELD_CONFIG.OTHER
+  const isSingleInstance = SINGLE_INSTANCE_DOC_TYPES.has(docType)
+  const existingSingleDoc = isSingleInstance
+    ? docs?.find((d) => d.documentType === docType)
+    : null
 
   const load = () => {
     setLoading(true)
@@ -207,6 +224,11 @@ export default function Documents() {
       return
     }
 
+    const isSingleInstance = SINGLE_INSTANCE_DOC_TYPES.has(docType)
+    const existingSingleDoc = isSingleInstance
+      ? docs?.find((d) => d.documentType === docType)
+      : null
+
     setUploading(true)
     try {
       const fd = new FormData()
@@ -217,6 +239,15 @@ export default function Documents() {
       if (expiryDate) fd.append('expiryDate', expiryDate)
       if (authority.trim()) fd.append('issuingAuthority', authority.trim())
       await api.documents.upload(fd)
+
+      // If replacing an existing single-instance document, clean up the superseded document
+      if (existingSingleDoc) {
+        try {
+          await api.documents.delete(existingSingleDoc.id)
+        } catch (cleanupErr) {
+          console.warn('Failed to prune superseded document:', cleanupErr)
+        }
+      }
 
       playClick()
       setFilename('')
@@ -469,10 +500,42 @@ export default function Documents() {
           </div>
 
           <form onSubmit={register} className="mt-5 grid gap-4 sm:grid-cols-2 min-w-0">
+            {/* Single-instance replacement notice */}
+            {existingSingleDoc && (
+              <div className="sm:col-span-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-900 dark:text-amber-200 text-xs flex items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+                <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+                  <Info size={16} className="shrink-0 text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-0" />
+                  <div className="min-w-0">
+                    <p className="font-semibold leading-tight">
+                      {t('documents.replaceNotice', {
+                        type: t(`documents.types.${docType}`),
+                        existing: existingSingleDoc.filename || t(`documents.types.${docType}`),
+                      })}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-amber-700/90 dark:text-amber-300/80 leading-normal">
+                      {t('documents.singleInstanceHint')}
+                    </p>
+                  </div>
+                </div>
+                <Badge tone="amber" className="shrink-0 text-[10px] uppercase font-bold tracking-wide">
+                  {t('documents.willReplace')}
+                </Badge>
+              </div>
+            )}
+
             {/* Document type — changing this updates placeholder + visible fields */}
             <Field label={t('documents.type')} htmlFor="docType" required>
               <Select id="docType" value={docType} onChange={(e) => handleDocTypeChange(e.target.value)}>
-                {DOC_TYPES.map((v) => <option key={v} value={v}>{t(`documents.types.${v}`)}</option>)}
+                {DOC_TYPES.map((v) => {
+                  const isSingle = SINGLE_INSTANCE_DOC_TYPES.has(v)
+                  const hasExisting = isSingle && docs?.some((d) => d.documentType === v)
+                  return (
+                    <option key={v} value={v}>
+                      {t(`documents.types.${v}`)}
+                      {hasExisting ? ` — (${t('documents.willReplace') || 'Replaces existing'})` : ''}
+                    </option>
+                  )
+                })}
               </Select>
             </Field>
 
