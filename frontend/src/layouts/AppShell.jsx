@@ -23,12 +23,10 @@ import PreferencesModal from '../components/PreferencesModal'
 import MeetTeamModal from '../components/MeetTeamModal'
 import NotificationBadge from '../components/NotificationBadge'
 import NotificationsPopover from '../components/NotificationsPopover'
-import GuidedTour from '../components/GuidedTour'
 import ThemeToggle from '../components/ThemeToggle'
 import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
 import AIOrbIcon from '../components/AIOrbIcon'
-import AICopilotFAB from '../components/AICopilotFAB'
 import { getLocalizedUserName } from '../utils/userDisplay'
 import { playClick } from '../utils/soundFx'
 
@@ -224,9 +222,7 @@ export default function AppShell() {
             </div>
 
             {/* Theme toggle */}
-            <div data-tour="theme-toggle" className="flex items-center">
-              <ThemeToggle darkMode={dark} toggleTheme={toggle} />
-            </div>
+            <ThemeToggle darkMode={dark} toggleTheme={toggle} />
 
             {/* Hairline Divider */}
             <div aria-hidden="true" className="h-6 w-px bg-neutral-300/80 dark:bg-white/20 flex-shrink-0" />
@@ -385,14 +381,9 @@ export default function AppShell() {
         onClose={() => setIsTeamOpen(false)}
       />
 
-      <GuidedTour />
-
       <main key={pathname} className="mx-auto max-w-7xl px-3 sm:px-5 py-6 sm:py-8 pb-28 lg:pb-10 page-transition-enter">
         <Outlet />
       </main>
-
-      {/* Draggable Floating AI Orb Assistant across Dashboard */}
-      <AICopilotFAB />
 
       {/* Bottom bar on phones only */}
       <nav className="app-bottom-bar lg:hidden fixed bottom-0 inset-x-0 z-40 px-3 pb-3 pt-2 pb-safe" aria-label={t('nav.main')}>

@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   CheckCircle2,
   ArrowRight,
+  Route,
   SunMoon
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -281,8 +282,75 @@ export const PAGE_TOUR_CONFIGS = {
       descEn: 'Detailed financial value, DBT mode, and claim requirements for each scheme.',
       descHi: 'प्रत्येक योजना से मिलने वाली राशि और डीबीटी (DBT) प्रक्रिया की जानकारी।'
     }
+  ],
+  landing: [
+    {
+      id: 'landing-brand',
+      target: '[data-tour="landing-brand"]',
+      icon: Compass,
+      titleEn: 'SWATVA Public Infrastructure',
+      titleHi: 'स्वत्व सार्वजनिक डिजिटल मंच',
+      descEn: 'Decentralized public infrastructure connecting every citizen directly to statutory government schemes with 100% deterministic rules.',
+      descHi: 'प्रत्येक नागरिक को 100% सटीक नियमों के साथ सरकारी योजनाओं से सीधे जोड़ने वाला पारदर्शी सार्वजनिक मंच।'
+    },
+    {
+      id: 'landing-search',
+      target: '[data-tour="landing-search"]',
+      icon: Search,
+      titleEn: 'Natural Language Scheme Search',
+      titleHi: 'बोलचाल भाषा में योजना खोज',
+      descEn: 'Type or speak what you or your family are going through. SWATVA instantly extracts criteria and maps verified schemes. Press Ctrl+K anytime.',
+      descHi: 'अपनी या परिवार की स्थिति को सामान्य भाषा में लिखें। स्वत्व तुरंत पात्रता पहचान कर संबंधित योजनाएं सुझाएगा।'
+    },
+    {
+      id: 'landing-how',
+      target: '[data-tour="landing-how"]',
+      icon: Route,
+      titleEn: '3-Step Streamlined Flow',
+      titleHi: '३-चरणीय सुगम प्रक्रिया',
+      descEn: 'From natural language intake to deterministic rule evaluation and document locker readiness in 3 transparent steps.',
+      descHi: 'स्थिति विवरण से लेकर नियम मिलान और दस्तावेज़ लॉकर चेकलिस्ट तक — ३ आसान व पारदर्शी चरणों में।'
+    },
+    {
+      id: 'landing-capabilities',
+      target: '[data-tour="landing-capabilities"]',
+      icon: Sparkles,
+      titleEn: 'Deterministic AI & Rules Suite',
+      titleHi: 'एआई एवं नियम इंजन की क्षमताएं',
+      descEn: 'Zero hallucinations: 100% deterministic rule matching, client-side OCR verification, and cited vernacular AI advisory.',
+      descHi: 'शत-प्रतिशत सटीक नियम मिलान, दस्तावेज़ ओसीआर सत्यापन और क्षेत्रीय भाषा एआई सलाहकार।'
+    },
+    {
+      id: 'landing-coverage',
+      target: '[data-tour="landing-coverage"]',
+      icon: LayoutDashboard,
+      titleEn: 'Verified Schemes Catalogue',
+      titleHi: 'सत्यापित योजना संग्रह',
+      descEn: 'Explore continuously updated central and state government schemes backed by statutory gazette citations.',
+      descHi: 'केंद्र और राज्य सरकार की कल्याणकारी योजनाओं का सत्यापित व निरंतर अद्यतन संग्रह।'
+    },
+    {
+      id: 'landing-preferences',
+      target: '[data-tour="landing-preferences"]',
+      icon: UserCog,
+      titleEn: 'System Preferences & Accessibility',
+      titleHi: 'प्राथमिकताएं एवं भाषा सेटिंग्स',
+      descEn: 'Switch languages (Hindi / English), toggle dark mode, customize tactile sound feedback, and restart interactive tours.',
+      descHi: 'भाषा (हिन्दी / अंग्रेज़ी) बदलें, थीम टॉगल करें, ध्वनि प्रभाव सेट करें और गाइडेड टूर पुनः प्रारंभ करें।'
+    },
+    {
+      id: 'landing-cta',
+      target: '[data-tour="landing-cta"]',
+      icon: ArrowRight,
+      titleEn: 'Citizen Portal & Locker Access',
+      titleHi: 'नागरिक पोर्टल एवं लॉकर प्रवेश',
+      descEn: 'Access the citizen portal to calculate your unclaimed benefits, manage your document locker, and claim schemes.',
+      descHi: 'अपने पात्र लाभों की गणना करने, दस्तावेज़ सुरक्षित रखने और योजनाओं के लिए पोर्टल में प्रवेश करें।'
+    }
   ]
 };
+
+export const LANDING_TOUR_STEPS = PAGE_TOUR_CONFIGS.landing;
 
 /**
  * First-Time Login Welcome Prompt Modal (SAHNIRMAAN obsidian aesthetic).
@@ -472,6 +540,8 @@ export default function GuidedTour() {
     let cancelled = false;
     const timer = window.setTimeout(() => {
       if (cancelled) return;
+      // Only show first-time welcome prompt on /app for logged-in citizens
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/app')) return;
       const seen = localStorage.getItem(SEEN_KEY);
       if (!seen) {
         setShowPrompt(true);
@@ -484,11 +554,13 @@ export default function GuidedTour() {
     };
   }, []);
 
-  // Listen to manual tour triggers (Global or Page-Specific)
+  // Listen to manual tour triggers (Global, Landing, or Page-Specific)
   useEffect(() => {
     const handleStartTour = () => {
+      const isLanding = typeof window !== 'undefined' && (window.location.pathname === '/' || !window.location.pathname.startsWith('/app'));
+      const steps = isLanding ? (PAGE_TOUR_CONFIGS.landing || GLOBAL_TOUR_STEPS) : GLOBAL_TOUR_STEPS;
       setShowPrompt(false);
-      setTourSteps(GLOBAL_TOUR_STEPS);
+      setTourSteps(steps);
       setCurrentStep(0);
       setIsOpen(true);
       playClick();
