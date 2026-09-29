@@ -616,46 +616,63 @@ export default function Documents() {
         </Card>
       )}
 
-      {/* Security & Privacy Architecture Transparency Card */}
-      <div className="rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/60 dark:bg-white/[0.02] p-4 sm:p-5 mt-6">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="h-6 w-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-            <Lock size={13} />
+      {/* Security & Privacy Architecture Transparency Card (Refined Monochrome) */}
+      <div className="rounded-3xl border border-neutral-200/90 dark:border-white/10 neo-glass-card p-5 sm:p-6 mt-8 relative overflow-hidden transition-all duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-neutral-200/80 dark:border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 flex items-center justify-center shrink-0 shadow-2xs">
+              <Lock size={14} className="stroke-[2.2]" />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold tracking-tight text-neutral-950 dark:text-white uppercase tracking-wider font-mono">
+                {t('documents.securityNotice.title', 'Security, Privacy & Automated Verification Architecture')}
+              </h3>
+              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
+                Zero-Knowledge Processing · Tenant Isolation
+              </p>
+            </div>
           </div>
-          <h3 className="text-xs font-bold tracking-tight text-neutral-900 dark:text-white uppercase tracking-wider">
-            {t('documents.securityNotice.title', 'Security, Privacy & Automated Verification Architecture')}
-          </h3>
+          <span className="mono-badge self-start sm:self-auto text-[10px] px-2.5 py-1 rounded-full border border-neutral-300 dark:border-white/15 bg-neutral-100 dark:bg-white/5 text-neutral-700 dark:text-neutral-300 font-semibold tracking-wide">
+            TLS 1.3 / AES-256
+          </span>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 text-xs">
-          <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-neutral-900/60 p-3 border border-neutral-200/50 dark:border-white/5">
-            <ShieldCheck size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-neutral-900 dark:text-white">
+        <div className="grid gap-3.5 sm:grid-cols-2 text-xs">
+          <div className="flex items-start gap-3 rounded-2xl bg-neutral-100/60 dark:bg-white/[0.03] p-4 border border-neutral-200/70 dark:border-white/10 group hover:border-neutral-400 dark:hover:border-white/25 transition-all duration-200">
+            <div className="w-8 h-8 rounded-xl bg-neutral-200/80 dark:bg-white/10 border border-neutral-300 dark:border-white/15 text-neutral-900 dark:text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+              <ShieldCheck size={16} className="stroke-[2.2]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-xs text-neutral-950 dark:text-white tracking-tight">
                 {t('documents.securityNotice.inTransit', 'Encrypted In-Transit & At-Rest')}
               </p>
-              <p className="mt-0.5 text-neutral-600 dark:text-neutral-400 leading-relaxed text-[11px]">
+              <p className="mt-1 text-neutral-600 dark:text-neutral-400 leading-relaxed text-[11px]">
                 {t('documents.securityNotice.inTransitDesc', 'All document uploads are transmitted over TLS 1.3 encryption and stored in tenant-isolated, AES-256 encrypted cloud object storage.')}
               </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-neutral-900/60 p-3 border border-neutral-200/50 dark:border-white/5">
-            <Cpu size={16} className="text-amber-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-neutral-900 dark:text-white">
+          <div className="flex items-start gap-3 rounded-2xl bg-neutral-100/60 dark:bg-white/[0.03] p-4 border border-neutral-200/70 dark:border-white/10 group hover:border-neutral-400 dark:hover:border-white/25 transition-all duration-200">
+            <div className="w-8 h-8 rounded-xl bg-neutral-200/80 dark:bg-white/10 border border-neutral-300 dark:border-white/15 text-neutral-900 dark:text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+              <Cpu size={16} className="stroke-[2.2]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-xs text-neutral-950 dark:text-white tracking-tight">
                 {t('documents.securityNotice.ocrPurpose', 'Automated In-Memory AI Extraction')}
               </p>
-              <p className="mt-0.5 text-neutral-600 dark:text-neutral-400 leading-relaxed text-[11px]">
+              <p className="mt-1 text-neutral-600 dark:text-neutral-400 leading-relaxed text-[11px]">
                 {t('documents.securityNotice.ocrPurposeDesc', 'Our server-side OCR extracts document numbers, validity dates, and issuing authority seals solely to evaluate statutory scheme criteria. Your raw documents are never shared or sold to third parties.')}
               </p>
             </div>
           </div>
         </div>
 
-        <p className="mt-3 text-[11px] text-neutral-500 dark:text-neutral-400 text-center sm:text-left">
-          ℹ️ {t('documents.securityNotice.transparencyNote', 'Server-assisted OCR verification enables instant eligibility calculation across 20+ government schemes while maintaining strict tenant isolation.')}
-        </p>
+        <div className="mt-4 pt-3.5 border-t border-neutral-200/70 dark:border-white/10 flex items-start gap-2 text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+          <Info size={13} className="shrink-0 mt-0.5 text-neutral-400 dark:text-neutral-500 stroke-[2.2]" />
+          <p className="leading-relaxed">
+            {t('documents.securityNotice.transparencyNote', 'Server-assisted OCR verification enables instant eligibility calculation across 20+ government schemes while maintaining strict tenant isolation.')}
+          </p>
+        </div>
       </div>
 
       {/* Verification Review Modal */}

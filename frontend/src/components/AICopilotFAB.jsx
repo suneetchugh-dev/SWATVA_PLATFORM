@@ -867,25 +867,27 @@ export default function AICopilotFAB() {
           {/* History Slide-over Drawer */}
           {isHistoryOpen && (
             <div className="absolute inset-0 top-[49px] z-30 bg-white/98 dark:bg-[#0c0c10]/98 backdrop-blur-xl flex flex-col p-4 animate-in fade-in slide-in-from-right duration-200">
-              <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-white/10">
-                <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white flex items-center gap-1.5">
-                  <Clock size={13} className="text-amber-500" />
-                  <span>{t('assistant.historyTitle') || 'Past Consultations'}</span>
+              <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-white/10 gap-2">
+                <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white flex items-center gap-1.5 min-w-0 truncate">
+                  <Clock size={13} className="text-amber-500 shrink-0" />
+                  <span className="truncate">{t('assistant.historyTitle') || 'Past Consultations'}</span>
                 </span>
                 {sessions.length > 0 && (
                   <button
                     type="button"
                     onClick={handleClearAllHistory}
-                    className="text-[10px] font-mono text-red-500 hover:underline cursor-pointer flex items-center gap-1"
+                    aria-label={t('assistant.clearHistory') || 'Clear all'}
+                    title={t('assistant.clearHistory') || 'Clear all'}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 bg-neutral-100 dark:bg-white/5 hover:bg-red-500/10 border border-neutral-200/80 dark:border-white/10 hover:border-red-500/30 transition-all cursor-pointer select-none active:scale-95 shrink-0"
                   >
-                    <Trash2 size={11} />
+                    <Trash2 size={11} className="stroke-[2.2] text-red-500/80 dark:text-red-400/80" />
                     <span>{t('assistant.clearHistory') || 'Clear all'}</span>
                   </button>
                 )}
               </div>
 
               {sessions.length > 0 && (
-                <div className="relative my-2.5">
+                <div className="relative my-2.5 shrink-0">
                   <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input
                     type="text"
@@ -897,7 +899,7 @@ export default function AICopilotFAB() {
                 </div>
               )}
 
-              <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 mt-1">
+              <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 mt-1 min-h-0">
                 {filteredSessions.length === 0 ? (
                   <div className="text-center py-12 text-neutral-400 text-xs font-mono">
                     {sessions.length === 0
@@ -937,6 +939,22 @@ export default function AICopilotFAB() {
                   })
                 )}
               </div>
+
+              {sessions.length > 0 && (
+                <div className="pt-2.5 mt-2 border-t border-neutral-200 dark:border-white/10 flex items-center justify-between gap-2 shrink-0">
+                  <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
+                    {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleClearAllHistory}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+                  >
+                    <Trash2 size={11} />
+                    <span>{t('assistant.clearHistory') || 'Clear all'}</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

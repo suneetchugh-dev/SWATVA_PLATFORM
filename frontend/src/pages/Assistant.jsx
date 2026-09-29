@@ -930,31 +930,45 @@ export default function Assistant() {
             )}
           >
             {/* Header */}
-            <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+            <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                   <MessageSquare size={16} />
                 </div>
-                <div>
-                  <h2 className="text-sm font-bold tracking-tight text-neutral-950 dark:text-white">
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold tracking-tight text-neutral-950 dark:text-white truncate">
                     {t('assistant.historyTitle')}
                   </h2>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
                     {t('assistant.historyDesc')}
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  playClick()
-                  setIsHistoryOpen(false)
-                }}
-                className="h-8 w-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer active:scale-95"
-                aria-label={t('common.close')}
-              >
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {sessions.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearAllHistory}
+                    title={t('assistant.clearHistory') || 'Clear all history'}
+                    aria-label={t('assistant.clearHistory') || 'Clear all history'}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 bg-neutral-100 dark:bg-white/5 hover:bg-red-500/10 border border-neutral-200/80 dark:border-white/10 hover:border-red-500/30 transition-all cursor-pointer select-none active:scale-95"
+                  >
+                    <Trash2 size={12} className="stroke-[2.2] shrink-0 text-red-500/80 dark:text-red-400/80" />
+                    <span className="hidden xs:inline sm:inline">{t('assistant.clearHistory') || 'Clear all'}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick()
+                    setIsHistoryOpen(false)
+                  }}
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer active:scale-95"
+                  aria-label={t('common.close')}
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Search Input */}
@@ -1049,17 +1063,17 @@ export default function Assistant() {
 
             {/* Footer */}
             {sessions.length > 0 && (
-              <div className="p-3.5 border-t border-neutral-200 dark:border-white/10 bg-neutral-50/70 dark:bg-white/[0.02] flex items-center justify-between shrink-0">
-                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                  {sessions.length} {t('assistant.historyTitle').toLowerCase()}
+              <div className="p-3.5 sm:p-4 border-t border-neutral-200 dark:border-white/10 bg-neutral-50/70 dark:bg-white/[0.02] flex items-center justify-between gap-3 shrink-0">
+                <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                  {sessions.length} {sessions.length === 1 ? 'consultation' : 'consultations'}
                 </span>
                 <button
                   type="button"
                   onClick={handleClearAllHistory}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-neutral-500 hover:text-amber-700 dark:hover:text-amber-400 hover:underline cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 border border-red-500/25 transition-all cursor-pointer select-none active:scale-95 shadow-2xs"
                 >
-                  <Trash2 size={12} />
-                  <span>{t('assistant.clearHistory')}</span>
+                  <Trash2 size={12} className="stroke-[2.2]" />
+                  <span>{t('assistant.clearHistory') || 'Clear all history'}</span>
                 </button>
               </div>
             )}
