@@ -172,10 +172,10 @@ export default function Team() {
             aria-label={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
           >
             <div className="relative h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center flex-shrink-0">
-              {/* Amber Aura Glow matching login header */}
+              {/* Amber Aura Glow matching login header in both light and dark themes */}
               <span
                 aria-hidden="true"
-                className="absolute inset-0 -m-2 rounded-full bg-amber-500/35 blur-lg scale-100 hidden dark:block pointer-events-none transition-all duration-300 ease-out group-hover:bg-amber-500/60 group-hover:blur-xl group-hover:scale-115"
+                className="absolute inset-0 -m-2 rounded-full bg-amber-500/22 dark:bg-amber-500/35 blur-lg scale-100 pointer-events-none transition-all duration-300 ease-out group-hover:bg-amber-500/45 dark:group-hover:bg-amber-500/60 group-hover:blur-xl group-hover:scale-115"
               />
               <LoadingLogo animate={false} size="h-7 w-7 sm:h-8 sm:w-8" />
             </div>
