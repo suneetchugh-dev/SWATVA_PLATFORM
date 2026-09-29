@@ -24,6 +24,7 @@ import Auth from './pages/Auth.jsx'
 import PWAInstallBanner from './components/PWAInstallBanner'
 import PWAUpdateToast from './components/PWAUpdateToast'
 import OfflineBanner from './components/OfflineBanner'
+import GuidedTour from './components/GuidedTour'
 
 const App = lazy(() => import('./App.jsx')) // the original developer console, kept at /console
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
@@ -109,6 +110,7 @@ container.__reactRoot.render(
       <SplashLoader />
       <BrowserRouter>
         <ScrollToTop />
+        <GuidedTour />
         <Suspense fallback={<RouteFallback />}>
           <AnimatedAppRoutes />
         </Suspense>

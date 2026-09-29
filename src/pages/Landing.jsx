@@ -299,6 +299,7 @@ export default function Landing() {
         <div className="flex items-center flex-shrink-0 min-w-0">
           <Link
             to={isAuthed ? '/app' : '/'}
+            data-tour="landing-brand"
             onClick={(e) => {
               playClick();
               if (!isAuthed && window.location.pathname === '/') {
@@ -369,6 +370,7 @@ export default function Landing() {
           {/* Preferences Button (Desktop) */}
           <button
             type="button"
+            data-tour="landing-preferences"
             onClick={() => { playClick(); setIsPreferencesOpen(true); }}
             className="hidden sm:flex w-8 h-8 rounded-full items-center justify-center cursor-pointer border border-neutral-200/80 dark:border-white/20 bg-neutral-100/80 dark:bg-white/[0.08] hover:bg-neutral-200/70 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white transition-all shadow-2xs backdrop-blur-md group"
             aria-label="Preferences"
@@ -381,6 +383,7 @@ export default function Landing() {
 
           <Link
             to={isAuthed ? "/app" : "/login"}
+            data-tour="landing-cta"
             onClick={playClick}
             className="h-8 sm:h-8.5 px-3 sm:px-4 rounded-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 text-xs font-semibold flex items-center gap-1.5 hover:opacity-90 transition-opacity flex-shrink-0"
           >
@@ -588,6 +591,7 @@ export default function Landing() {
 
         {/* search box with Curvy Arrow */}
         <div
+          data-tour="landing-search"
           className="relative group w-full max-w-2xl mt-8 z-10"
           onMouseEnter={() => setSearchHovered(true)}
           onMouseLeave={() => setSearchHovered(false)}
@@ -649,7 +653,7 @@ export default function Landing() {
       </section>
 
       {/* ------------------------------------------- how it works */}
-      <section id="how" className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24 scroll-mt-20 sm:scroll-mt-24">
+      <section id="how" data-tour="landing-how" className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24 scroll-mt-20 sm:scroll-mt-24">
         <Watermark>{t('landing.steps.watermark')}</Watermark>
         <div className="w-full max-w-5xl relative z-10">
           <SectionHeading
@@ -676,7 +680,7 @@ export default function Landing() {
       </section>
 
       {/* ------------------------------------------- capabilities */}
-      <section id="capabilities" className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24 scroll-mt-20 sm:scroll-mt-24">
+      <section id="capabilities" data-tour="landing-capabilities" className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24 scroll-mt-20 sm:scroll-mt-24">
         <Watermark>{t('landing.capabilities.watermark')}</Watermark>
         <div className="w-full max-w-5xl relative z-10">
           <SectionHeading
@@ -911,7 +915,7 @@ export default function Landing() {
       </section>
 
       {/* ------------------------------------------- coverage */}
-      <section id="coverage" className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24 scroll-mt-20 sm:scroll-mt-24">
+      <section id="coverage" data-tour="landing-coverage" className="relative w-full flex flex-col items-center px-6 py-16 sm:py-24 scroll-mt-20 sm:scroll-mt-24">
         <Watermark>{t('landing.coverage.watermark')}</Watermark>
         <div className="w-full max-w-5xl relative z-10">
           <SectionHeading

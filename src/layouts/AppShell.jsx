@@ -23,7 +23,6 @@ import PreferencesModal from '../components/PreferencesModal'
 import MeetTeamModal from '../components/MeetTeamModal'
 import NotificationBadge from '../components/NotificationBadge'
 import NotificationsPopover from '../components/NotificationsPopover'
-import GuidedTour from '../components/GuidedTour'
 import ThemeToggle from '../components/ThemeToggle'
 import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
@@ -381,8 +380,6 @@ export default function AppShell() {
         isOpen={isTeamOpen}
         onClose={() => setIsTeamOpen(false)}
       />
-
-      <GuidedTour />
 
       <main key={pathname} className="mx-auto max-w-7xl px-3 sm:px-5 py-6 sm:py-8 pb-28 lg:pb-10 page-transition-enter">
         <Outlet />
