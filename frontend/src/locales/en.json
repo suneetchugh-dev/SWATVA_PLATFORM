@@ -129,21 +129,27 @@
     },
     "capabilities": {
       "watermark": "CAPABILITIES",
-      "badge": "What it does",
+      "badge": "Core Capabilities",
       "title": "Built around the whole application, not just the search",
-      "desc": "Finding a scheme is the easy half. SWATVA covers the documents, the readiness and the paperwork that decide whether you actually receive the benefit.",
-      "item0Title": "Deterministic eligibility",
-      "item0Body": "Eligibility is decided by stored eligibility rules, never by a language model. Every verdict is reproducible and cites the condition that produced it.",
-      "item1Title": "Value on the table",
-      "item1Body": "Aggregates the annual value of everything you qualify for but have not claimed, so the cost of not applying is a number rather than a suspicion.",
-      "item2Title": "Document locker",
-      "item2Body": "Upload a document once, validate it against the scheme requirement, correct extracted fields, and reuse it across every scheme that needs it.",
-      "item3Title": "Application readiness",
-      "item3Body": "Per-scheme readiness scoring across the documents and steps still outstanding, so you know which applications are genuinely submittable.",
-      "item4Title": "Ask in your own words",
-      "item4Body": "Describe a life event in Hindi or English and get the schemes it unlocked, with citations back to the official scheme text.",
-      "item5Title": "Transparency reports",
-      "item5Body": "Read how much each department disbursed, how long applications take, and report problems back through the same surface."
+      "desc": "Finding a scheme is only the beginning. SWATVA streamlines document verification, eligibility scoring, and submission readiness.",
+      "item0Title": "Deterministic Eligibility",
+      "item0Body": "Rules-driven decisions with zero hallucinations. Every match clearly cites the statutory condition that qualified you.",
+      "item0Tag": "Rule Engine",
+      "item1Title": "Unclaimed Value Calculation",
+      "item1Body": "Calculates the total annual monetary benefit across all eligible schemes you have yet to claim.",
+      "item1Tag": "Benefits",
+      "item2Title": "Smart Document Locker",
+      "item2Body": "Upload documents once, verify them automatically against scheme requirements, and reuse securely across applications.",
+      "item2Tag": "Document Vault",
+      "item3Title": "Application Readiness",
+      "item3Body": "Get a real-time readiness breakdown of pending documents and steps before submitting any application.",
+      "item3Tag": "Readiness Score",
+      "item4Title": "Natural Language Query",
+      "item4Body": "Describe your situation in everyday Hindi or English to discover matching welfare benefits with official citations.",
+      "item4Tag": "AI Assistant",
+      "item5Title": "Public Transparency",
+      "item5Body": "Track department disbursement records, standard processing times, and report service anomalies in one place.",
+      "item5Tag": "Public Audit"
     },
     "trust": {
       "watermark": "TRUST",
@@ -181,9 +187,7 @@
       "q3": "Which languages are supported?",
       "a3": "The interface and assistant work in English and Hindi.",
       "q4": "What happens to my documents?",
-      "a4": "They are stored against your own account, used only to check scheme requirements, and you can delete any of them at any time.",
-      "q5": "Is my personal data or document shared with AI models?",
-      "a5": "No. Documents and personal credentials remain client-encrypted (AES-256) inside your private vault. AI models only process anonymized statutory rules and question inquiries—never your raw files or identity numbers."
+      "a4": "They are stored against your own account, used only to check scheme requirements, and you can delete any of them at any time."
     },
     "cta": {
       "badge": "Free, no sign-up wall",
@@ -429,12 +433,10 @@
     "extractingHint": "Extracting fields automatically",
     "securityNotice": {
       "title": "Security, Privacy & Automated Verification Architecture",
-      "inTransit": "TLS 1.3 · AES-256 Encrypted",
+      "inTransit": "Encrypted In-Transit & At-Rest",
       "inTransitDesc": "All document uploads are transmitted over TLS 1.3 encryption and stored in tenant-isolated, AES-256 encrypted cloud object storage.",
-      "tenantIsolation": "Tenant Isolated",
       "ocrPurpose": "Automated In-Memory AI Extraction",
       "ocrPurposeDesc": "Our server-side OCR extracts document numbers, validity dates, and issuing authority seals solely to evaluate statutory scheme criteria. Your raw documents are never shared or sold to third parties.",
-      "ocrPurposeDescShort": "Processed strictly for statutory eligibility · Never shared or sold",
       "transparencyNote": "Server-assisted OCR verification enables instant eligibility calculation across 20+ government schemes while maintaining strict tenant isolation."
     },
     "types": {
@@ -487,7 +489,6 @@
     },
     "historyTitle": "Conversation History",
     "historyDesc": "Access and resume your past scheme consultations.",
-    "historySubtitle": "Saved locally in browser",
     "historyButton": "History",
     "newChat": "New Chat",
     "searchHistory": "Search conversations…",
@@ -699,6 +700,7 @@
     "updateAvailable": "New Version Available",
     "updatePrompt": "Reload to update SWATVA with the latest rules.",
     "reload": "Reload",
-    "offlineNotice": "You are currently offline. SWATVA is serving cached benefit rules and offline records."
+    "offlineTitle": "Offline Mode Active",
+    "offlineNotice": "You are currently offline. SWATVA is serving cached benefit rules and saved records."
   }
 }
