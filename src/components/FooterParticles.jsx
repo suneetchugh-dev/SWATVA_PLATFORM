@@ -7,10 +7,12 @@ import React, { useEffect, useRef } from 'react';
  */
 export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
 
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     let particles = [];
@@ -33,9 +35,8 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
     let height = 0;
 
     const resize = () => {
-      if (!canvas) return;
-      const parent = canvas.parentElement;
-      const rect = parent ? parent.getBoundingClientRect() : { width: window.innerWidth, height: 200 };
+      if (!canvas || !container) return;
+      const rect = container.getBoundingClientRect();
 
       width = Math.floor(rect.width) || window.innerWidth;
       height = Math.max(120, Math.min(260, Math.floor(width * 0.18)));
@@ -48,8 +49,9 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
 
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
-      mouse.radius = Math.max(80, Math.min(140, width * 0.11));
+      mouse.radius = Math.max(80, Math.min(150, width * 0.12));
       generateParticles();
     };
 
@@ -144,7 +146,7 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
             alpha: target.baseAlpha,
             spring: 0.035 + Math.random() * 0.015,
             friction: 0.865 + Math.random() * 0.025,
-            disperseForce: 6.2 + Math.random() * 3.2,
+            disperseForce: 6.8 + Math.random() * 3.4,
             isDissolving: false,
             dissolveDelay: 0,
             dissolveTimer: 0,
@@ -186,7 +188,6 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
         p.vx = p.ashVx;
         p.vy = p.ashVy;
       });
-      // Automatically reset particles after dissolve animation finishes so they return on next view
       if (autoResetTimer) clearTimeout(autoResetTimer);
       autoResetTimer = setTimeout(() => {
         resetParticles();
@@ -198,21 +199,34 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
     window.addEventListener('sahnirmaan-reset-particles', resetParticles);
     window.addEventListener('swatva-reset-particles', resetParticles);
 
-    const onMouseMove = (e) => {
+    const updatePointer = (clientX, clientY) => {
       const rect = canvas.getBoundingClientRect();
-      mouse.targetX = e.clientX - rect.left;
-      mouse.targetY = e.clientY - rect.top;
+      mouse.targetX = clientX - rect.left;
+      mouse.targetY = clientY - rect.top;
       mouse.isHovering = true;
     };
 
-    const onMouseLeave = () => {
+    const onMouseMove = (e) => {
+      updatePointer(e.clientX, e.clientY);
+    };
+
+    const onTouchMove = (e) => {
+      if (e.touches && e.touches[0]) {
+        updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+
+    const onLeave = () => {
       mouse.isHovering = false;
       mouse.targetX = -9999;
       mouse.targetY = -9999;
     };
 
-    canvas.addEventListener('mousemove', onMouseMove, { passive: true });
-    canvas.addEventListener('mouseleave', onMouseLeave, { passive: true });
+    container.addEventListener('mousemove', onMouseMove, { passive: true });
+    container.addEventListener('mouseleave', onLeave, { passive: true });
+    container.addEventListener('touchstart', onTouchMove, { passive: true });
+    container.addEventListener('touchmove', onTouchMove, { passive: true });
+    container.addEventListener('touchend', onLeave, { passive: true });
 
     let lastTime = performance.now();
     const render = (now) => {
@@ -228,7 +242,7 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
       mouse.y += (mouse.targetY - mouse.y) * 0.22 * dt;
 
       if (mouse.isHovering) {
-        mouse.hoverIntensity += (1 - mouse.hoverIntensity) * 0.12 * dt;
+        mouse.hoverIntensity += (1 - mouse.hoverIntensity) * 0.14 * dt;
       } else {
         mouse.hoverIntensity += (0 - mouse.hoverIntensity) * 0.08 * dt;
       }
@@ -290,7 +304,6 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
     const observer = new IntersectionObserver(([entry]) => {
       isVisible = entry.isIntersecting;
       if (isVisible) {
-        // When coming back into view, ensure particles are reset if they were dissolved
         if (particles.some(p => p.isDissolving || p.alpha <= 0)) {
           resetParticles();
         }
@@ -298,8 +311,15 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
       }
     }, { threshold: 0.05 });
 
-    observer.observe(canvas);
+    observer.observe(container);
     resize();
+
+    if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        resize();
+      }).catch(() => {});
+    }
+
     window.addEventListener('resize', resize);
     animationFrameId = requestAnimationFrame(render);
 
@@ -311,17 +331,23 @@ export default function FooterParticles({ text = 'SWATVA', darkMode = true }) {
       window.removeEventListener('swatva-trigger-particle-dissolve', triggerParticleDissolve);
       window.removeEventListener('sahnirmaan-reset-particles', resetParticles);
       window.removeEventListener('swatva-reset-particles', resetParticles);
-      canvas.removeEventListener('mousemove', onMouseMove);
-      canvas.removeEventListener('mouseleave', onMouseLeave);
+      container.removeEventListener('mousemove', onMouseMove);
+      container.removeEventListener('mouseleave', onLeave);
+      container.removeEventListener('touchstart', onTouchMove);
+      container.removeEventListener('touchmove', onTouchMove);
+      container.removeEventListener('touchend', onLeave);
       cancelAnimationFrame(animationFrameId);
     };
   }, [text, darkMode]);
 
   return (
-    <div className="w-full flex items-center justify-center relative overflow-hidden select-none cursor-default py-6 touch-pan-y">
+    <div 
+      ref={containerRef}
+      className="w-full flex items-center justify-center relative overflow-hidden select-none cursor-default py-6 touch-none"
+    >
       <canvas 
         ref={canvasRef} 
-        className="block mx-auto max-w-full pointer-events-none"
+        className="block mx-auto max-w-full pointer-events-auto cursor-default"
         aria-label={text}
       />
     </div>
