@@ -104,31 +104,10 @@ export default function Assistant() {
   const [searchParams, setSearchParams] = useSearchParams()
   const initialPromptSentRef = useRef(false)
   const [sessions, setSessions] = useState(loadStoredSessions)
-  const [activeSessionId, setActiveSessionId] = useState(loadStoredActiveSessionId)
-
-  // Find initial messages from active session if present
-  const [messages, setMessages] = useState(() => {
-    const savedSessions = loadStoredSessions()
-    const savedActiveId = loadStoredActiveSessionId()
-    if (savedActiveId) {
-      const active = savedSessions.find((s) => s.id === savedActiveId)
-      if (active && Array.isArray(active.messages)) {
-        return active.messages
-      }
-    }
-    return []
-  })
-
+  const [activeSessionId, setActiveSessionId] = useState(null)
+  const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
-  const [sessionId, setSessionId] = useState(() => {
-    const savedSessions = loadStoredSessions()
-    const savedActiveId = loadStoredActiveSessionId()
-    if (savedActiveId) {
-      const active = savedSessions.find((s) => s.id === savedActiveId)
-      return active?.backendSessionId || active?.id || null
-    }
-    return null
-  })
+  const [sessionId, setSessionId] = useState(null)
 
   const [sending, setSending] = useState(false)
   const [error, setError] = useState(null)
@@ -163,6 +142,47 @@ export default function Assistant() {
         recognizerRef.current.abort()
       }
     }
+  }, [])
+
+  // Sync sessions from Cloud Database (PostgreSQL) on mount / authentication
+  useEffect(() => {
+    let active = true
+    async function syncCloudSessions() {
+      try {
+        const cloudSessions = await api.chat.getSessions()
+        if (active && Array.isArray(cloudSessions) && cloudSessions.length > 0) {
+          setSessions((prevLocal) => {
+            const localMap = new Map(prevLocal.map((s) => [s.backendSessionId || s.id, s]))
+            const merged = cloudSessions.map((cs) => {
+              const localMatch = localMap.get(cs.id)
+              return {
+                id: cs.id,
+                title: cs.title || (localMatch?.title || 'Consultation'),
+                messages: localMatch?.messages || [],
+                messageCount: cs.messageCount || localMatch?.messages?.length || 0,
+                backendSessionId: cs.id,
+                activeSchemeId: cs.activeSchemeId,
+                activeSchemeName: cs.activeSchemeName,
+                createdAt: cs.createdAt ? new Date(cs.createdAt).getTime() : Date.now(),
+                updatedAt: cs.updatedAt ? new Date(cs.updatedAt).getTime() : Date.now(),
+                language: cs.language || 'en',
+              }
+            })
+            for (const local of prevLocal) {
+              if (!cloudSessions.some((cs) => cs.id === local.id || cs.id === local.backendSessionId)) {
+                merged.push(local)
+              }
+            }
+            saveStoredSessions(merged)
+            return merged
+          })
+        }
+      } catch (err) {
+        console.debug('Cloud sessions fetch skipped:', err?.message)
+      }
+    }
+    syncCloudSessions()
+    return () => { active = false }
   }, [])
 
   useEffect(() => {
@@ -279,14 +299,41 @@ export default function Assistant() {
     }, 100)
   }
 
-  const handleSelectSession = (session) => {
+  const handleSelectSession = async (session) => {
     playClick()
     stopSpeaking()
     setActiveSpeakingIndex(null)
     setActiveSessionId(session.id)
     saveStoredActiveSessionId(session.id)
     setSessionId(session.backendSessionId || session.id)
-    setMessages(session.messages || [])
+
+    // If messages are already present in local cache, render immediately
+    if (session.messages && session.messages.length > 0) {
+      setMessages(session.messages)
+    } else {
+      // Otherwise fetch full conversation from the cloud database
+      try {
+        const details = await api.chat.getSession(session.backendSessionId || session.id)
+        if (details && Array.isArray(details.messages)) {
+          const loadedMsgs = details.messages.map((m) => ({
+            role: m.role || 'user',
+            content: m.content || '',
+            grounded: m.grounded,
+            activeSchemeId: m.activeSchemeId,
+          }))
+          setMessages(loadedMsgs)
+          setSessions((prev) => {
+            const updated = prev.map((s) => (s.id === session.id ? { ...s, messages: loadedMsgs } : s))
+            saveStoredSessions(updated)
+            return updated
+          })
+        }
+      } catch (err) {
+        console.debug('Cloud session detail fetch fallback:', err?.message)
+        setMessages(session.messages || [])
+      }
+    }
+
     setSawUngrounded(Boolean(session.sawUngrounded))
     setError(null)
     setIsHistoryOpen(false)
@@ -298,8 +345,11 @@ export default function Assistant() {
   const handleDeleteSession = (e, targetSessionId) => {
     e.stopPropagation()
     playClick()
+    api.chat.deleteSession(targetSessionId).catch((err) => {
+      console.debug('Cloud session delete fallback:', err?.message)
+    })
     setSessions((prev) => {
-      const filtered = prev.filter((s) => s.id !== targetSessionId)
+      const filtered = prev.filter((s) => s.id !== targetSessionId && s.backendSessionId !== targetSessionId)
       saveStoredSessions(filtered)
       return filtered
     })
@@ -316,6 +366,9 @@ export default function Assistant() {
   const handleClearAllHistory = () => {
     playClick()
     if (window.confirm(t('assistant.confirmClear'))) {
+      api.chat.clearSessions().catch((err) => {
+        console.debug('Cloud sessions clear fallback:', err?.message)
+      })
       setSessions([])
       saveStoredSessions([])
       setActiveSessionId(null)
@@ -347,7 +400,7 @@ export default function Assistant() {
 
     messages.forEach((m, idx) => {
       const isUser = m.role === 'user'
-      const speaker = isUser ? '👤 Citizen / User' : '🤖 SWATVA Welfare Assistant'
+      const speaker = isUser ? 'Citizen / User' : 'SWATVA Welfare Assistant'
       markdown += `### ${idx + 1}. ${speaker}\n\n${m.content}\n\n`
 
       if (m.readiness) {
@@ -540,15 +593,14 @@ export default function Assistant() {
         className="mb-4 shrink-0"
         actions={
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <PageTourButton pageKey="assistant" />
             <div data-tour="assistant-actions" className="flex items-center gap-1.5 sm:gap-2">
               <button
                 type="button"
                 onClick={handleNewChat}
                 aria-label={t('assistant.newChat')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 transition-all duration-200 cursor-pointer select-none shadow-xs"
+                className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer select-none shadow-xs"
               >
-                <Plus size={13} />
+                <Plus size={13} className="shrink-0 stroke-[2.2] group-hover:rotate-90 transition-transform duration-300" />
                 <span>{t('assistant.newChat')}</span>
               </button>
 
@@ -560,16 +612,23 @@ export default function Assistant() {
                 }}
                 aria-label={t('assistant.historyButton')}
                 className={cx(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 cursor-pointer select-none',
+                  'group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 cursor-pointer select-none active:scale-95',
                   isHistoryOpen
-                    ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow-xs'
-                    : 'border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300'
+                    ? 'bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 border-neutral-950 dark:border-white shadow-xs'
+                    : 'border-neutral-200/90 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/[0.08] hover:border-neutral-300 dark:hover:border-white/20 hover:text-neutral-950 dark:hover:text-white'
                 )}
               >
-                <Clock size={13} />
+                <Clock size={13} className="shrink-0 stroke-[2.2] group-hover:-rotate-12 group-hover:scale-110 transition-transform duration-300" />
                 <span>{t('assistant.historyButton')}</span>
                 {sessions.length > 0 && (
-                  <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-200 dark:bg-white/15 text-neutral-900 dark:text-white font-mono font-medium">
+                  <span
+                    className={cx(
+                      'ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-mono font-semibold transition-colors',
+                      isHistoryOpen
+                        ? 'bg-white/20 dark:bg-black/20 text-white dark:text-neutral-950'
+                        : 'bg-neutral-200/70 dark:bg-white/15 text-neutral-800 dark:text-neutral-200'
+                    )}
+                  >
                     {sessions.length}
                   </span>
                 )}
@@ -581,13 +640,14 @@ export default function Assistant() {
                   onClick={handleExportChat}
                   aria-label={t('assistant.export')}
                   title={t('assistant.export')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs"
+                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 active:scale-95 transition-all duration-200 cursor-pointer select-none shadow-xs"
                 >
-                  <Download size={13} />
+                  <Download size={13} className="shrink-0 stroke-[2.2] group-hover:translate-y-0.5 transition-transform duration-200" />
                   <span>{t('assistant.export')}</span>
                 </button>
               )}
             </div>
+            <PageTourButton pageKey="assistant" />
           </div>
         }
       />
@@ -612,9 +672,9 @@ export default function Assistant() {
             }}
             aria-label={isFullscreen ? t('assistant.exitFullscreen') : t('assistant.fullscreen')}
             title={isFullscreen ? t('assistant.exitFullscreen') : t('assistant.fullscreen')}
-            className="p-1.5 rounded-xl bg-white/85 dark:bg-[#18191c]/90 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white border border-neutral-200/90 dark:border-white/15 shadow-2xs backdrop-blur-md transition-all duration-150 cursor-pointer select-none active:scale-95 flex items-center justify-center"
+            className="group p-1.5 rounded-xl bg-white/85 dark:bg-[#18191c]/90 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white border border-neutral-200/90 dark:border-white/15 shadow-2xs backdrop-blur-md transition-all duration-150 cursor-pointer select-none active:scale-95 flex items-center justify-center"
           >
-            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            {isFullscreen ? <Minimize2 size={14} className="group-hover:scale-90 transition-transform duration-200" /> : <Maximize2 size={14} className="group-hover:scale-110 transition-transform duration-200" />}
           </button>
         </div>
 
@@ -894,13 +954,13 @@ export default function Assistant() {
           aria-label={t('assistant.voiceInput')}
           title={isListening ? (t('assistant.voiceStop') || 'Stop') : t('assistant.voiceInput')}
           className={cx(
-            'h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
+            'group h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
             isListening
               ? 'bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/30 ring-2 ring-amber-400 ring-offset-2 ring-offset-white dark:ring-offset-obsidian scale-105 animate-pulse'
               : 'border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-500/40 hover:bg-amber-500/5 shadow-xs active:scale-95'
           )}
         >
-          {isListening ? <MicOff size={19} className="font-bold" /> : <Mic size={19} />}
+          {isListening ? <MicOff size={19} className="font-bold" /> : <Mic size={19} className="group-hover:scale-110 transition-transform duration-200" />}
         </button>
 
         {/* Send Button */}
@@ -910,13 +970,13 @@ export default function Assistant() {
           aria-label={t('assistant.send')}
           title={t('assistant.send')}
           className={cx(
-            'h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
+            'group h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
             text.trim() && !sending
               ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-md shadow-amber-500/25 active:scale-95 hover:scale-[1.02]'
               : 'border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.04] text-neutral-400 dark:text-neutral-600 cursor-not-allowed opacity-50'
           )}
         >
-          <Send size={17} className="stroke-[2.2]" />
+          <Send size={17} className="stroke-[2.2] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
         </button>
       </form>
 
@@ -951,31 +1011,45 @@ export default function Assistant() {
             )}
           >
             {/* Header */}
-            <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                  <MessageSquare size={16} />
+            <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="h-8 w-8 rounded-xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 flex items-center justify-center shrink-0 shadow-2xs">
+                  <MessageSquare size={15} />
                 </div>
-                <div>
-                  <h2 className="text-sm font-bold tracking-tight text-neutral-950 dark:text-white">
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold tracking-tight text-neutral-950 dark:text-white truncate">
                     {t('assistant.historyTitle')}
                   </h2>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
                     {t('assistant.historyDesc')}
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  playClick()
-                  setIsHistoryOpen(false)
-                }}
-                className="h-8 w-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer active:scale-95"
-                aria-label={t('common.close')}
-              >
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {sessions.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearAllHistory}
+                    title={t('assistant.clearHistory') || 'Clear all history'}
+                    aria-label={t('assistant.clearHistory') || 'Clear all history'}
+                    className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 bg-neutral-100 dark:bg-white/5 hover:bg-red-500/10 border border-neutral-200/80 dark:border-white/10 hover:border-red-500/30 transition-all cursor-pointer select-none active:scale-95"
+                  >
+                    <Trash2 size={12} className="stroke-[2.2] shrink-0 text-red-500/80 dark:text-red-400/80 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200" />
+                    <span className="hidden xs:inline sm:inline">{t('assistant.clearHistory') || 'Clear all'}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick()
+                    setIsHistoryOpen(false)
+                  }}
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer active:scale-95"
+                  aria-label={t('common.close')}
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Search Input */}
@@ -987,7 +1061,7 @@ export default function Assistant() {
                   value={historySearch}
                   onChange={(e) => setHistorySearch(e.target.value)}
                   placeholder={t('assistant.searchHistory')}
-                  className="w-full pl-9 pr-8 py-2 rounded-xl text-xs bg-white dark:bg-white/[0.06] border border-neutral-200 dark:border-white/10 focus:outline-none focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 text-neutral-900 dark:text-white placeholder:text-neutral-400"
+                  className="w-full pl-9 pr-8 py-2 rounded-xl text-xs bg-white dark:bg-white/[0.06] border border-neutral-200 dark:border-white/10 focus:outline-none focus:border-neutral-400 dark:focus:border-white/30 focus:ring-2 focus:ring-neutral-200 dark:focus:ring-white/10 text-neutral-900 dark:text-white placeholder:text-neutral-400"
                 />
                 {historySearch && (
                   <button
@@ -1026,8 +1100,8 @@ export default function Assistant() {
                       className={cx(
                         'group relative rounded-2xl p-3.5 border transition-all duration-200 cursor-pointer text-left',
                         isActive
-                          ? 'bg-amber-500/[0.08] dark:bg-amber-400/[0.06] border-amber-500/40 shadow-xs ring-1 ring-amber-500/25'
-                          : 'bg-white dark:bg-white/[0.03] border-neutral-200/80 dark:border-white/10 hover:border-amber-500/30 hover:bg-neutral-50 dark:hover:bg-white/[0.05]'
+                          ? 'bg-neutral-100 dark:bg-white/[0.06] border-neutral-300 dark:border-white/20 shadow-xs ring-1 ring-neutral-300/60 dark:ring-white/15'
+                          : 'bg-white dark:bg-white/[0.03] border-neutral-200/80 dark:border-white/10 hover:border-neutral-300 dark:hover:border-white/20 hover:bg-neutral-50 dark:hover:bg-white/[0.05]'
                       )}
                     >
                       <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -1036,7 +1110,7 @@ export default function Assistant() {
                         </h4>
                         <div className="flex items-center gap-1.5 shrink-0">
                           {isActive && (
-                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-amber-500 text-neutral-950">
+                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
                               {t('assistant.activeBadge')}
                             </span>
                           )}
@@ -1045,9 +1119,9 @@ export default function Assistant() {
                             onClick={(e) => handleDeleteSession(e, s.id)}
                             title={t('assistant.deleteSession')}
                             aria-label={t('assistant.deleteSession')}
-                            className="opacity-60 group-hover:opacity-100 p-1 text-neutral-400 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors cursor-pointer"
+                            className="group/del opacity-60 group-hover:opacity-100 p-1 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
                           >
-                            <Trash2 size={12} />
+                            <Trash2 size={12} className="group-hover/del:scale-110 group-hover/del:-rotate-6 transition-transform duration-200" />
                           </button>
                         </div>
                       </div>
@@ -1070,18 +1144,13 @@ export default function Assistant() {
 
             {/* Footer */}
             {sessions.length > 0 && (
-              <div className="p-3.5 border-t border-neutral-200 dark:border-white/10 bg-neutral-50/70 dark:bg-white/[0.02] flex items-center justify-between shrink-0">
-                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                  {sessions.length} {t('assistant.historyTitle').toLowerCase()}
+              <div className="px-4 py-3 border-t border-neutral-200 dark:border-white/10 bg-neutral-50/70 dark:bg-white/[0.02] flex items-center justify-between gap-3 shrink-0">
+                <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                  {sessions.length} {sessions.length === 1 ? 'consultation' : 'consultations'}
                 </span>
-                <button
-                  type="button"
-                  onClick={handleClearAllHistory}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-neutral-500 hover:text-amber-700 dark:hover:text-amber-400 hover:underline cursor-pointer"
-                >
-                  <Trash2 size={12} />
-                  <span>{t('assistant.clearHistory')}</span>
-                </button>
+                <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
+                  {t('assistant.historySubtitle') || 'Saved locally'}
+                </span>
               </div>
             )}
           </div>

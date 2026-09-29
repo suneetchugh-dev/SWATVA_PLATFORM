@@ -17,7 +17,8 @@ import {
   Sparkles,
   LayoutDashboard,
   CheckCircle2,
-  ArrowRight
+  ArrowRight,
+  SunMoon
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { playClick } from '../utils/soundFx';
@@ -83,13 +84,22 @@ export const GLOBAL_TOUR_STEPS = [
     descHi: 'दस्तावेज़ की समाप्ति तिथि, नई योजनाओं और प्रत्यक्ष लाभ हस्तांतरण (DBT) के अलर्ट प्राप्त करें।'
   },
   {
+    id: 'theme-toggle',
+    target: '[data-tour="theme-toggle"], [data-tour="theme-preference"], [data-tour="profile"]',
+    icon: SunMoon,
+    titleEn: 'Theme & Visual Mode',
+    titleHi: 'थीम एवं दृश्य मोड',
+    descEn: 'Seamlessly toggle between High-Contrast Dark Mode and Clean Light Mode for optimal reading comfort in any lighting.',
+    descHi: 'किसी भी रोशनी में आरामदायक अनुभव के लिए डार्क मोड और लाइट मोड के बीच तुरंत स्विच करें।'
+  },
+  {
     id: 'profile',
     target: '[data-tour="profile"]',
     icon: User,
-    titleEn: 'Citizen Profile & Preferences',
+    titleEn: 'Citizen Profile & Account',
     titleHi: 'नागरिक प्रोफ़ाइल एवं सेटिंग्स',
-    descEn: 'Manage personal details, switch theme, toggle sensory audio feedback, or view Team TheQuirkies.',
-    descHi: 'अपनी प्रोफ़ाइल जानकारी प्रबंधित करें, थीम बदलें, और भाषा व प्राथमिकताओं को अनुकूलित करें।'
+    descEn: 'Manage personal details, language & audio settings, or view Team TheQuirkies.',
+    descHi: 'अपनी प्रोफ़ाइल जानकारी प्रबंधित करें, भाषा व ऑडियो प्राथमिकताओं को अनुकूलित करें।'
   }
 ];
 
@@ -402,12 +412,25 @@ export default function GuidedTour() {
   const [targetRect, setTargetRect] = useState(null);
   const isHindi = i18n.language === 'hi';
 
+  const findVisibleTarget = useCallback((selector) => {
+    if (typeof document === 'undefined') return null;
+    const elements = document.querySelectorAll(selector);
+    for (const el of elements) {
+      const rect = el.getBoundingClientRect();
+      const style = window.getComputedStyle(el);
+      if (style.display !== 'none' && style.visibility !== 'hidden' && (rect.width > 0 || rect.height > 0)) {
+        return { el, rect };
+      }
+    }
+    return null;
+  }, []);
+
   const updatePosition = useCallback(() => {
     const step = tourSteps[currentStep];
     if (!step) return;
-    const el = document.querySelector(step.target);
-    if (el) {
-      const rect = el.getBoundingClientRect();
+    const match = findVisibleTarget(step.target);
+    if (match) {
+      const { rect } = match;
       setTargetRect({
         top: rect.top,
         left: rect.left,
@@ -419,7 +442,30 @@ export default function GuidedTour() {
     } else {
       setTargetRect(null);
     }
-  }, [currentStep, tourSteps]);
+  }, [currentStep, tourSteps, findVisibleTarget]);
+
+  // Auto-scroll target into view on step change (saves manual effort for touch/mobile users)
+  useEffect(() => {
+    if (!isOpen) return;
+    const step = tourSteps[currentStep];
+    if (!step) return;
+    const match = findVisibleTarget(step.target);
+    if (match && match.el) {
+      const isFixed =
+        window.getComputedStyle(match.el).position === 'fixed' ||
+        Boolean(match.el.closest('.app-bottom-bar')) ||
+        Boolean(match.el.closest('header'));
+      if (!isFixed) {
+        const rect = match.rect;
+        const inView = rect.top >= 80 && rect.bottom <= window.innerHeight - 80;
+        if (!inView) {
+          match.el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          const scrollTimer = window.setTimeout(updatePosition, 300);
+          return () => window.clearTimeout(scrollTimer);
+        }
+      }
+    }
+  }, [currentStep, isOpen, tourSteps, findVisibleTarget, updatePosition]);
 
   // First-time login prompt detection (600ms grace period after load)
   useEffect(() => {
@@ -531,20 +577,34 @@ export default function GuidedTour() {
   const isLast = currentStep === tourSteps.length - 1;
 
   // Calculate popover positioning relative to highlighted element
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
   let popoverTop = 100;
   let popoverLeft = 20;
 
   if (targetRect) {
-    if (targetRect.bottom + 260 < window.innerHeight) {
+    const cardHeight = isMobile ? 210 : 250;
+    const isTargetAtBottom = targetRect.top > window.innerHeight - 170 || targetRect.bottom > window.innerHeight - 90;
+    
+    if (isTargetAtBottom) {
+      // Element is at bottom (e.g. mobile bottom nav bar), place popover cleanly above target
+      popoverTop = Math.max(16, targetRect.top - cardHeight - 16);
+    } else if (targetRect.bottom + cardHeight + 20 < window.innerHeight) {
+      // Element has plenty of room below
       popoverTop = targetRect.bottom + 16;
     } else {
-      popoverTop = Math.max(16, targetRect.top - 250);
+      // Place above target
+      popoverTop = Math.max(16, targetRect.top - cardHeight - 16);
     }
-    const idealLeft = targetRect.left + targetRect.width / 2 - 160;
-    popoverLeft = Math.max(16, Math.min(idealLeft, window.innerWidth - 336));
+
+    if (isMobile) {
+      popoverLeft = Math.max(12, Math.floor((window.innerWidth - Math.min(350, window.innerWidth - 24)) / 2));
+    } else {
+      const idealLeft = targetRect.left + targetRect.width / 2 - 175;
+      popoverLeft = Math.max(16, Math.min(idealLeft, window.innerWidth - 366));
+    }
   } else {
     popoverTop = Math.max(40, window.innerHeight / 2 - 130);
-    popoverLeft = Math.max(16, window.innerWidth / 2 - 160);
+    popoverLeft = isMobile ? 12 : Math.max(16, window.innerWidth / 2 - 175);
   }
 
   const tourContent = (
@@ -602,7 +662,7 @@ export default function GuidedTour() {
 
           {/* Floating Step Card */}
           <div
-            className="absolute w-[320px] sm:w-[350px] bg-white/95 dark:bg-[#121216]/95 border border-neutral-200/90 dark:border-white/15 rounded-2xl sm:rounded-3xl shadow-[0_24px_64px_rgba(0,0,0,0.5)] backdrop-blur-2xl p-5 text-neutral-950 dark:text-white transition-all duration-300 animate-in fade-in zoom-in-95 font-sans"
+            className="absolute w-[calc(100vw-24px)] max-w-[350px] sm:w-[350px] bg-white/95 dark:bg-[#121216]/95 border border-neutral-200/90 dark:border-white/15 rounded-2xl sm:rounded-3xl shadow-[0_24px_64px_rgba(0,0,0,0.5)] backdrop-blur-2xl p-5 text-neutral-950 dark:text-white transition-all duration-300 animate-in fade-in zoom-in-95 font-sans"
             style={{
               top: `${popoverTop}px`,
               left: `${popoverLeft}px`,
@@ -721,11 +781,11 @@ export function PageTourButton({ pageKey, className = '' }) {
         playClick();
         window.dispatchEvent(new CustomEvent(PAGE_TOUR_EVENT, { detail: { pageKey } }));
       }}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200/90 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs ${className}`}
+      className={`group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200/90 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 active:scale-95 transition-all duration-200 cursor-pointer select-none shadow-xs ${className}`}
       aria-label={isHindi ? 'पेज गाइड' : 'Page Tour'}
       title={isHindi ? 'पेज गाइड शुरू करें' : 'Start Page Tour Guide'}
     >
-      <Compass size={13} className="text-amber-600 dark:text-amber-400" />
+      <Compass size={13} className="text-amber-600 dark:text-amber-400 group-hover:rotate-45 transition-transform duration-300 stroke-[2.2]" />
       <span>{isHindi ? 'पेज गाइड' : 'Page Tour'}</span>
     </button>
   );

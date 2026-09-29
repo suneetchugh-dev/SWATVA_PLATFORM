@@ -2,13 +2,14 @@
 
 ## 🛡️ Critical Design Rules & Invariants
 
-### 1. ⛔ Absolute Rule: No Emoji Orbs or Coloured Status Balls
-**NEVER USE 🟢, 🔴, 🟡, 🔵 ORBS OR ANY COLOURED STATUS BALLS ANYWHERE IN CODE, UI, OR DOCUMENTATION.**
+### 1. ⛔ Absolute Rule: Zero Emojis Across Entire Codebase & UI
+**NEVER USE EMOJIS (`⚡`, `👤`, `🤖`, `🟢`, `🔴`, `🟡`, `🔵`, `✨`, `🚀`, etc.) ANYWHERE IN CODE, UI, NOTICES, LABELS, METADATA, OR DOCUMENTATION.**
 
-- Do not use emoji circle markers (`🟢`, `🔴`, `🟡`, `🔵`, `⚪`, `🟣`, `🟠`) as status indicators, list bullets, or decoration.
-- Do not render bare floating colored status dots / balls (e.g. `<span className="h-2 w-2 rounded-full bg-emerald-500..." />` or pinging dots) on surfaces.
-- **Industry Standard Alternative:** Always use crisp, semantic SVG icons (from `lucide-react`, e.g. `CheckCircle2`, `AlertCircle`, `XCircle`, `Info`, `Clock`, `Sparkles`, `Activity`) styled with appropriate typographic hierarchy and high-contrast accessibility tokens.
-- **Animations:** Any animation on SVG icons must be subtle, professional, and performance-optimized (e.g., subtle fade or smooth micro-scale; never aggressive pulsing or flashing).
+- **Strict Ban on Emojis:** Do not use Unicode emojis anywhere in UI markup, button labels, toast/banner messages, tags, metadata, or markdown documentation.
+- **No Emoji Status Markers or Balls:** Do not use emoji circle markers (`🟢`, `🔴`, `🟡`, `🔵`, `⚪`, `🟣`, `🟠`) or floating colored balls on surfaces.
+- **Vector SVGs Only:** Always use crisp, semantic vector SVG icons (from `lucide-react`, e.g. `Sparkles`, `FileStack`, `Scale`, `CheckCircle2`, `AlertCircle`, `Info`, `Clock`, `Search`, `Trash2`, `Upload`, `Send`) styled with appropriate typographic hierarchy and high-contrast accessibility tokens.
+- **Subtle SVG Micro-Interactions:** On hover/active states, SVG icons must use role-appropriate, subtle micro-interactions (e.g. `group-hover:rotate-45`, `group-hover:scale-110`, `group-hover:translate-x-0.5`, `group-hover:-translate-y-0.5`). Avoid unnatural or aggressive spinning (e.g. spinning a search magnifying glass).
+- **Proper Loading States:** Buttons must use the official platform `loading` state (`LoadingLogo` / `Spinner` component), never spinning unrelated static glyphs.
 
 ---
 

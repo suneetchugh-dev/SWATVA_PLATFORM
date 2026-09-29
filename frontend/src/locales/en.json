@@ -429,10 +429,12 @@
     "extractingHint": "Extracting fields automatically",
     "securityNotice": {
       "title": "Security, Privacy & Automated Verification Architecture",
-      "inTransit": "Encrypted In-Transit & At-Rest",
+      "inTransit": "TLS 1.3 · AES-256 Encrypted",
       "inTransitDesc": "All document uploads are transmitted over TLS 1.3 encryption and stored in tenant-isolated, AES-256 encrypted cloud object storage.",
+      "tenantIsolation": "Tenant Isolated",
       "ocrPurpose": "Automated In-Memory AI Extraction",
       "ocrPurposeDesc": "Our server-side OCR extracts document numbers, validity dates, and issuing authority seals solely to evaluate statutory scheme criteria. Your raw documents are never shared or sold to third parties.",
+      "ocrPurposeDescShort": "Processed strictly for statutory eligibility · Never shared or sold",
       "transparencyNote": "Server-assisted OCR verification enables instant eligibility calculation across 20+ government schemes while maintaining strict tenant isolation."
     },
     "types": {
@@ -485,6 +487,7 @@
     },
     "historyTitle": "Conversation History",
     "historyDesc": "Access and resume your past scheme consultations.",
+    "historySubtitle": "Saved locally in browser",
     "historyButton": "History",
     "newChat": "New Chat",
     "searchHistory": "Search conversations…",

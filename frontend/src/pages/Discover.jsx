@@ -140,15 +140,20 @@ export default function Discover() {
         </Field>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={loading || description.trim().length < 5} className="group">
-            <Search size={13} className={loading ? 'animate-spin' : 'group-hover:scale-110 transition-transform duration-200'} />
+          <Button
+            type="submit"
+            disabled={loading || description.trim().length < 5}
+            loading={loading}
+            className="group"
+          >
+            {!loading && (
+              <Search
+                size={13}
+                className="stroke-[2.2] shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200"
+              />
+            )}
             <span>{loading ? t('common.searching') : t('discover.submit')}</span>
           </Button>
-          {loading ? (
-            <span className="text-neutral-500 dark:text-neutral-400">
-              <Spinner />
-            </span>
-          ) : null}
         </div>
 
         {/* Examples double as a discoverability device: the extractor keys off
@@ -396,9 +401,9 @@ function PastSearches({ history, onSelect, onClear, t }) {
           type="button"
           onClick={onClear}
           aria-label={t('discover.historyClear')}
-          className="flex items-center gap-1 text-[11px] text-neutral-400 dark:text-neutral-500 hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer"
+          className="group flex items-center gap-1 text-[11px] text-neutral-400 dark:text-neutral-500 hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer"
         >
-          <Trash2 size={12} />
+          <Trash2 size={12} className="group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200" />
           {t('discover.historyClear')}
         </button>
       </div>
@@ -420,8 +425,9 @@ function PastSearches({ history, onSelect, onClear, t }) {
                   </span>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     {schemeCount !== null ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-2 py-0.2 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                        ⚡ {schemeCount} schemes found
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                        <Sparkles size={11} className="stroke-[2.2] shrink-0 text-amber-600 dark:text-amber-400" />
+                        <span>{schemeCount} {schemeCount === 1 ? 'scheme found' : 'schemes found'}</span>
                       </span>
                     ) : null}
                     <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500">
@@ -429,8 +435,8 @@ function PastSearches({ history, onSelect, onClear, t }) {
                     </span>
                   </div>
                 </div>
-                <div className="shrink-0 flex items-center text-neutral-400 group-hover:text-neutral-950 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
-                  <ArrowRight size={14} />
+                <div className="shrink-0 flex items-center text-neutral-400 group-hover:text-neutral-950 dark:group-hover:text-white transition-all">
+                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-200" />
                 </div>
               </button>
             </li>

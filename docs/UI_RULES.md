@@ -151,8 +151,18 @@ export const CORE_PILLARS = [
 - ❌ Never use `lg:` breakpoints for things that should work on tablet (use `md:`)
 - ❌ Never use `margin-left` on small screens for centering — use flexbox/grid
 - ❌ Never commit `.env` files or secrets
-- ❌ Never push directly to `main` — use `develop` → PR → merge
+- ❌ Never push directly to `main` without testing
 - ❌ Never use `overflow: hidden` on a container that clips Devanagari ascenders — add `py-1` padding
+- ❌ Never use emojis (`⚡`, `👤`, `🤖`, `🟢`, `🔴`, `✨`, etc.) in UI code, labels, or docs — always use semantic vector SVG icons from `lucide-react`
+
+---
+
+## 🚫 Rule #9 — Zero Emojis Across Entire Codebase & UI
+
+**Absolute rule — no exception:**
+- **Never use Unicode emojis** (`⚡`, `👤`, `🤖`, `🟢`, `🔴`, `🟡`, `🔵`, `✨`, `🚀`, etc.) anywhere in the codebase (JSX, components, styles, data formatters, toast messages, logs, or markdown documentation).
+- **Use semantic vector SVGs exclusively:** All visual metaphors, status indicators, badges, and action buttons must use crisp `lucide-react` icons (or custom SVG components) styled with precise color tokens and accessible hierarchy.
+- **Hover micro-interactions:** Interactive SVGs should have subtle, role-appropriate hover transforms (`group-hover:rotate-45`, `group-hover:scale-110`, `group-hover:translate-x-0.5`). Avoid unnatural animations (e.g. spinning a search magnifying glass).
 
 ---
 
@@ -164,6 +174,7 @@ Before committing any UI change:
 2. [ ] Tested at 375px (mobile) and 768px (tablet)
 3. [ ] All buttons have `aria-label` (translated)
 4. [ ] No hardcoded English strings in JSX
-5. [ ] No mojibake in locale files (`grep -P "[\x80-\x9f]" frontend/src/locales/*.json`)
-6. [ ] Active/hover/disabled states look correct in both light and dark mode
-7. [ ] `[skip ci]` added to commit message if no `apps/client-pwa/` changes
+5. [ ] No emojis in code, UI markup, or strings
+6. [ ] No mojibake in locale files (`grep -P "[\x80-\x9f]" frontend/src/locales/*.json`)
+7. [ ] Active/hover/disabled states look correct in both light and dark mode
+8. [ ] `[skip ci]` added to commit message if no `apps/client-pwa/` changes

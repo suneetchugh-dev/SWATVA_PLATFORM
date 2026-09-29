@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, Cpu, FileStack, Info, Lock, Plus, ShieldCheck, Trash2, Upload } from 'lucide-react'
+import { AlertTriangle, FileStack, Info, Lock, Plus, ShieldCheck, Trash2, Upload } from 'lucide-react'
 import { api } from '../api/client'
 import DocumentReviewModal from '../components/DocumentReviewModal'
 import ClearDocumentsModal from '../components/ClearDocumentsModal'
@@ -88,10 +88,10 @@ function isValidDocumentFile(file) {
 }
 
 const STATUS_STYLES = {
-  ACTIVE: 'text-amber-700 dark:text-amber-400 border-amber-500/30 bg-amber-500/10',
-  EXPIRED: 'text-neutral-600 dark:text-neutral-300 border-neutral-300 dark:border-white/20 bg-neutral-500/10',
-  NEEDS_REVIEW: 'text-amber-700 dark:text-amber-400 border-dashed border-amber-500/40 bg-transparent',
-  ARCHIVED: 'text-neutral-500 dark:text-neutral-400 border-neutral-300 dark:border-white/15 bg-transparent',
+  ACTIVE: 'text-neutral-900 dark:text-white border-neutral-200 dark:border-white/15 bg-neutral-100 dark:bg-white/5',
+  EXPIRED: 'text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.02]',
+  NEEDS_REVIEW: 'text-neutral-900 dark:text-white border-neutral-300 dark:border-white/20 bg-neutral-100/80 dark:bg-white/5',
+  ARCHIVED: 'text-neutral-400 dark:text-neutral-500 border-neutral-200 dark:border-white/10 bg-transparent',
 }
 
 const fmtDate = (d) => {
@@ -322,7 +322,7 @@ export default function Documents() {
                 aria-label={t('documents.removeAll') || 'Remove all documents'}
                 className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-300/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 active:scale-[0.98] text-xs font-medium shadow-2xs transition-all duration-200 cursor-pointer"
               >
-                <Trash2 size={13} className="stroke-[2.2] shrink-0 text-neutral-400 dark:text-neutral-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
+                <Trash2 size={13} className="stroke-[2.2] shrink-0 text-neutral-400 dark:text-neutral-500 group-hover:text-red-600 dark:group-hover:text-red-400 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-200" />
                 <span className="hidden sm:inline">{t('documents.removeAll') || 'Remove all documents'}</span>
                 <span className="sm:hidden">{t('documents.removeAll') ? t('documents.removeAll').split(' ')[0] : 'Remove'}</span>
               </button>
@@ -393,9 +393,10 @@ export default function Documents() {
                 <Button
                   type="button"
                   variant="primary"
+                  className="group"
                   onClick={() => { playClick(); setActiveTab('add'); }}
                 >
-                  <Plus size={14} className="stroke-[2.5]" />
+                  <Plus size={14} className="stroke-[2.5] group-hover:rotate-90 transition-transform duration-300" />
                   <span>{t('documents.tabAdd') || 'Add Document'}</span>
                 </Button>
               }
@@ -417,15 +418,15 @@ export default function Documents() {
                               playClick()
                               setSelectedReviewDoc(d)
                             }}
-                            className="mono-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-dashed border-amber-500/70 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 hover:border-amber-500 transition-all cursor-pointer group text-left"
+                            className="mono-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-neutral-200/90 dark:border-white/15 bg-neutral-100/90 dark:bg-white/[0.05] text-neutral-900 dark:text-neutral-100 hover:bg-neutral-200/70 dark:hover:bg-white/10 hover:border-neutral-300 dark:hover:border-white/25 transition-all cursor-pointer group text-left shadow-2xs"
                             title={t('documents.clickToReview')}
                             aria-label={`${t('status.NEEDS_REVIEW')} - ${t('documents.clickToReview')}`}
                           >
-                            <AlertTriangle size={11} className="shrink-0 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
-                            <span className="font-semibold underline decoration-dotted decoration-amber-500/60 underline-offset-2">
+                            <AlertTriangle size={11} className="shrink-0 text-amber-500 group-hover:scale-110 transition-transform" />
+                            <span className="font-semibold underline decoration-dotted decoration-neutral-400 dark:decoration-white/30 underline-offset-2">
                               {t(`status.${d.status}`)}
                             </span>
-                            <span className="text-[10px] opacity-80 font-normal">
+                            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-normal group-hover:text-neutral-700 dark:group-hover:text-neutral-200">
                               • {t('documents.clickToReview')}
                             </span>
                           </button>
@@ -446,9 +447,9 @@ export default function Documents() {
                         onClick={() => remove(d.id)}
                         disabled={busyId === d.id}
                         aria-label={`${t('common.remove')}: ${d.documentTypeName ?? d.documentType}`}
-                        className="shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors cursor-pointer disabled:opacity-40"
+                        className="group shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors cursor-pointer disabled:opacity-40 active:scale-95"
                       >
-                        {busyId === d.id ? <Spinner className="h-3.5 w-3.5" /> : <Trash2 size={14} />}
+                        {busyId === d.id ? <Spinner className="h-3.5 w-3.5" /> : <Trash2 size={14} className="group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200" />}
                       </button>
                     </div>
 
@@ -508,24 +509,24 @@ export default function Documents() {
           <form onSubmit={register} className="mt-5 grid gap-4 sm:grid-cols-2 min-w-0">
             {/* Single-instance replacement notice */}
             {existingSingleDoc && (
-              <div className="sm:col-span-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-900 dark:text-amber-200 text-xs flex items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+              <div className="sm:col-span-2 p-3 sm:p-3.5 rounded-xl bg-neutral-100/80 dark:bg-white/[0.04] border border-neutral-200/90 dark:border-white/10 text-xs flex items-start sm:items-center justify-between gap-3 shadow-2xs backdrop-blur-sm animate-in fade-in duration-200">
                 <div className="flex items-start sm:items-center gap-2.5 min-w-0">
-                  <Info size={16} className="shrink-0 text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-0" />
+                  <Info size={16} className="shrink-0 text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-0 stroke-[2.2]" />
                   <div className="min-w-0">
-                    <p className="font-semibold leading-tight">
+                    <p className="font-semibold text-neutral-900 dark:text-neutral-100 leading-tight">
                       {t('documents.replaceNotice', {
                         type: t(`documents.types.${docType}`),
                         existing: existingSingleDoc.filename || t(`documents.types.${docType}`),
                       })}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-amber-700/90 dark:text-amber-300/80 leading-normal">
+                    <p className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400 leading-normal">
                       {t('documents.singleInstanceHint')}
                     </p>
                   </div>
                 </div>
-                <Badge tone="amber" className="shrink-0 text-[10px] uppercase font-bold tracking-wide">
+                <span className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase border border-neutral-200/90 dark:border-white/10 bg-white/90 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 select-none shadow-2xs">
                   {t('documents.willReplace')}
-                </Badge>
+                </span>
               </div>
             )}
 
@@ -600,8 +601,8 @@ export default function Documents() {
             )}
 
             <div className="sm:col-span-2 flex items-center gap-3 pt-2">
-              <Button type="submit" variant="accent" loading={uploading} disabled={uploading || !selectedFile}>
-                <Upload size={15} />
+              <Button type="submit" variant="accent" loading={uploading} disabled={uploading || !selectedFile} className="group">
+                <Upload size={15} className="group-hover:-translate-y-0.5 transition-transform duration-200 shrink-0" />
                 {t('documents.save')}
               </Button>
               <Button
@@ -616,46 +617,18 @@ export default function Documents() {
         </Card>
       )}
 
-      {/* Security & Privacy Architecture Transparency Card */}
-      <div className="rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/60 dark:bg-white/[0.02] p-4 sm:p-5 mt-6">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="h-6 w-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-            <Lock size={13} />
-          </div>
-          <h3 className="text-xs font-bold tracking-tight text-neutral-900 dark:text-white uppercase tracking-wider">
-            {t('documents.securityNotice.title', 'Security, Privacy & Automated Verification Architecture')}
-          </h3>
+      {/* Sleek Trust & Security Compliance Strip (Industry Minimalist Standard) */}
+      <div className="mt-8 pt-4 border-t border-neutral-200/80 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-neutral-500 dark:text-neutral-400">
+        <div className="flex items-center gap-2 text-[11px] font-mono">
+          <ShieldCheck size={14} className="text-neutral-800 dark:text-neutral-200 shrink-0 stroke-[2.2]" />
+          <span>{t('documents.securityNotice.inTransit', 'TLS 1.3 · AES-256 Encrypted')} · {t('documents.securityNotice.tenantIsolation', 'Tenant Isolated')}</span>
         </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 text-xs">
-          <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-neutral-900/60 p-3 border border-neutral-200/50 dark:border-white/5">
-            <ShieldCheck size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-neutral-900 dark:text-white">
-                {t('documents.securityNotice.inTransit', 'Encrypted In-Transit & At-Rest')}
-              </p>
-              <p className="mt-0.5 text-neutral-600 dark:text-neutral-400 leading-relaxed text-[11px]">
-                {t('documents.securityNotice.inTransitDesc', 'All document uploads are transmitted over TLS 1.3 encryption and stored in tenant-isolated, AES-256 encrypted cloud object storage.')}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-neutral-900/60 p-3 border border-neutral-200/50 dark:border-white/5">
-            <Cpu size={16} className="text-amber-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-neutral-900 dark:text-white">
-                {t('documents.securityNotice.ocrPurpose', 'Automated In-Memory AI Extraction')}
-              </p>
-              <p className="mt-0.5 text-neutral-600 dark:text-neutral-400 leading-relaxed text-[11px]">
-                {t('documents.securityNotice.ocrPurposeDesc', 'Our server-side OCR extracts document numbers, validity dates, and issuing authority seals solely to evaluate statutory scheme criteria. Your raw documents are never shared or sold to third parties.')}
-              </p>
-            </div>
-          </div>
+        <div className="flex items-center gap-2">
+          <Lock size={12} className="text-neutral-400 dark:text-neutral-500 shrink-0" />
+          <span className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400">
+            {t('documents.securityNotice.ocrPurposeDescShort', 'Processed strictly for statutory eligibility · Never shared or sold')}
+          </span>
         </div>
-
-        <p className="mt-3 text-[11px] text-neutral-500 dark:text-neutral-400 text-center sm:text-left">
-          ℹ️ {t('documents.securityNotice.transparencyNote', 'Server-assisted OCR verification enables instant eligibility calculation across 20+ government schemes while maintaining strict tenant isolation.')}
-        </p>
       </div>
 
       {/* Verification Review Modal */}

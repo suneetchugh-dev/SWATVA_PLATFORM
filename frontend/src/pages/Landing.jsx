@@ -389,7 +389,10 @@ export default function Landing() {
             <Settings size={14} className="text-neutral-600 dark:text-neutral-300 group-hover:rotate-90 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
           </button>
 
-          <ThemeToggle darkMode={dark} toggleTheme={() => setDark(!dark)} />
+          {/* ThemeToggle hidden on touch screen devices as requested (accessible via Preferences modal) */}
+          <div className="hidden [@media(pointer:fine)]:block">
+            <ThemeToggle darkMode={dark} toggleTheme={() => setDark(!dark)} />
+          </div>
 
           <Link
             to={isAuthed ? "/app" : "/login"}
@@ -628,7 +631,7 @@ export default function Landing() {
                   onBlur={() => setSearchFocused(false)}
                   placeholder={searchFocused ? '' : (prompt || ' ')}
                   aria-label="Search schemes"
-                  className="w-full bg-transparent border-none text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 focus:ring-0 focus:outline-none p-0 font-medium"
+                  className="min-w-0 flex-1 bg-transparent border-none text-xs sm:text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 placeholder:truncate placeholder:overflow-hidden truncate focus:ring-0 focus:outline-none p-0 font-medium"
                 />
                 <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 mono-badge text-neutral-500 dark:text-neutral-400 bg-neutral-200/80 dark:bg-white/10 border border-neutral-300 dark:border-white/15 rounded-md flex-shrink-0 whitespace-nowrap">
                   Ctrl K

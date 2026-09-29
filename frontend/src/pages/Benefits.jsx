@@ -116,22 +116,22 @@ export default function Benefits() {
           ) : null}
 
           {missed?.breakdown?.length ? (
-            <section data-tour="benefits-list" className="mb-10">
+            <section data-tour="benefits-list" className="mb-8 sm:mb-10">
               <h2 className="text-sm font-bold tracking-tight mb-3">{t('benefits.gapTitle')}</h2>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2.5">
                 {missed.breakdown.map((b) => {
                   const max = Math.max(...missed.breakdown.map((x) => x.estimatedAnnualBenefit || 0), 1)
                   const pct = Math.round(((b.estimatedAnnualBenefit || 0) / max) * 100)
                   return (
-                    <Card key={b.schemeId} className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold tracking-tight text-balance">{b.schemeName}</p>
+                    <Card key={b.schemeId} className="p-3.5 sm:p-4">
+                      <div className="flex items-start justify-between gap-3 sm:gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs sm:text-sm font-semibold tracking-tight break-words leading-snug">{b.schemeName}</p>
                           <p className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400">
                             {levelLabel(b, t)} {b.period ? `· ${b.period}` : ''}
                           </p>
                         </div>
-                        <span className="shrink-0 text-sm font-bold tracking-tight">
+                        <span className="shrink-0 text-xs sm:text-sm font-bold tracking-tight">
                           <Money value={b.estimatedAnnualBenefit} />
                         </span>
                       </div>
@@ -139,7 +139,7 @@ export default function Benefits() {
                         <div className="h-full rounded-full bg-amber-500" style={{ width: `${pct}%` }} />
                       </div>
                       {b.benefitDescription ? (
-                        <p className="mt-2.5 text-xs text-neutral-600 dark:text-neutral-300 text-balance">
+                        <p className="mt-2.5 text-xs text-neutral-600 dark:text-neutral-300 break-words leading-relaxed">
                           {b.benefitDescription}
                         </p>
                       ) : null}
@@ -150,14 +150,14 @@ export default function Benefits() {
             </section>
           ) : null}
 
-          <section>
+          <section className="mb-6">
             <h2 className="text-sm font-bold tracking-tight mb-3">
               {t('benefits.assessedTitle')}
             </h2>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5">
               {[...central, ...state].map((b) => (
-                <Card key={b.schemeId} className="p-4">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                <Card key={b.schemeId} className="p-3.5 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <StatusPill status={b.status} />
@@ -165,34 +165,34 @@ export default function Benefits() {
                           {b.governmentLevel === 'CENTRAL' ? 'Central' : b.state ? `State · ${b.state}` : 'State'}
                         </span>
                       </div>
-                      <p className="text-sm font-semibold tracking-tight text-balance">{b.schemeName}</p>
+                      <p className="text-xs sm:text-sm font-semibold tracking-tight break-words leading-snug">{b.schemeName}</p>
                       {b.benefitInformation ? (
-                        <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-300 text-balance">
+                        <p className="mt-1.5 text-xs text-neutral-600 dark:text-neutral-300 break-words leading-relaxed">
                           {b.benefitInformation}
                         </p>
                       ) : null}
                     </div>
-                    <div className="shrink-0 flex flex-col items-end gap-1.5">
+                    <div className="shrink-0 flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-1.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-neutral-100 dark:border-white/5 w-full sm:w-auto">
                       {b.officialSourceUrl ? (
                         <a
                           href={b.officialSourceUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                          className="group inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline"
                         >
                           {t('benefits.officialSource')}
-                          <ExternalLink size={11} />
+                          <ExternalLink size={11} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
                         </a>
-                      ) : null}
+                      ) : <div />}
                       {b.issuingAuthority ? (
-                        <span className="text-[11px] text-neutral-500 dark:text-neutral-400 text-right">
+                        <span className="text-[11px] text-neutral-500 dark:text-neutral-400 text-left sm:text-right truncate max-w-full">
                           {b.issuingAuthority}
                         </span>
                       ) : null}
                     </div>
                   </div>
                   {b.missingInformation?.length ? (
-                    <p className="mt-2.5 text-[11px] text-neutral-600 dark:text-neutral-300">
+                    <p className="mt-2.5 pt-2 border-t border-neutral-100 dark:border-white/5 text-[11px] text-neutral-600 dark:text-neutral-300 break-words">
                       {t('benefits.addInfo', { what: joinAnd(b.missingInformation, i18n.resolvedLanguage) })}
                     </p>
                   ) : null}
@@ -228,7 +228,7 @@ function Money({ value = 0 }) {
   const n = Number(value) || 0
   return (
     <span className="inline-flex items-baseline gap-0.5">
-      <IndianRupee size={Math.max(14, 18)} className="self-center" strokeWidth={2.4} />
+      <IndianRupee size={15} className="self-center shrink-0" strokeWidth={2.4} />
       <span>{n.toLocaleString('en-IN')}</span>
     </span>
   )

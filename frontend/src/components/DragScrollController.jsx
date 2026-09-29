@@ -90,8 +90,7 @@ export default function DragScrollController() {
     const winHeight = window.innerHeight;
     const max = docHeight - winHeight;
     const progress = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
-    const targetProgress = stateRef.current.scrollMode === 'top' ? progress : 1 - progress;
-    dragRingRef.current?.setProgress(targetProgress);
+    dragRingRef.current?.setProgress(progress);
   };
 
   const getMaxDrag = () => {

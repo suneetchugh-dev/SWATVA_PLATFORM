@@ -240,9 +240,9 @@ export default function Dashboard() {
               to="/app/transparency"
               variant="secondary"
               size="sm"
-              className="gap-1.5 font-semibold"
+              className="gap-1.5 font-semibold group"
             >
-              <BadgeIndianRupee size={13} className="stroke-[2.2] text-amber-600 dark:text-amber-400 shrink-0" />
+              <BadgeIndianRupee size={13} className="stroke-[2.2] text-amber-600 dark:text-amber-400 shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-200" />
               <span>{t('dashboard.reportCta')}</span>
             </Button>
             <Button
@@ -250,9 +250,9 @@ export default function Dashboard() {
               to="/app/matches"
               variant="secondary"
               size="sm"
-              className="gap-1.5 font-semibold"
+              className="gap-1.5 font-semibold group"
             >
-              <Scale size={13} className="stroke-[2.2] text-amber-600 dark:text-amber-400 shrink-0" />
+              <Scale size={13} className="stroke-[2.2] text-amber-600 dark:text-amber-400 shrink-0 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-200" />
               <span>{t('dashboard.browseSchemes')}</span>
             </Button>
           </div>

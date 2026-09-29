@@ -165,7 +165,7 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
   return (
     <div 
       ref={popoverRef}
-      className="absolute right-0 top-11 w-[calc(100vw-1.5rem)] max-w-xs sm:max-w-none sm:w-96 rounded-2xl bg-white dark:bg-[#151618] border border-neutral-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans"
+      className="fixed inset-x-3.5 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-11 w-auto sm:w-96 rounded-2xl bg-white dark:bg-[#151618] border border-neutral-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-white/5 bg-white dark:bg-[#151618]">
