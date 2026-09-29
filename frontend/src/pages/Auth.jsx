@@ -605,8 +605,8 @@ export default function Auth({ mode: initialMode = 'login' }) {
           <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">
             {isHindi ? 'स्वतवा' : 'SWATVA'}
           </span>
-          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
-          <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0">
+          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20 hidden [@media(pointer:fine)]:inline-block" aria-hidden="true" />
+          <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0 hidden [@media(pointer:fine)]:inline">
             {t('auth.citizenEmpowermentArchitecture') || 'CITIZEN EMPOWERMENT ARCHITECTURE'}
           </span>
         </div>
