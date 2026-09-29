@@ -13,7 +13,6 @@ import {
   ArrowRight,
   FileStack,
   Scale,
-  Sparkles,
   UserCheck
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -248,7 +247,7 @@ export default function NotificationsPopover({ isOpen, onClose, onUnreadChange }
                 </div>
                 <div className="flex items-center gap-1 ml-1 flex-shrink-0">
                   {!isRead && (
-                    <Sparkles size={12} className="text-amber-600 dark:text-amber-400 mt-1 flex-shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0 shadow-[0_0_6px_rgba(245,158,11,0.6)]" />
                   )}
                   {/* Per-notification dismiss button */}
                   <button
