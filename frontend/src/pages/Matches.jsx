@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertCircle, ArrowUpRight, Check, Scale, X } from 'lucide-react'
+import { AlertCircle, ArrowUpRight, Check, RotateCcw, Scale, X } from 'lucide-react'
 import { api } from '../api/client'
 import {
   Badge,
@@ -83,9 +83,18 @@ export default function Matches() {
         desc={t('matches.desc')}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={() => { playClick(); load(); }}>
-              {t('matches.recheck')}
-            </Button>
+            <button
+              type="button"
+              onClick={() => {
+                playClick()
+                load()
+              }}
+              aria-label={t('matches.recheck')}
+              className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200/90 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/[0.08] hover:border-neutral-300 dark:hover:border-white/20 hover:text-neutral-950 dark:hover:text-white active:scale-95 transition-all duration-200 cursor-pointer select-none shadow-xs"
+            >
+              <RotateCcw size={13} className="stroke-[2.2] shrink-0 text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-950 dark:group-hover:text-white group-hover:-rotate-45 transition-transform duration-300" />
+              <span>{t('matches.recheck')}</span>
+            </button>
             <PageTourButton pageKey="matches" />
           </div>
         }
