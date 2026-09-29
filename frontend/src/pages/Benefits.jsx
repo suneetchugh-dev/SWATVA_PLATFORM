@@ -178,10 +178,10 @@ export default function Benefits() {
                           href={b.officialSourceUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                          className="group inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline"
                         >
                           {t('benefits.officialSource')}
-                          <ExternalLink size={11} />
+                          <ExternalLink size={11} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
                         </a>
                       ) : <div />}
                       {b.issuingAuthority ? (

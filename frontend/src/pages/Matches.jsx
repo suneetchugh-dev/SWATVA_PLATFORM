@@ -203,10 +203,10 @@ export default function Matches() {
                           type="button"
                           onClick={() => setOpenId(open ? null : r.schemeId)}
                           aria-expanded={open}
-                          className="shrink-0 h-8 px-3 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-white/[0.06] hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                          className="group shrink-0 h-8 px-3 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-white/[0.06] hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors cursor-pointer inline-flex items-center gap-1.5 active:scale-95"
                         >
                           {open ? t('matches.hide') : t('matches.why')}
-                          <ArrowUpRight size={13} className={cx('transition-transform', open && 'rotate-90')} />
+                          <ArrowUpRight size={13} className={cx('transition-transform duration-200', open ? 'rotate-90' : 'group-hover:translate-x-0.5 group-hover:-translate-y-0.5')} />
                         </button>
                       </div>
 

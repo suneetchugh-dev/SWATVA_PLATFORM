@@ -598,9 +598,9 @@ export default function Assistant() {
                 type="button"
                 onClick={handleNewChat}
                 aria-label={t('assistant.newChat')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 transition-all duration-200 cursor-pointer select-none shadow-xs"
+                className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer select-none shadow-xs"
               >
-                <Plus size={13} />
+                <Plus size={13} className="shrink-0 stroke-[2.2] group-hover:rotate-90 transition-transform duration-300" />
                 <span>{t('assistant.newChat')}</span>
               </button>
 
@@ -612,13 +612,13 @@ export default function Assistant() {
                 }}
                 aria-label={t('assistant.historyButton')}
                 className={cx(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 cursor-pointer select-none',
+                  'group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 cursor-pointer select-none active:scale-95',
                   isHistoryOpen
                     ? 'bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 border-neutral-950 dark:border-white shadow-xs'
                     : 'border-neutral-200/90 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/[0.08] hover:border-neutral-300 dark:hover:border-white/20 hover:text-neutral-950 dark:hover:text-white'
                 )}
               >
-                <Clock size={13} />
+                <Clock size={13} className="shrink-0 stroke-[2.2] group-hover:-rotate-12 group-hover:scale-110 transition-transform duration-300" />
                 <span>{t('assistant.historyButton')}</span>
                 {sessions.length > 0 && (
                   <span
@@ -640,9 +640,9 @@ export default function Assistant() {
                   onClick={handleExportChat}
                   aria-label={t('assistant.export')}
                   title={t('assistant.export')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs"
+                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 active:scale-95 transition-all duration-200 cursor-pointer select-none shadow-xs"
                 >
-                  <Download size={13} />
+                  <Download size={13} className="shrink-0 stroke-[2.2] group-hover:translate-y-0.5 transition-transform duration-200" />
                   <span>{t('assistant.export')}</span>
                 </button>
               )}
@@ -672,9 +672,9 @@ export default function Assistant() {
             }}
             aria-label={isFullscreen ? t('assistant.exitFullscreen') : t('assistant.fullscreen')}
             title={isFullscreen ? t('assistant.exitFullscreen') : t('assistant.fullscreen')}
-            className="p-1.5 rounded-xl bg-white/85 dark:bg-[#18191c]/90 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white border border-neutral-200/90 dark:border-white/15 shadow-2xs backdrop-blur-md transition-all duration-150 cursor-pointer select-none active:scale-95 flex items-center justify-center"
+            className="group p-1.5 rounded-xl bg-white/85 dark:bg-[#18191c]/90 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white border border-neutral-200/90 dark:border-white/15 shadow-2xs backdrop-blur-md transition-all duration-150 cursor-pointer select-none active:scale-95 flex items-center justify-center"
           >
-            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            {isFullscreen ? <Minimize2 size={14} className="group-hover:scale-90 transition-transform duration-200" /> : <Maximize2 size={14} className="group-hover:scale-110 transition-transform duration-200" />}
           </button>
         </div>
 
@@ -954,13 +954,13 @@ export default function Assistant() {
           aria-label={t('assistant.voiceInput')}
           title={isListening ? (t('assistant.voiceStop') || 'Stop') : t('assistant.voiceInput')}
           className={cx(
-            'h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
+            'group h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
             isListening
               ? 'bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/30 ring-2 ring-amber-400 ring-offset-2 ring-offset-white dark:ring-offset-obsidian scale-105 animate-pulse'
               : 'border border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-500/40 hover:bg-amber-500/5 shadow-xs active:scale-95'
           )}
         >
-          {isListening ? <MicOff size={19} className="font-bold" /> : <Mic size={19} />}
+          {isListening ? <MicOff size={19} className="font-bold" /> : <Mic size={19} className="group-hover:scale-110 transition-transform duration-200" />}
         </button>
 
         {/* Send Button */}
@@ -970,13 +970,13 @@ export default function Assistant() {
           aria-label={t('assistant.send')}
           title={t('assistant.send')}
           className={cx(
-            'h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
+            'group h-[50px] w-[50px] sm:h-[52px] sm:w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
             text.trim() && !sending
               ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-md shadow-amber-500/25 active:scale-95 hover:scale-[1.02]'
               : 'border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.04] text-neutral-400 dark:text-neutral-600 cursor-not-allowed opacity-50'
           )}
         >
-          <Send size={17} className="stroke-[2.2]" />
+          <Send size={17} className="stroke-[2.2] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
         </button>
       </form>
 
@@ -1032,9 +1032,9 @@ export default function Assistant() {
                     onClick={handleClearAllHistory}
                     title={t('assistant.clearHistory') || 'Clear all history'}
                     aria-label={t('assistant.clearHistory') || 'Clear all history'}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 bg-neutral-100 dark:bg-white/5 hover:bg-red-500/10 border border-neutral-200/80 dark:border-white/10 hover:border-red-500/30 transition-all cursor-pointer select-none active:scale-95"
+                    className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 bg-neutral-100 dark:bg-white/5 hover:bg-red-500/10 border border-neutral-200/80 dark:border-white/10 hover:border-red-500/30 transition-all cursor-pointer select-none active:scale-95"
                   >
-                    <Trash2 size={12} className="stroke-[2.2] shrink-0 text-red-500/80 dark:text-red-400/80" />
+                    <Trash2 size={12} className="stroke-[2.2] shrink-0 text-red-500/80 dark:text-red-400/80 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200" />
                     <span className="hidden xs:inline sm:inline">{t('assistant.clearHistory') || 'Clear all'}</span>
                   </button>
                 )}
@@ -1119,9 +1119,9 @@ export default function Assistant() {
                             onClick={(e) => handleDeleteSession(e, s.id)}
                             title={t('assistant.deleteSession')}
                             aria-label={t('assistant.deleteSession')}
-                            className="opacity-60 group-hover:opacity-100 p-1 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                            className="group/del opacity-60 group-hover:opacity-100 p-1 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
                           >
-                            <Trash2 size={12} />
+                            <Trash2 size={12} className="group-hover/del:scale-110 group-hover/del:-rotate-6 transition-transform duration-200" />
                           </button>
                         </div>
                       </div>

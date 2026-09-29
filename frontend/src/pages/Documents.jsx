@@ -322,7 +322,7 @@ export default function Documents() {
                 aria-label={t('documents.removeAll') || 'Remove all documents'}
                 className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-300/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 active:scale-[0.98] text-xs font-medium shadow-2xs transition-all duration-200 cursor-pointer"
               >
-                <Trash2 size={13} className="stroke-[2.2] shrink-0 text-neutral-400 dark:text-neutral-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
+                <Trash2 size={13} className="stroke-[2.2] shrink-0 text-neutral-400 dark:text-neutral-500 group-hover:text-red-600 dark:group-hover:text-red-400 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-200" />
                 <span className="hidden sm:inline">{t('documents.removeAll') || 'Remove all documents'}</span>
                 <span className="sm:hidden">{t('documents.removeAll') ? t('documents.removeAll').split(' ')[0] : 'Remove'}</span>
               </button>
@@ -393,9 +393,10 @@ export default function Documents() {
                 <Button
                   type="button"
                   variant="primary"
+                  className="group"
                   onClick={() => { playClick(); setActiveTab('add'); }}
                 >
-                  <Plus size={14} className="stroke-[2.5]" />
+                  <Plus size={14} className="stroke-[2.5] group-hover:rotate-90 transition-transform duration-300" />
                   <span>{t('documents.tabAdd') || 'Add Document'}</span>
                 </Button>
               }
@@ -446,9 +447,9 @@ export default function Documents() {
                         onClick={() => remove(d.id)}
                         disabled={busyId === d.id}
                         aria-label={`${t('common.remove')}: ${d.documentTypeName ?? d.documentType}`}
-                        className="shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors cursor-pointer disabled:opacity-40"
+                        className="group shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors cursor-pointer disabled:opacity-40 active:scale-95"
                       >
-                        {busyId === d.id ? <Spinner className="h-3.5 w-3.5" /> : <Trash2 size={14} />}
+                        {busyId === d.id ? <Spinner className="h-3.5 w-3.5" /> : <Trash2 size={14} className="group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200" />}
                       </button>
                     </div>
 
@@ -600,8 +601,8 @@ export default function Documents() {
             )}
 
             <div className="sm:col-span-2 flex items-center gap-3 pt-2">
-              <Button type="submit" variant="accent" loading={uploading} disabled={uploading || !selectedFile}>
-                <Upload size={15} />
+              <Button type="submit" variant="accent" loading={uploading} disabled={uploading || !selectedFile} className="group">
+                <Upload size={15} className="group-hover:-translate-y-0.5 transition-transform duration-200 shrink-0" />
                 {t('documents.save')}
               </Button>
               <Button

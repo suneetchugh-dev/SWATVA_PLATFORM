@@ -125,10 +125,10 @@ export default function Transparency() {
                   href={result.officialGrievanceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                  className="group mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 hover:underline"
                 >
                   {t('transparency.fileStatutory')}
-                  <ExternalLink size={12} />
+                  <ExternalLink size={12} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
                 </a>
               ) : null}
             </div>
@@ -222,8 +222,8 @@ export default function Transparency() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 pt-1">
-            <Button type="submit" disabled={submitting}>
-              <Send size={13} />
+            <Button type="submit" disabled={submitting} className="group">
+              <Send size={13} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200 shrink-0" />
               {submitting ? t('common.submitting') : t('transparency.submit')}
             </Button>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">

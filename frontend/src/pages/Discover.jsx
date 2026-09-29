@@ -141,7 +141,7 @@ export default function Discover() {
 
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={loading || description.trim().length < 5} className="group">
-            <Search size={13} className={loading ? 'animate-spin' : 'group-hover:scale-110 transition-transform duration-200'} />
+            <Search size={13} className={loading ? 'animate-spin' : 'group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200'} />
             <span>{loading ? t('common.searching') : t('discover.submit')}</span>
           </Button>
           {loading ? (
@@ -396,9 +396,9 @@ function PastSearches({ history, onSelect, onClear, t }) {
           type="button"
           onClick={onClear}
           aria-label={t('discover.historyClear')}
-          className="flex items-center gap-1 text-[11px] text-neutral-400 dark:text-neutral-500 hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer"
+          className="group flex items-center gap-1 text-[11px] text-neutral-400 dark:text-neutral-500 hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer"
         >
-          <Trash2 size={12} />
+          <Trash2 size={12} className="group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200" />
           {t('discover.historyClear')}
         </button>
       </div>
@@ -429,8 +429,8 @@ function PastSearches({ history, onSelect, onClear, t }) {
                     </span>
                   </div>
                 </div>
-                <div className="shrink-0 flex items-center text-neutral-400 group-hover:text-neutral-950 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all">
-                  <ArrowRight size={14} />
+                <div className="shrink-0 flex items-center text-neutral-400 group-hover:text-neutral-950 dark:group-hover:text-white transition-all">
+                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-200" />
                 </div>
               </button>
             </li>

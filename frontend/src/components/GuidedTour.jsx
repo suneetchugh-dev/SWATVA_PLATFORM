@@ -781,11 +781,11 @@ export function PageTourButton({ pageKey, className = '' }) {
         playClick();
         window.dispatchEvent(new CustomEvent(PAGE_TOUR_EVENT, { detail: { pageKey } }));
       }}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200/90 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer select-none shadow-xs ${className}`}
+      className={`group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200/90 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300 active:scale-95 transition-all duration-200 cursor-pointer select-none shadow-xs ${className}`}
       aria-label={isHindi ? 'पेज गाइड' : 'Page Tour'}
       title={isHindi ? 'पेज गाइड शुरू करें' : 'Start Page Tour Guide'}
     >
-      <Compass size={13} className="text-amber-600 dark:text-amber-400" />
+      <Compass size={13} className="text-amber-600 dark:text-amber-400 group-hover:rotate-45 transition-transform duration-300 stroke-[2.2]" />
       <span>{isHindi ? 'पेज गाइड' : 'Page Tour'}</span>
     </button>
   );

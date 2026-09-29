@@ -247,8 +247,8 @@ export default function Readiness() {
                             {t('readiness.manage')}
                           </Button>
                         ) : key === 'missing' ? (
-                          <Button as={Link} to="/app/documents" variant="secondary" size="sm">
-                            <Upload size={12} />
+                          <Button as={Link} to="/app/documents" variant="secondary" size="sm" className="group">
+                            <Upload size={12} className="group-hover:-translate-y-0.5 transition-transform duration-200 shrink-0" />
                             {t('readiness.upload')}
                           </Button>
                         ) : null}
@@ -286,9 +286,9 @@ function BackLink() {
   return (
     <Link
       to="/app/matches"
-      className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors"
+      className="group inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors"
     >
-      <ArrowLeft size={13} />
+      <ArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform duration-200" />
       {t('readiness.back')}
     </Link>
   )
