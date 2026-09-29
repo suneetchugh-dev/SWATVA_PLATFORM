@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, FileStack, Info, Plus, Trash2, Upload } from 'lucide-react'
+import { AlertTriangle, Cpu, FileStack, Info, Lock, Plus, ShieldCheck, Trash2, Upload } from 'lucide-react'
 import { api } from '../api/client'
 import DocumentReviewModal from '../components/DocumentReviewModal'
 import ClearDocumentsModal from '../components/ClearDocumentsModal'
@@ -615,6 +615,48 @@ export default function Documents() {
           </form>
         </Card>
       )}
+
+      {/* Security & Privacy Architecture Transparency Card */}
+      <div className="rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/60 dark:bg-white/[0.02] p-4 sm:p-5 mt-6">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-6 w-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <Lock size={13} />
+          </div>
+          <h3 className="text-xs font-bold tracking-tight text-neutral-900 dark:text-white uppercase tracking-wider">
+            {t('documents.securityNotice.title', 'Security, Privacy & Automated Verification Architecture')}
+          </h3>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 text-xs">
+          <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-neutral-900/60 p-3 border border-neutral-200/50 dark:border-white/5">
+            <ShieldCheck size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-neutral-900 dark:text-white">
+                {t('documents.securityNotice.inTransit', 'Encrypted In-Transit & At-Rest')}
+              </p>
+              <p className="mt-0.5 text-neutral-600 dark:text-neutral-400 leading-relaxed text-[11px]">
+                {t('documents.securityNotice.inTransitDesc', 'All document uploads are transmitted over TLS 1.3 encryption and stored in tenant-isolated, AES-256 encrypted cloud object storage.')}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-neutral-900/60 p-3 border border-neutral-200/50 dark:border-white/5">
+            <Cpu size={16} className="text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-neutral-900 dark:text-white">
+                {t('documents.securityNotice.ocrPurpose', 'Automated In-Memory AI Extraction')}
+              </p>
+              <p className="mt-0.5 text-neutral-600 dark:text-neutral-400 leading-relaxed text-[11px]">
+                {t('documents.securityNotice.ocrPurposeDesc', 'Our server-side OCR extracts document numbers, validity dates, and issuing authority seals solely to evaluate statutory scheme criteria. Your raw documents are never shared or sold to third parties.')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-3 text-[11px] text-neutral-500 dark:text-neutral-400 text-center sm:text-left">
+          ℹ️ {t('documents.securityNotice.transparencyNote', 'Server-assisted OCR verification enables instant eligibility calculation across 20+ government schemes while maintaining strict tenant isolation.')}
+        </p>
+      </div>
 
       {/* Verification Review Modal */}
       <DocumentReviewModal

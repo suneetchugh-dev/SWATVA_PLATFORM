@@ -351,17 +351,17 @@ export default function Auth({ mode: initialMode = 'login' }) {
 
           {/* Google Quick Sign-In or 1-Click Account Re-Auth Card */}
           {mode === 'login' && lastGoogleAccount ? (
-            <div className="mb-4 p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06] flex flex-col gap-2.5 shadow-xs transition-all">
-              <div className="flex items-center justify-between gap-3 min-w-0">
+            <div className="mb-4 p-4 rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl shadow-lg shadow-black/[0.03] dark:shadow-black/40 flex flex-col gap-3 transition-all">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
                 <div className="flex items-center gap-3 min-w-0">
                   {lastGoogleAccount.photoURL ? (
                     <img
                       src={lastGoogleAccount.photoURL}
                       alt={lastGoogleAccount.fullName}
-                      className="w-10 h-10 rounded-full border border-emerald-500/40 object-cover shrink-0"
+                      className="w-10 h-10 rounded-full border border-neutral-200/80 dark:border-white/15 bg-neutral-100 dark:bg-white/5 object-cover shrink-0"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-sm shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-neutral-900/5 dark:bg-white/10 text-neutral-900 dark:text-white font-bold flex items-center justify-center text-sm shrink-0 border border-neutral-200/80 dark:border-white/10">
                       {lastGoogleAccount.fullName?.charAt(0) || 'G'}
                     </div>
                   )}
@@ -370,12 +370,12 @@ export default function Auth({ mode: initialMode = 'login' }) {
                       <span className="text-xs font-bold text-neutral-950 dark:text-white truncate">
                         {lastGoogleAccount.fullName}
                       </span>
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-mono font-medium tracking-wide border border-neutral-200/80 dark:border-white/10 bg-neutral-100 dark:bg-white/5 text-neutral-700 dark:text-neutral-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neutral-950 dark:bg-white" />
                         {t('auth.lastUsed') || 'Last used'}
                       </span>
                     </div>
-                    <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 truncate">
+                    <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
                       {lastGoogleAccount.email}
                     </p>
                   </div>
@@ -386,7 +386,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
                   onClick={() => handleGoogleSignIn(lastGoogleAccount.email)}
                   disabled={loading || googleLoading}
                   data-sound="click"
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-neutral-950 dark:bg-white dark:text-neutral-950 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm shrink-0 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-neutral-950 dark:bg-white dark:text-neutral-950 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm shrink-0 cursor-pointer w-full sm:w-auto"
                 >
                   {googleLoading ? (
                     <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -402,12 +402,12 @@ export default function Auth({ mode: initialMode = 'login' }) {
                 </button>
               </div>
 
-              <div className="flex items-center justify-end pt-1 border-t border-emerald-500/15">
+              <div className="flex items-center justify-end pt-2 border-t border-neutral-200/60 dark:border-white/5">
                 <button
                   type="button"
                   onClick={() => handleGoogleSignIn(null)}
                   disabled={loading || googleLoading}
-                  className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer hover:underline"
+                  className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer hover:underline"
                 >
                   {t('auth.useAnotherAccount') || 'Sign in with a different Google account'}
                 </button>
