@@ -604,13 +604,13 @@ export default function Assistant() {
 
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-8">
-            <div className="relative mb-3 flex items-center justify-center">
+            <div className="relative mb-3 flex items-center justify-center group cursor-default">
               {/* Soft Amber Aura Halo Glow matching platform light/dark theme */}
               <span
                 aria-hidden="true"
-                className="absolute inset-0 -m-3 rounded-full bg-amber-500/22 dark:bg-amber-500/35 blur-xl scale-110 pointer-events-none transition-all duration-300 ease-out"
+                className="absolute inset-0 -m-3 rounded-full bg-amber-500/22 dark:bg-amber-500/35 blur-xl scale-100 pointer-events-none transition-all duration-500 ease-out group-hover:bg-amber-500/45 dark:group-hover:bg-amber-500/60 group-hover:blur-2xl group-hover:scale-120"
               />
-              <AIOrbFace size={76} state={sending ? 'thinking' : isListening ? 'listening' : 'idle'} className="relative z-10" />
+              <AIOrbFace size={76} state={sending ? 'thinking' : isListening ? 'listening' : 'idle'} className="relative z-10 transition-transform duration-500 ease-out group-hover:scale-105" />
             </div>
             <h3 className="mt-2 text-base font-bold tracking-tight">{t('assistant.emptyTitle')}</h3>
             <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300 max-w-sm text-balance">

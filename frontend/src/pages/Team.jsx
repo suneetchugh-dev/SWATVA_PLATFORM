@@ -167,7 +167,7 @@ export default function Team() {
           <button
             type="button"
             onClick={handleBack}
-            className="pointer-events-auto flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-full group"
+            className="pointer-events-auto flex items-center justify-center cursor-pointer transition-transform duration-500 ease-out hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-full group"
             title={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
             aria-label={getToken() ? (isHindi ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard') : (isHindi ? 'मुख्य पृष्ठ पर जाएं' : 'Go to Home')}
           >
@@ -175,7 +175,7 @@ export default function Team() {
               {/* Amber Aura Glow matching login header in both light and dark themes */}
               <span
                 aria-hidden="true"
-                className="absolute inset-0 -m-2 rounded-full bg-amber-500/22 dark:bg-amber-500/35 blur-lg scale-100 pointer-events-none transition-all duration-300 ease-out group-hover:bg-amber-500/45 dark:group-hover:bg-amber-500/60 group-hover:blur-xl group-hover:scale-115"
+                className="absolute inset-0 -m-2 rounded-full bg-amber-500/22 dark:bg-amber-500/35 blur-lg scale-100 pointer-events-none transition-all duration-500 ease-out group-hover:bg-amber-500/45 dark:group-hover:bg-amber-500/60 group-hover:blur-xl group-hover:scale-115"
               />
               <LoadingLogo animate={false} size="h-7 w-7 sm:h-8 sm:w-8" />
             </div>
