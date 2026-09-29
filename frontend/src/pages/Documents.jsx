@@ -508,24 +508,24 @@ export default function Documents() {
           <form onSubmit={register} className="mt-5 grid gap-4 sm:grid-cols-2 min-w-0">
             {/* Single-instance replacement notice */}
             {existingSingleDoc && (
-              <div className="sm:col-span-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-900 dark:text-amber-200 text-xs flex items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+              <div className="sm:col-span-2 p-3 sm:p-3.5 rounded-xl bg-neutral-100/80 dark:bg-white/[0.04] border border-neutral-200/90 dark:border-white/10 text-xs flex items-start sm:items-center justify-between gap-3 shadow-2xs backdrop-blur-sm animate-in fade-in duration-200">
                 <div className="flex items-start sm:items-center gap-2.5 min-w-0">
-                  <Info size={16} className="shrink-0 text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-0" />
+                  <Info size={16} className="shrink-0 text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-0 stroke-[2.2]" />
                   <div className="min-w-0">
-                    <p className="font-semibold leading-tight">
+                    <p className="font-semibold text-neutral-900 dark:text-neutral-100 leading-tight">
                       {t('documents.replaceNotice', {
                         type: t(`documents.types.${docType}`),
                         existing: existingSingleDoc.filename || t(`documents.types.${docType}`),
                       })}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-amber-700/90 dark:text-amber-300/80 leading-normal">
+                    <p className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400 leading-normal">
                       {t('documents.singleInstanceHint')}
                     </p>
                   </div>
                 </div>
-                <Badge tone="amber" className="shrink-0 text-[10px] uppercase font-bold tracking-wide">
+                <span className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase border border-neutral-200/90 dark:border-white/10 bg-white/90 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 select-none shadow-2xs">
                   {t('documents.willReplace')}
-                </Badge>
+                </span>
               </div>
             )}
 
