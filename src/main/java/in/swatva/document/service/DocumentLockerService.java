@@ -97,6 +97,20 @@ public class DocumentLockerService {
                                           String issuingAuthority,
                                           String metadataJson,
                                           DocumentStatus statusParam) {
+        return uploadDocument(userEmail, documentTypeCode, file, filenameParam, issueDate, expiryDate, issuingAuthority, metadataJson, statusParam, null);
+    }
+
+    @Transactional
+    public UserDocumentDto uploadDocument(String userEmail,
+                                          String documentTypeCode,
+                                          MultipartFile file,
+                                          String filenameParam,
+                                          LocalDate issueDate,
+                                          LocalDate expiryDate,
+                                          String issuingAuthority,
+                                          String metadataJson,
+                                          DocumentStatus statusParam,
+                                          String password) {
         User user = getUserByEmail(userEmail);
         DocumentType documentType = resolveDocumentType(documentTypeCode);
 
@@ -126,13 +140,15 @@ public class DocumentLockerService {
             }
         }
 
+        String effectivePassword = resolveCandidatePassword(user, password, documentTypeCode);
+
         // Pipeline: Uploaded document -> OCR -> extracted text -> LLM structured extraction -> document metadata -> validity checker
         ExtractedDocumentMetadata extracted = null;
         String ocrText = null;
 
         if (fileBytes != null && fileBytes.length > 0) {
             try {
-                ocrText = ocrService.extractText(fileBytes, contentType, originalName);
+                ocrText = ocrService.extractText(fileBytes, contentType, originalName, effectivePassword);
             } catch (Exception e) {
                 log.warn("OCR text extraction failed for uploaded document {}: {}", originalName, e.getMessage());
             }
@@ -243,6 +259,21 @@ public class DocumentLockerService {
         return UserDocumentDto.from(saved);
     }
 
+    private String resolveCandidatePassword(User user, String providedPassword, String documentTypeCode) {
+        if (providedPassword != null && !providedPassword.isBlank()) {
+            return providedPassword.trim();
+        }
+        if ("AADHAAR".equalsIgnoreCase(documentTypeCode) && user != null && user.getFullName() != null && user.getDateOfBirth() != null) {
+            String cleanName = user.getFullName().replaceAll("[^A-Za-z]", "");
+            if (cleanName.length() >= 4) {
+                String prefix = cleanName.substring(0, 4).toUpperCase();
+                int year = user.getDateOfBirth().getYear();
+                return prefix + year;
+            }
+        }
+        return null;
+    }
+
     @Transactional
     public UserDocumentDto correctDocument(String userEmail, UUID documentId, DocumentCorrectionRequest request) {
         User user = getUserByEmail(userEmail);
@@ -278,28 +309,9 @@ public class DocumentLockerService {
         // Re-evaluate validity
         if (request.status() != null) {
             doc.setStatus(request.status());
-        } else if (validityService != null) {
-            DocumentValidationResponse valResp = validityService.validate(doc, null, null);
-            if (valResp != null) {
-                Map<String, Object> validityCheckMap = new HashMap<>();
-                validityCheckMap.put("status", valResp.status() != null ? valResp.status().name() : "NEEDS_REVIEW");
-                validityCheckMap.put("matchedRule", valResp.matchedRuleDescription() != null ? valResp.matchedRuleDescription() : "N/A");
-                validityCheckMap.put("message", valResp.message() != null ? valResp.message() : "");
-                validityCheckMap.put("daysUntilExpiry", valResp.daysUntilExpiry() != null ? valResp.daysUntilExpiry() : -1);
-                meta.put("validityCheck", validityCheckMap);
-
-                if (valResp.status() == DocumentValidityStatus.EXPIRED) {
-                    doc.setStatus(DocumentStatus.EXPIRED);
-                } else if (valResp.status() == DocumentValidityStatus.NEEDS_REVIEW) {
-                    doc.setStatus(DocumentStatus.NEEDS_REVIEW);
-                } else {
-                    doc.setStatus(DocumentStatus.ACTIVE);
-                }
-            } else {
-                doc.setStatus(DocumentStatus.ACTIVE);
-            }
         } else {
-            if (doc.getExpiryDate() != null && doc.getExpiryDate().isBefore(LocalDate.now())) {
+            LocalDate today = LocalDate.now();
+            if (doc.getExpiryDate() != null && doc.getExpiryDate().isBefore(today)) {
                 doc.setStatus(DocumentStatus.EXPIRED);
             } else {
                 doc.setStatus(DocumentStatus.ACTIVE);
@@ -321,7 +333,7 @@ public class DocumentLockerService {
             try {
                 fileBytes = storageService.download(doc.getStorageKey());
             } catch (Exception e) {
-                log.warn("Could not download file {} from storage for re-extraction: {}", doc.getStorageKey(), e.getMessage());
+                log.warn("Failed to download file from S3 for re-extraction: {}", e.getMessage());
             }
         }
 
@@ -329,67 +341,35 @@ public class DocumentLockerService {
         String ocrText = null;
         if (fileBytes != null && fileBytes.length > 0) {
             try {
-                ocrText = ocrService.extractText(fileBytes, doc.getContentType(), doc.getFilename());
+                String candidatePwd = resolveCandidatePassword(user, null, doc.getDocumentType() != null ? doc.getDocumentType().getCode() : null);
+                ocrText = ocrService.extractText(fileBytes, doc.getContentType(), doc.getFilename(), candidatePwd);
             } catch (Exception e) {
                 log.warn("OCR failed during re-extraction: {}", e.getMessage());
             }
 
             if (ocrText != null && !ocrText.isBlank()) {
-                String hint = doc.getDocumentType() != null ? doc.getDocumentType().getCode() : "DOCUMENT";
-                extracted = aiExtractionService.extractStructuredData(ocrText, hint);
+                String typeCode = (doc.getDocumentType() != null) ? doc.getDocumentType().getCode() : "DOCUMENT";
+                try {
+                    extracted = aiExtractionService.extractStructuredData(ocrText, typeCode);
+                } catch (Exception e) {
+                    log.warn("AI extraction failed during re-extraction: {}", e.getMessage());
+                }
             }
         }
 
         if (extracted == null) {
-            extracted = ExtractedDocumentMetadata.needsReview("No readable text found during re-extraction.");
-        }
-
-        // Apply extracted fields if missing on document
-        if (doc.getIssueDate() == null && extracted.issueDate() != null && extracted.issueDate().value() != null) {
-            doc.setIssueDate(extracted.issueDate().value());
-        }
-        if (doc.getExpiryDate() == null && extracted.expiryDate() != null && extracted.expiryDate().value() != null) {
-            doc.setExpiryDate(extracted.expiryDate().value());
-        }
-        if ((doc.getIssuingAuthority() == null || doc.getIssuingAuthority().isBlank()) && extracted.issuingAuthority() != null && extracted.issuingAuthority().value() != null) {
-            doc.setIssuingAuthority(extracted.issuingAuthority().value());
-        }
-        if ((doc.getDocumentNumber() == null || doc.getDocumentNumber().isBlank()) && extracted.certificateNumber() != null && extracted.certificateNumber().value() != null) {
-            doc.setDocumentNumber(extracted.certificateNumber().value());
+            extracted = ExtractedDocumentMetadata.needsReview("Re-extraction did not yield structured data.");
         }
 
         Map<String, Object> meta = new HashMap<>(doc.getExtractedMetadata());
         meta.putAll(extracted.toMap());
+        meta.put("lastReExtractedAt", Instant.now().toString());
         meta.put("officialVerificationClaimed", false);
         meta.put("disclaimer", ExtractedDocumentMetadata.DISCLAIMER_TEXT);
         doc.setExtractedMetadata(meta);
 
-        // Re-evaluate validity
-        if (validityService != null) {
-            String state = extracted.state() != null ? extracted.state().value() : null;
-            DocumentValidationResponse valResp = validityService.validate(doc, null, state);
-            if (valResp != null) {
-                Map<String, Object> validityCheckMap = new HashMap<>();
-                validityCheckMap.put("status", valResp.status() != null ? valResp.status().name() : "NEEDS_REVIEW");
-                validityCheckMap.put("matchedRule", valResp.matchedRuleDescription() != null ? valResp.matchedRuleDescription() : "N/A");
-                validityCheckMap.put("message", valResp.message() != null ? valResp.message() : "");
-                validityCheckMap.put("daysUntilExpiry", valResp.daysUntilExpiry() != null ? valResp.daysUntilExpiry() : -1);
-                meta.put("validityCheck", validityCheckMap);
-
-                if ("NEEDS_REVIEW".equalsIgnoreCase(extracted.extractionStatus()) || valResp.status() == DocumentValidityStatus.NEEDS_REVIEW) {
-                    doc.setStatus(DocumentStatus.NEEDS_REVIEW);
-                } else if (valResp.status() == DocumentValidityStatus.EXPIRED) {
-                    doc.setStatus(DocumentStatus.EXPIRED);
-                } else {
-                    doc.setStatus(DocumentStatus.ACTIVE);
-                }
-            } else {
-                if ("NEEDS_REVIEW".equalsIgnoreCase(extracted.extractionStatus())) {
-                    doc.setStatus(DocumentStatus.NEEDS_REVIEW);
-                } else {
-                    doc.setStatus(DocumentStatus.ACTIVE);
-                }
-            }
+        if (extracted.certificateNumber() != null && extracted.certificateNumber().value() != null) {
+            doc.setDocumentNumber(extracted.certificateNumber().value());
         }
 
         UserDocument saved = userDocumentRepository.save(doc);
@@ -401,27 +381,18 @@ public class DocumentLockerService {
         User user = getUserByEmail(userEmail);
         DocumentType documentType = resolveDocumentType(request.documentType());
 
-        String filename = (request.filename() != null && !request.filename().isBlank())
-                ? request.filename()
-                : "document.bin";
-
-        String storageKey = (request.storageKey() != null && !request.storageKey().isBlank())
-                ? request.storageKey()
-                : "documents/" + user.getId() + "/" + UUID.randomUUID() + "-" + filename;
-
         DocumentStatus status = resolveStatus(request.status(), request.expiryDate());
 
         UserDocument doc = new UserDocument();
         doc.setUser(user);
         doc.setDocumentType(documentType);
-        doc.setFilename(filename);
-        doc.setStorageKey(storageKey);
-        doc.setStorageReference(storageKey);
+        doc.setFilename(request.filename() != null && !request.filename().isBlank() ? request.filename() : request.documentType() + ".bin");
+        doc.setStorageKey(request.storageKey());
+        doc.setStorageReference(request.storageKey());
         doc.setUploadDate(Instant.now());
         doc.setIssueDate(request.issueDate());
         doc.setExpiryDate(request.expiryDate());
         doc.setIssuingAuthority(request.issuingAuthority());
-        doc.setExtractedMetadata(request.extractedMetadata() != null ? request.extractedMetadata() : Map.of());
         doc.setStatus(status);
 
         UserDocument saved = userDocumentRepository.save(doc);
@@ -431,7 +402,8 @@ public class DocumentLockerService {
     @Transactional(readOnly = true)
     public List<UserDocumentDto> getUserDocuments(String userEmail) {
         User user = getUserByEmail(userEmail);
-        return userDocumentRepository.findByUserId(user.getId()).stream()
+        return userDocumentRepository.findByUserId(user.getId())
+                .stream()
                 .sorted(Comparator.comparing(UserDocument::getUploadDate, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(UserDocumentDto::from)
                 .toList();
