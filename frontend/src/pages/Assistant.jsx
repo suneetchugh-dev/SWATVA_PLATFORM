@@ -615,14 +615,21 @@ export default function Assistant() {
                 className={cx(
                   'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 cursor-pointer select-none',
                   isHistoryOpen
-                    ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow-xs'
-                    : 'border-neutral-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:border-amber-500/40 hover:text-amber-700 dark:hover:text-amber-300'
+                    ? 'bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 border-neutral-950 dark:border-white shadow-xs'
+                    : 'border-neutral-200/90 dark:border-white/10 bg-white/90 dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/[0.08] hover:border-neutral-300 dark:hover:border-white/20 hover:text-neutral-950 dark:hover:text-white'
                 )}
               >
                 <Clock size={13} />
                 <span>{t('assistant.historyButton')}</span>
                 {sessions.length > 0 && (
-                  <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-200 dark:bg-white/15 text-neutral-900 dark:text-white font-mono font-medium">
+                  <span
+                    className={cx(
+                      'ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-mono font-semibold transition-colors',
+                      isHistoryOpen
+                        ? 'bg-white/20 dark:bg-black/20 text-white dark:text-neutral-950'
+                        : 'bg-neutral-200/70 dark:bg-white/15 text-neutral-800 dark:text-neutral-200'
+                    )}
+                  >
                     {sessions.length}
                   </span>
                 )}
@@ -1006,8 +1013,8 @@ export default function Assistant() {
             {/* Header */}
             <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between gap-3 shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                  <MessageSquare size={16} />
+                <div className="h-8 w-8 rounded-xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 flex items-center justify-center shrink-0 shadow-2xs">
+                  <MessageSquare size={15} />
                 </div>
                 <div className="min-w-0">
                   <h2 className="text-sm font-bold tracking-tight text-neutral-950 dark:text-white truncate">
@@ -1054,7 +1061,7 @@ export default function Assistant() {
                   value={historySearch}
                   onChange={(e) => setHistorySearch(e.target.value)}
                   placeholder={t('assistant.searchHistory')}
-                  className="w-full pl-9 pr-8 py-2 rounded-xl text-xs bg-white dark:bg-white/[0.06] border border-neutral-200 dark:border-white/10 focus:outline-none focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 text-neutral-900 dark:text-white placeholder:text-neutral-400"
+                  className="w-full pl-9 pr-8 py-2 rounded-xl text-xs bg-white dark:bg-white/[0.06] border border-neutral-200 dark:border-white/10 focus:outline-none focus:border-neutral-400 dark:focus:border-white/30 focus:ring-2 focus:ring-neutral-200 dark:focus:ring-white/10 text-neutral-900 dark:text-white placeholder:text-neutral-400"
                 />
                 {historySearch && (
                   <button
@@ -1093,8 +1100,8 @@ export default function Assistant() {
                       className={cx(
                         'group relative rounded-2xl p-3.5 border transition-all duration-200 cursor-pointer text-left',
                         isActive
-                          ? 'bg-amber-500/[0.08] dark:bg-amber-400/[0.06] border-amber-500/40 shadow-xs ring-1 ring-amber-500/25'
-                          : 'bg-white dark:bg-white/[0.03] border-neutral-200/80 dark:border-white/10 hover:border-amber-500/30 hover:bg-neutral-50 dark:hover:bg-white/[0.05]'
+                          ? 'bg-neutral-100 dark:bg-white/[0.06] border-neutral-300 dark:border-white/20 shadow-xs ring-1 ring-neutral-300/60 dark:ring-white/15'
+                          : 'bg-white dark:bg-white/[0.03] border-neutral-200/80 dark:border-white/10 hover:border-neutral-300 dark:hover:border-white/20 hover:bg-neutral-50 dark:hover:bg-white/[0.05]'
                       )}
                     >
                       <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -1103,7 +1110,7 @@ export default function Assistant() {
                         </h4>
                         <div className="flex items-center gap-1.5 shrink-0">
                           {isActive && (
-                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-amber-500 text-neutral-950">
+                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
                               {t('assistant.activeBadge')}
                             </span>
                           )}
@@ -1112,7 +1119,7 @@ export default function Assistant() {
                             onClick={(e) => handleDeleteSession(e, s.id)}
                             title={t('assistant.deleteSession')}
                             aria-label={t('assistant.deleteSession')}
-                            className="opacity-60 group-hover:opacity-100 p-1 text-neutral-400 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors cursor-pointer"
+                            className="opacity-60 group-hover:opacity-100 p-1 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
                           >
                             <Trash2 size={12} />
                           </button>
