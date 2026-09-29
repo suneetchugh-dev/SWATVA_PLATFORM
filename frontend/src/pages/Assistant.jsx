@@ -400,7 +400,7 @@ export default function Assistant() {
 
     messages.forEach((m, idx) => {
       const isUser = m.role === 'user'
-      const speaker = isUser ? '👤 Citizen / User' : '🤖 SWATVA Welfare Assistant'
+      const speaker = isUser ? 'Citizen / User' : 'SWATVA Welfare Assistant'
       markdown += `### ${idx + 1}. ${speaker}\n\n${m.content}\n\n`
 
       if (m.readiness) {
