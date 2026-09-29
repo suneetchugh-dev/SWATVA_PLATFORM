@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Check,
@@ -100,6 +101,8 @@ function formatSessionTime(timestamp, lang) {
 
 export default function Assistant() {
   const { t, i18n } = useTranslation()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialPromptSentRef = useRef(false)
   const [sessions, setSessions] = useState(loadStoredSessions)
   const [activeSessionId, setActiveSessionId] = useState(loadStoredActiveSessionId)
 
@@ -447,6 +450,19 @@ export default function Assistant() {
       inputRef.current?.focus()
     }
   }
+
+  // Handle incoming ?q= search parameters from Landing Page / Quick Prompts
+  useEffect(() => {
+    const queryParam = searchParams.get('q')
+    if (queryParam && queryParam.trim() && !initialPromptSentRef.current) {
+      initialPromptSentRef.current = true
+      const promptText = queryParam.trim()
+      setSearchParams({}, { replace: true })
+      setTimeout(() => {
+        send(promptText)
+      }, 150)
+    }
+  }, [searchParams])
 
   const handleToggleListening = () => {
     playClick()

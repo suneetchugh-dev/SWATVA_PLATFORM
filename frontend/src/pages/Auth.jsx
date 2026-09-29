@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Navigate, Link } from 'react-router-dom';
+import { useNavigate, Navigate, Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, ArrowRight, LogIn, UserPlus, KeyRound, RefreshCw, AlertTriangle } from 'lucide-react';
 import MinimalBrandHeader from '../components/MinimalBrandHeader';
@@ -13,6 +13,8 @@ export default function Auth({ mode: initialMode = 'login' }) {
   const { t, i18n } = useTranslation();
   const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTarget = searchParams.get('redirect') || '/app';
   const { dark } = useTheme();
 
   const [lastAuthMethod] = useState(() => {
@@ -77,7 +79,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
   };
 
   if (getToken()) {
-    return <Navigate to="/app" replace />;
+    return <Navigate to={redirectTarget} replace />;
   }
 
   const handleGoogleSignIn = async (loginHint = null) => {
@@ -122,7 +124,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
           );
         } catch {}
 
-        navigate('/app', { replace: true });
+        navigate(redirectTarget, { replace: true });
       }
     } catch (err) {
       console.error('Google Sign-In error:', err);
@@ -208,7 +210,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
         localStorage.setItem('swatva_last_auth_method', 'email');
         localStorage.setItem('swatva_last_auth_email', emailTrimmed);
       } catch {}
-      navigate('/app', { replace: true });
+      navigate(redirectTarget, { replace: true });
     } catch (err) {
       setError(err?.message || 'Invalid or expired OTP code. Please check your email and try again.');
     } finally {
@@ -246,7 +248,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
         localStorage.setItem('swatva_last_auth_email', emailTrimmed);
       } catch {}
       playClick();
-      navigate('/app', { replace: true });
+      navigate(redirectTarget, { replace: true });
     } catch (err) {
       setError(err?.message || 'Could not sign you in. Please check your credentials.');
     } finally {
