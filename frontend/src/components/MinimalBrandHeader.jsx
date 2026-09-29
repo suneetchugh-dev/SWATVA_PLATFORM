@@ -51,15 +51,15 @@ export default function MinimalBrandHeader({
         <button
           type="button"
           onClick={handleBack}
-          className="pointer-events-auto flex items-center justify-center cursor-pointer touch-manipulation group my-0.5"
+          className="pointer-events-auto flex items-center justify-center cursor-pointer touch-manipulation group my-0.5 transition-transform duration-500 ease-out hover:scale-105 active:scale-95"
           title={resolvedBrandLabel}
           aria-label={resolvedBrandLabel}
         >
           <div className="relative h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center flex-shrink-0">
-            {/* Amber aura. Dark mode carries it at rest */}
+            {/* Amber aura. Visible in both light & dark themes */}
             <span
               aria-hidden="true"
-              className="absolute inset-0 -m-1.5 rounded-full bg-amber-500/25 blur-lg scale-100 hidden dark:block pointer-events-none transition-all duration-300 ease-out group-hover:bg-amber-500/50 group-hover:blur-xl group-hover:scale-110"
+              className="absolute inset-0 -m-2 rounded-full bg-amber-500/22 dark:bg-amber-500/30 blur-lg scale-100 pointer-events-none transition-all duration-500 ease-out group-hover:bg-amber-500/45 dark:group-hover:bg-amber-500/60 group-hover:blur-xl group-hover:scale-115"
             />
             <LoadingLogo
               key={logoKey}
