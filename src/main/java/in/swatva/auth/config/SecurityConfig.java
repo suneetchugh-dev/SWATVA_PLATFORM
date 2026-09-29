@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/v1/health", "/api/schemes/**", "/api/auth/**", "/api/ai/scheme-query", "/api/transparency/**", "/api/benefits/life-event", "/api/chat", "/error", "/actuator/health").permitAll()
+                        .requestMatchers("/api/v1/health", "/api/schemes/**", "/api/auth/**", "/api/ai/scheme-query", "/api/transparency/**", "/api/benefits/life-event", "/api/chat/**", "/error", "/actuator/health").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptions -> exceptions

@@ -185,6 +185,47 @@ export default function AICopilotFAB() {
     setActiveSpeakingIndex(null)
   }, [i18n.resolvedLanguage])
 
+  // Sync sessions from Cloud Database (PostgreSQL) on mount / authentication
+  useEffect(() => {
+    let active = true
+    async function syncCloudSessions() {
+      try {
+        const cloudSessions = await api.chat.getSessions()
+        if (active && Array.isArray(cloudSessions) && cloudSessions.length > 0) {
+          setSessions((prevLocal) => {
+            const localMap = new Map(prevLocal.map((s) => [s.backendSessionId || s.id, s]))
+            const merged = cloudSessions.map((cs) => {
+              const localMatch = localMap.get(cs.id)
+              return {
+                id: cs.id,
+                title: cs.title || (localMatch?.title || (isHindi ? 'कल्याण परामर्श' : 'Scheme Consultation')),
+                messages: localMatch?.messages || [],
+                messageCount: cs.messageCount || localMatch?.messages?.length || 0,
+                backendSessionId: cs.id,
+                activeSchemeId: cs.activeSchemeId,
+                activeSchemeName: cs.activeSchemeName,
+                createdAt: cs.createdAt ? new Date(cs.createdAt).getTime() : Date.now(),
+                updatedAt: cs.updatedAt ? new Date(cs.updatedAt).getTime() : Date.now(),
+                language: cs.language || 'en',
+              }
+            })
+            for (const local of prevLocal) {
+              if (!cloudSessions.some((cs) => cs.id === local.id || cs.id === local.backendSessionId)) {
+                merged.push(local)
+              }
+            }
+            saveStoredSessions(merged)
+            return merged
+          })
+        }
+      } catch (err) {
+        console.debug('Cloud sessions fetch skipped:', err?.message)
+      }
+    }
+    syncCloudSessions()
+    return () => { active = false }
+  }, [isHindi])
+
   // Storage Sync helper
   const updateSessionInStorage = useCallback((currentSessionId, updatedMessages, newBackendSessionId, ungrounded) => {
     if (!currentSessionId || updatedMessages.length === 0) return
@@ -304,14 +345,41 @@ export default function AICopilotFAB() {
   }
 
   // Select Session from History
-  const handleSelectSession = (session) => {
+  const handleSelectSession = async (session) => {
     playClick()
     stopSpeaking()
     setActiveSpeakingIndex(null)
     setActiveSessionId(session.id)
     saveStoredActiveSessionId(session.id)
     setSessionId(session.backendSessionId || session.id)
-    setMessages(session.messages || [])
+
+    // If messages are in local cache, render immediately
+    if (session.messages && session.messages.length > 0) {
+      setMessages(session.messages)
+    } else {
+      // Otherwise fetch full conversation from the cloud database
+      try {
+        const details = await api.chat.getSession(session.backendSessionId || session.id)
+        if (details && Array.isArray(details.messages)) {
+          const loadedMsgs = details.messages.map((m) => ({
+            role: m.role || 'user',
+            content: m.content || '',
+            grounded: m.grounded,
+            activeSchemeId: m.activeSchemeId,
+          }))
+          setMessages(loadedMsgs)
+          setSessions((prev) => {
+            const updated = prev.map((s) => (s.id === session.id ? { ...s, messages: loadedMsgs } : s))
+            saveStoredSessions(updated)
+            return updated
+          })
+        }
+      } catch (err) {
+        console.debug('Cloud session detail fetch fallback:', err?.message)
+        setMessages(session.messages || [])
+      }
+    }
+
     setSawUngrounded(Boolean(session.sawUngrounded))
     setError(null)
     setIsHistoryOpen(false)
@@ -324,8 +392,11 @@ export default function AICopilotFAB() {
   const handleDeleteSession = (e, targetSessionId) => {
     e.stopPropagation()
     playClick()
+    api.chat.deleteSession(targetSessionId).catch((err) => {
+      console.debug('Cloud session delete fallback:', err?.message)
+    })
     setSessions((prev) => {
-      const filtered = prev.filter((s) => s.id !== targetSessionId)
+      const filtered = prev.filter((s) => s.id !== targetSessionId && s.backendSessionId !== targetSessionId)
       saveStoredSessions(filtered)
       return filtered
     })
@@ -343,6 +414,9 @@ export default function AICopilotFAB() {
   const handleClearAllHistory = () => {
     playClick()
     if (window.confirm(t('assistant.confirmClear') || 'Are you sure you want to clear all chat history?')) {
+      api.chat.clearSessions().catch((err) => {
+        console.debug('Cloud sessions clear fallback:', err?.message)
+      })
       setSessions([])
       saveStoredSessions([])
       setActiveSessionId(null)

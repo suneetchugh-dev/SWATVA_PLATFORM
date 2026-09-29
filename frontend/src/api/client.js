@@ -272,6 +272,16 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ message, sessionId, language }),
       }),
+    getSessions: () => request('/api/chat/sessions'),
+    getSession: (sessionId) => request(`/api/chat/sessions/${sessionId}`),
+    deleteSession: (sessionId) =>
+      request(`/api/chat/sessions/${sessionId}`, {
+        method: 'DELETE',
+      }),
+    clearSessions: () =>
+      request('/api/chat/sessions', {
+        method: 'DELETE',
+      }),
   },
 
   transparency: {

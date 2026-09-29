@@ -1,9 +1,12 @@
 package in.swatva.ai.service;
 
+import in.swatva.ai.api.ChatMessageResponse;
 import in.swatva.ai.api.ChatRequest;
 import in.swatva.ai.api.ChatResponse;
 import in.swatva.ai.api.ChatResponse.ChatBenefitSummary;
 import in.swatva.ai.api.ChatResponse.ChatReadinessSummary;
+import in.swatva.ai.api.ChatSessionDetailsResponse;
+import in.swatva.ai.api.ChatSessionSummaryResponse;
 import in.swatva.ai.api.RetrievedChunkDto;
 import in.swatva.ai.model.ChatMessage;
 import in.swatva.ai.model.ChatMessage.MessageRole;
@@ -98,6 +101,11 @@ public class ChatService {
         session.setLanguage(language);
 
         String userQuery = request.message().trim();
+
+        if (session.getTitle() == null || session.getTitle().equals("Citizen Scheme Assistant") || session.getTitle().isBlank()) {
+            String cleanTitle = userQuery.length() > 60 ? userQuery.substring(0, 57) + "…" : userQuery;
+            session.setTitle(cleanTitle);
+        }
 
         // 3. Resolve active scheme and classify intent
         Scheme explicitScheme = detectExplicitScheme(userQuery);
@@ -797,6 +805,99 @@ public class ChatService {
 
         sb.append("\nTransparency Rule: Free to apply; paying money to middlemen is illegal.\n");
         return sb.toString();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChatSessionSummaryResponse> getUserSessions(String userEmail) {
+        if (userEmail == null || userEmail.isBlank()) {
+            return List.of();
+        }
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) {
+            return List.of();
+        }
+
+        List<ChatSession> sessions = sessionRepository.findByUserIdOrderByUpdatedAtDesc(user.getId());
+        return sessions.stream().map(s -> new ChatSessionSummaryResponse(
+                s.getId(),
+                s.getTitle() != null ? s.getTitle() : "Consultation",
+                s.getLanguage(),
+                s.getActiveSchemeId(),
+                s.getActiveSchemeName(),
+                s.getMessages() != null ? s.getMessages().size() : 0,
+                s.getCreatedAt(),
+                s.getUpdatedAt()
+        )).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ChatSessionDetailsResponse> getSessionDetails(UUID sessionId, String userEmail) {
+        if (sessionId == null || userEmail == null || userEmail.isBlank()) {
+            return Optional.empty();
+        }
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) {
+            return Optional.empty();
+        }
+
+        Optional<ChatSession> opt = sessionRepository.findByIdAndUserId(sessionId, user.getId());
+        if (opt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        ChatSession s = opt.get();
+        List<ChatMessageResponse> messages = s.getMessages().stream().map(m -> new ChatMessageResponse(
+                m.getId(),
+                m.getRole() != null ? m.getRole().name().toLowerCase() : "user",
+                m.getContent(),
+                m.getLanguage(),
+                m.getActiveSchemeId(),
+                m.isGrounded(),
+                m.getCreatedAt()
+        )).toList();
+
+        return Optional.of(new ChatSessionDetailsResponse(
+                s.getId(),
+                s.getTitle() != null ? s.getTitle() : "Consultation",
+                s.getLanguage(),
+                s.getActiveSchemeId(),
+                s.getActiveSchemeName(),
+                messages,
+                s.getCreatedAt(),
+                s.getUpdatedAt()
+        ));
+    }
+
+    @Transactional
+    public boolean deleteSession(UUID sessionId, String userEmail) {
+        if (sessionId == null || userEmail == null || userEmail.isBlank()) {
+            return false;
+        }
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) {
+            return false;
+        }
+
+        Optional<ChatSession> opt = sessionRepository.findByIdAndUserId(sessionId, user.getId());
+        if (opt.isPresent()) {
+            sessionRepository.delete(opt.get());
+            return true;
+        }
+        return false;
+    }
+
+    @Transactional
+    public void deleteAllSessions(String userEmail) {
+        if (userEmail == null || userEmail.isBlank()) {
+            return;
+        }
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) {
+            return;
+        }
+
+        List<ChatSession> sessions = sessionRepository.findByUserIdOrderByUpdatedAtDesc(user.getId());
+        sessionRepository.deleteAll(sessions);
     }
 
     private record SchemeEvaluationPair(Scheme scheme, EligibilityResult result) {}
