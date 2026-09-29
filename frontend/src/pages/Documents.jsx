@@ -1,9 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, FileStack, Info, Lock, Plus, ShieldCheck, Trash2, Upload } from 'lucide-react'
-import { api } from '../api/client'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Cpu,
+  FileStack,
+  Info,
+  KeyRound,
+  Lock,
+  Plus,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+  Upload,
+} from 'lucide-react'
+import { api, getStoredUser } from '../api/client'
 import DocumentReviewModal from '../components/DocumentReviewModal'
 import ClearDocumentsModal from '../components/ClearDocumentsModal'
+import DigiLockerModal from '../components/DigiLockerModal'
 import {
   Badge,
   Banner,
@@ -26,16 +40,21 @@ import { PageTourButton } from '../components/GuidedTour'
  * application.
  */
 const DOC_TYPES = [
-  'AADHAAR', 'INCOME_CERTIFICATE', 'CASTE_CERTIFICATE', 'RATION_CARD',
-  'RESIDENCE_PROOF', 'BANK_ACCOUNT', 'ELECTRICITY_CONNECTION',
-  'EDUCATION_CERTIFICATE', 'OFFICIAL_ID', 'OTHER',
+  'AADHAAR',
+  'INCOME_CERTIFICATE',
+  'CASTE_CERTIFICATE',
+  'RATION_CARD',
+  'RESIDENCE_PROOF',
+  'BANK_ACCOUNT',
+  'ELECTRICITY_CONNECTION',
+  'EDUCATION_CERTIFICATE',
+  'OFFICIAL_ID',
+  'OTHER',
 ]
 
 /**
  * Single-instance document types: Only one active document of these types
  * is maintained per citizen. Uploading a new one replaces the existing record.
- * Multi-instance types (e.g. Education Certificates, Electricity Bills, Income/Caste renewals)
- * allow multiple active entries.
  */
 const SINGLE_INSTANCE_DOC_TYPES = new Set([
   'AADHAAR',
@@ -46,24 +65,18 @@ const SINGLE_INSTANCE_DOC_TYPES = new Set([
 
 /**
  * Per-document-type field visibility rules.
- * showIssue  — whether to show the "Issue date" field
- * showExpiry — whether to show the "Expiry date" field
- * showAuthority — whether to show "Issuing authority"
- *
- * Aadhaar never expires under UIDAI rules (as of 2023); Ration Cards and Bank
- * passbooks do not have a formal expiry; Electricity bills are point-in-time.
  */
 const DOC_FIELD_CONFIG = {
-  AADHAAR:               { showIssue: true,  showExpiry: false, showAuthority: true  },
-  INCOME_CERTIFICATE:    { showIssue: true,  showExpiry: true,  showAuthority: true  },
-  CASTE_CERTIFICATE:     { showIssue: true,  showExpiry: true,  showAuthority: true  },
-  RATION_CARD:           { showIssue: true,  showExpiry: false, showAuthority: true  },
-  RESIDENCE_PROOF:       { showIssue: true,  showExpiry: true,  showAuthority: true  },
-  BANK_ACCOUNT:          { showIssue: false, showExpiry: false, showAuthority: true  },
-  ELECTRICITY_CONNECTION:{ showIssue: true,  showExpiry: false, showAuthority: true  },
-  EDUCATION_CERTIFICATE: { showIssue: true,  showExpiry: false, showAuthority: true  },
-  OFFICIAL_ID:           { showIssue: true,  showExpiry: true,  showAuthority: true  },
-  OTHER:                 { showIssue: true,  showExpiry: true,  showAuthority: true  },
+  AADHAAR:                { showIssue: true,  showExpiry: false, showAuthority: true  },
+  INCOME_CERTIFICATE:     { showIssue: true,  showExpiry: true,  showAuthority: true  },
+  CASTE_CERTIFICATE:      { showIssue: true,  showExpiry: true,  showAuthority: true  },
+  RATION_CARD:            { showIssue: true,  showExpiry: false, showAuthority: true  },
+  RESIDENCE_PROOF:        { showIssue: true,  showExpiry: true,  showAuthority: true  },
+  BANK_ACCOUNT:           { showIssue: false, showExpiry: false, showAuthority: true  },
+  ELECTRICITY_CONNECTION: { showIssue: true,  showExpiry: false, showAuthority: true  },
+  EDUCATION_CERTIFICATE:  { showIssue: true,  showExpiry: false, showAuthority: true  },
+  OFFICIAL_ID:            { showIssue: true,  showExpiry: true,  showAuthority: true  },
+  OTHER:                  { showIssue: true,  showExpiry: true,  showAuthority: true  },
 }
 
 const ALLOWED_MIME_TYPES = new Set([
@@ -88,16 +101,18 @@ function isValidDocumentFile(file) {
 }
 
 const STATUS_STYLES = {
-  ACTIVE: 'text-neutral-900 dark:text-white border-neutral-200 dark:border-white/15 bg-neutral-100 dark:bg-white/5',
-  EXPIRED: 'text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.02]',
-  NEEDS_REVIEW: 'text-neutral-900 dark:text-white border-neutral-300 dark:border-white/20 bg-neutral-100/80 dark:bg-white/5',
-  ARCHIVED: 'text-neutral-400 dark:text-neutral-500 border-neutral-200 dark:border-white/10 bg-transparent',
+  ACTIVE: 'text-amber-700 dark:text-amber-400 border-amber-500/30 bg-amber-500/10',
+  EXPIRED: 'text-neutral-600 dark:text-neutral-300 border-neutral-300 dark:border-white/20 bg-neutral-500/10',
+  NEEDS_REVIEW: 'text-amber-700 dark:text-amber-400 border-dashed border-amber-500/40 bg-transparent',
+  ARCHIVED: 'text-neutral-500 dark:text-neutral-400 border-neutral-300 dark:border-white/15 bg-transparent',
 }
 
 const fmtDate = (d) => {
   if (!d) return null
   const dt = new Date(d)
-  return Number.isNaN(dt.getTime()) ? null : dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+  return Number.isNaN(dt.getTime())
+    ? null
+    : dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 const isExpired = (d) => {
@@ -106,19 +121,10 @@ const isExpired = (d) => {
   return !Number.isNaN(dt.getTime()) && dt.getTime() < Date.now()
 }
 
-/** Convert a date string like "DD/MM/YYYY" or ISO to YYYY-MM-DD for input[type=date]. */
-function toInputDate(raw) {
-  if (!raw) return ''
-  // Already ISO
-  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10)
-  // DD/MM/YYYY
-  const m = raw.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})/)
-  if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`
-  return ''
-}
-
 export default function Documents() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const isHindi = i18n.language === 'hi'
+
   const [docs, setDocs] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -128,14 +134,27 @@ export default function Documents() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [isClearModalOpen, setIsClearModalOpen] = useState(false)
   const [clearingAll, setClearingAll] = useState(false)
+  const [isDigiLockerOpen, setIsDigiLockerOpen] = useState(false)
 
   const [docType, setDocType] = useState('AADHAAR')
   const [filename, setFilename] = useState('')
   const [issueDate, setIssueDate] = useState('')
   const [expiryDate, setExpiryDate] = useState('')
   const [authority, setAuthority] = useState('')
+  const [docPassword, setDocPassword] = useState('')
+  const [userProfile, setUserProfile] = useState(null)
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef(null)
+
+  // Fetch user profile to calculate smart auto-derivation candidate passwords
+  useEffect(() => {
+    api.user
+      .getMe()
+      .then((res) => {
+        if (res?.profile) setUserProfile(res.profile)
+      })
+      .catch(() => {})
+  }, [])
 
   // When doc type changes, clear dates/authority that don't apply
   const handleDocTypeChange = (newType) => {
@@ -162,8 +181,28 @@ export default function Documents() {
 
   useEffect(load, [])
 
-  /** When a file is chosen, infer the doc type from the filename and pre-fill the display name.
-   *  Actual upload happens only when the user clicks "Save document" so they can review first. */
+  /** Derive candidate e-Aadhaar password from user profile if available */
+  const getCandidatePassword = () => {
+    if (!userProfile) return ''
+    const name = userProfile.fullName || userProfile.name || ''
+    const dob = userProfile.dateOfBirth || userProfile.dob || ''
+    const cleanName = name.replace(/[^A-Za-z]/g, '').slice(0, 4).toUpperCase()
+    const birthYear = dob.match(/\d{4}/)?.[0] || ''
+    if (cleanName.length === 4 && birthYear.length === 4) {
+      return `${cleanName}${birthYear}`
+    }
+    return ''
+  }
+
+  const handleAutoFillPassword = () => {
+    playClick()
+    const candidate = getCandidatePassword()
+    if (candidate) {
+      setDocPassword(candidate)
+    }
+  }
+
+  /** When a file is chosen, infer the doc type from the filename and pre-fill the display name. */
   const handleFileChange = () => {
     setError(null)
     const file = fileRef.current?.files?.[0]
@@ -174,7 +213,10 @@ export default function Documents() {
 
     // MIME type & format validation guard
     if (!isValidDocumentFile(file)) {
-      setError(t('documents.invalidFileType') || 'Invalid file format. Only PDF and image files (JPG, PNG, WebP) are supported.')
+      setError(
+        t('documents.invalidFileType') ||
+          'Invalid file format. Only PDF and image files (JPG, PNG, WebP) are supported.'
+      )
       if (fileRef.current) fileRef.current.value = ''
       setSelectedFile(null)
       return
@@ -203,7 +245,8 @@ export default function Documents() {
     else if (lc.includes('ration')) handleDocTypeChange('RATION_CARD')
     else if (lc.includes('bank') || lc.includes('passbook')) handleDocTypeChange('BANK_ACCOUNT')
     else if (lc.includes('electric')) handleDocTypeChange('ELECTRICITY_CONNECTION')
-    else if (lc.includes('edu') || lc.includes('marksheet') || lc.includes('degree')) handleDocTypeChange('EDUCATION_CERTIFICATE')
+    else if (lc.includes('edu') || lc.includes('marksheet') || lc.includes('degree'))
+      handleDocTypeChange('EDUCATION_CERTIFICATE')
   }
 
   const register = async (event) => {
@@ -211,12 +254,18 @@ export default function Documents() {
     setError(null)
     const file = fileRef.current?.files?.[0] || selectedFile
     if (!file) {
-      setError(t('documents.fileRequired') || 'A document file is required. Please choose a PDF or image file before saving.')
+      setError(
+        t('documents.fileRequired') ||
+          'A document file is required. Please choose a PDF or image file before saving.'
+      )
       return
     }
 
     if (!isValidDocumentFile(file)) {
-      setError(t('documents.invalidFileType') || 'Invalid file format. Only PDF and image files (JPG, PNG, WebP) are supported.')
+      setError(
+        t('documents.invalidFileType') ||
+          'Invalid file format. Only PDF and image files (JPG, PNG, WebP) are supported.'
+      )
       return
     }
 
@@ -239,6 +288,8 @@ export default function Documents() {
       if (issueDate) fd.append('issueDate', issueDate)
       if (expiryDate) fd.append('expiryDate', expiryDate)
       if (authority.trim()) fd.append('issuingAuthority', authority.trim())
+      if (docPassword.trim()) fd.append('password', docPassword.trim())
+
       await api.documents.upload(fd)
 
       // If replacing an existing single-instance document, clean up the superseded document
@@ -255,6 +306,7 @@ export default function Documents() {
       setIssueDate('')
       setExpiryDate('')
       setAuthority('')
+      setDocPassword('')
       setSelectedFile(null)
       if (fileRef.current) fileRef.current.value = ''
       load()
@@ -304,6 +356,7 @@ export default function Documents() {
   }
 
   const docCount = docs?.length ?? 0
+  const candidatePwd = getCandidatePassword()
 
   return (
     <div className="w-full max-w-full overflow-hidden">
@@ -322,9 +375,16 @@ export default function Documents() {
                 aria-label={t('documents.removeAll') || 'Remove all documents'}
                 className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-300/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 active:scale-[0.98] text-xs font-medium shadow-2xs transition-all duration-200 cursor-pointer"
               >
-                <Trash2 size={13} className="stroke-[2.2] shrink-0 text-neutral-400 dark:text-neutral-500 group-hover:text-red-600 dark:group-hover:text-red-400 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-200" />
-                <span className="hidden sm:inline">{t('documents.removeAll') || 'Remove all documents'}</span>
-                <span className="sm:hidden">{t('documents.removeAll') ? t('documents.removeAll').split(' ')[0] : 'Remove'}</span>
+                <Trash2
+                  size={13}
+                  className="stroke-[2.2] shrink-0 text-neutral-400 dark:text-neutral-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors"
+                />
+                <span className="hidden sm:inline">
+                  {t('documents.removeAll') || 'Remove all documents'}
+                </span>
+                <span className="sm:hidden">
+                  {t('documents.removeAll') ? t('documents.removeAll').split(' ')[0] : 'Remove'}
+                </span>
               </button>
             )}
             <PageTourButton pageKey="documents" />
@@ -345,7 +405,10 @@ export default function Documents() {
             />
             <button
               type="button"
-              onClick={() => { playClick(); setActiveTab('locker'); }}
+              onClick={() => {
+                playClick()
+                setActiveTab('locker')
+              }}
               aria-pressed={activeTab === 'locker'}
               className={cx(
                 'relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer select-none',
@@ -359,7 +422,10 @@ export default function Documents() {
             </button>
             <button
               type="button"
-              onClick={() => { playClick(); setActiveTab('add'); }}
+              onClick={() => {
+                playClick()
+                setActiveTab('add')
+              }}
               aria-pressed={activeTab === 'add'}
               className={cx(
                 'relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer select-none',
@@ -377,7 +443,9 @@ export default function Documents() {
 
       {error ? (
         <div className="mb-6">
-          <Banner tone="error" title={t('common.loadingError')}>{error}</Banner>
+          <Banner tone="error" title={t('common.loadingError')}>
+            {error}
+          </Banner>
         </div>
       ) : null}
 
@@ -393,10 +461,12 @@ export default function Documents() {
                 <Button
                   type="button"
                   variant="primary"
-                  className="group"
-                  onClick={() => { playClick(); setActiveTab('add'); }}
+                  onClick={() => {
+                    playClick()
+                    setActiveTab('add')
+                  }}
                 >
-                  <Plus size={14} className="stroke-[2.5] group-hover:rotate-90 transition-transform duration-300" />
+                  <Plus size={14} className="stroke-[2.5]" />
                   <span>{t('documents.tabAdd') || 'Add Document'}</span>
                 </Button>
               }
@@ -404,232 +474,420 @@ export default function Documents() {
           ) : (
             <div className="space-y-3">
               <div data-tour="documents-grid" className="grid gap-3 sm:grid-cols-2">
-              {docs.map((d) => {
-                const expired = isExpired(d.expiryDate)
-                const style = STATUS_STYLES[d.status] ?? STATUS_STYLES.ACTIVE
-                return (
-                  <Card key={d.id} className="p-4 flex flex-col min-w-0 overflow-hidden">
-                    <div className="flex items-start justify-between gap-3 min-w-0">
-                      <div className="min-w-0 flex-1">
-                        {d.status === 'NEEDS_REVIEW' ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              playClick()
-                              setSelectedReviewDoc(d)
-                            }}
-                            className="mono-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-neutral-200/90 dark:border-white/15 bg-neutral-100/90 dark:bg-white/[0.05] text-neutral-900 dark:text-neutral-100 hover:bg-neutral-200/70 dark:hover:bg-white/10 hover:border-neutral-300 dark:hover:border-white/25 transition-all cursor-pointer group text-left shadow-2xs"
-                            title={t('documents.clickToReview')}
-                            aria-label={`${t('status.NEEDS_REVIEW')} - ${t('documents.clickToReview')}`}
-                          >
-                            <AlertTriangle size={11} className="shrink-0 text-amber-500 group-hover:scale-110 transition-transform" />
-                            <span className="font-semibold underline decoration-dotted decoration-neutral-400 dark:decoration-white/30 underline-offset-2">
-                              {t(`status.${d.status}`)}
-                            </span>
-                            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-normal group-hover:text-neutral-700 dark:group-hover:text-neutral-200">
-                              • {t('documents.clickToReview')}
-                            </span>
-                          </button>
-                        ) : (
-                          <span className={cx('mono-badge inline-block rounded px-2 py-1 border', style)}>
-                            {t(`status.${d.status ?? 'ACTIVE'}`)}
-                          </span>
-                        )}
-                        <p className="mt-2 text-sm font-semibold tracking-tight text-balance truncate">
-                          {d.documentTypeName ?? d.documentType}
-                        </p>
-                        {d.filename ? (
-                          <p className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400 truncate">{d.filename}</p>
-                        ) : null}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => remove(d.id)}
-                        disabled={busyId === d.id}
-                        aria-label={`${t('common.remove')}: ${d.documentTypeName ?? d.documentType}`}
-                        className="group shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors cursor-pointer disabled:opacity-40 active:scale-95"
-                      >
-                        {busyId === d.id ? <Spinner className="h-3.5 w-3.5" /> : <Trash2 size={14} className="group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-200" />}
-                      </button>
-                    </div>
+                {docs.map((d) => {
+                  const expired = isExpired(d.expiryDate)
+                  const style = STATUS_STYLES[d.status] ?? STATUS_STYLES.ACTIVE
+                  const isDigiLocker = d.issuingAuthority?.toLowerCase().includes('digilocker') || d.storageKey?.includes('digilocker')
 
-                    <dl className="mt-3 pt-3 border-t border-neutral-200 dark:border-white/10 grid grid-cols-2 gap-y-1.5 text-[11px]">
-                      {d.issueDate ? (
-                        <div className="min-w-0">
-                          <dt className="text-neutral-500 dark:text-neutral-400 truncate">{t('documents.issued')}</dt>
-                          <dd className="font-semibold truncate">{fmtDate(d.issueDate)}</dd>
+                  return (
+                    <Card key={d.id} className="p-4 flex flex-col min-w-0 overflow-hidden">
+                      <div className="flex items-start justify-between gap-3 min-w-0">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {d.status === 'NEEDS_REVIEW' ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  playClick()
+                                  setSelectedReviewDoc(d)
+                                }}
+                                className="mono-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-dashed border-amber-500/70 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 hover:border-amber-500 transition-all cursor-pointer group text-left"
+                                title={t('documents.clickToReview')}
+                                aria-label={`${t('status.NEEDS_REVIEW')} - ${t('documents.clickToReview')}`}
+                              >
+                                <AlertTriangle
+                                  size={11}
+                                  className="shrink-0 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform"
+                                />
+                                <span className="font-semibold underline decoration-dotted decoration-amber-500/60 underline-offset-2">
+                                  {t(`status.${d.status}`)}
+                                </span>
+                                <span className="text-[10px] opacity-80 font-normal">
+                                  • {t('documents.clickToReview')}
+                                </span>
+                              </button>
+                            ) : (
+                              <span className={cx('mono-badge inline-block rounded px-2 py-1 border', style)}>
+                                {t(`status.${d.status ?? 'ACTIVE'}`)}
+                              </span>
+                            )}
+
+                            {isDigiLocker && (
+                              <Badge tone="emerald" className="text-[10px] inline-flex items-center gap-1">
+                                <ShieldCheck size={10} />
+                                <span>DigiLocker</span>
+                              </Badge>
+                            )}
+                          </div>
+
+                          <p className="mt-2 text-sm font-semibold tracking-tight text-balance truncate">
+                            {d.documentTypeName ?? d.documentType}
+                          </p>
+                          {d.filename ? (
+                            <p className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+                              {d.filename}
+                            </p>
+                          ) : null}
                         </div>
-                      ) : null}
-                      {d.expiryDate ? (
-                        <div className="min-w-0">
-                          <dt className="text-neutral-500 dark:text-neutral-400 truncate">{expired ? t('documents.expired') : t('documents.expires')}</dt>
-                          <dd className={cx('font-semibold truncate', expired && 'text-amber-700 dark:text-amber-400')}>
-                            {fmtDate(d.expiryDate)}
-                          </dd>
-                        </div>
-                      ) : null}
-                      {d.issuingAuthority ? (
-                        <div className="col-span-2 min-w-0">
-                          <dt className="text-neutral-500 dark:text-neutral-400 truncate">{t('documents.issuedBy')}</dt>
-                          <dd className="font-semibold truncate">{d.issuingAuthority}</dd>
-                        </div>
-                      ) : null}
-                    </dl>
-                  </Card>
-                )
-              })}
+                        <button
+                          type="button"
+                          onClick={() => remove(d.id)}
+                          disabled={busyId === d.id}
+                          aria-label={`${t('common.remove')}: ${d.documentTypeName ?? d.documentType}`}
+                          className="shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors cursor-pointer disabled:opacity-40"
+                        >
+                          {busyId === d.id ? <Spinner className="h-3.5 w-3.5" /> : <Trash2 size={14} />}
+                        </button>
+                      </div>
+
+                      <dl className="mt-3 pt-3 border-t border-neutral-200 dark:border-white/10 grid grid-cols-2 gap-y-1.5 text-[11px]">
+                        {d.issueDate ? (
+                          <div className="min-w-0">
+                            <dt className="text-neutral-500 dark:text-neutral-400 truncate">{t('documents.issued')}</dt>
+                            <dd className="font-semibold truncate">{fmtDate(d.issueDate)}</dd>
+                          </div>
+                        ) : null}
+                        {d.expiryDate ? (
+                          <div className="min-w-0">
+                            <dt className="text-neutral-500 dark:text-neutral-400 truncate">
+                              {expired ? t('documents.expired') : t('documents.expires')}
+                            </dt>
+                            <dd className={cx('font-semibold truncate', expired && 'text-amber-700 dark:text-amber-400')}>
+                              {fmtDate(d.expiryDate)}
+                            </dd>
+                          </div>
+                        ) : null}
+                        {d.issuingAuthority ? (
+                          <div className="col-span-2 min-w-0">
+                            <dt className="text-neutral-500 dark:text-neutral-400 truncate">{t('documents.issuedBy')}</dt>
+                            <dd className="font-semibold truncate">{d.issuingAuthority}</dd>
+                          </div>
+                        ) : null}
+                      </dl>
+                    </Card>
+                  )
+                })}
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* View 2: Add Document Tab */}
+      {/* View 2: Add Document Tab (Dual Hero Choices + Form) */}
       {activeTab === 'add' && (
-        <Card className="p-5 sm:p-6 w-full max-w-full overflow-hidden">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div>
-              <h2 className="text-sm font-bold tracking-tight">{t('documents.addTitle')}</h2>
-              <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-300">
-                {t('documents.addIntro')}
-              </p>
-            </div>
-            {docCount > 0 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => { playClick(); setActiveTab('locker'); }}
-              >
-                Back to Locker
-              </Button>
-            )}
-          </div>
-
-          <form onSubmit={register} className="mt-5 grid gap-4 sm:grid-cols-2 min-w-0">
-            {/* Single-instance replacement notice */}
-            {existingSingleDoc && (
-              <div className="sm:col-span-2 p-3 sm:p-3.5 rounded-xl bg-neutral-100/80 dark:bg-white/[0.04] border border-neutral-200/90 dark:border-white/10 text-xs flex items-start sm:items-center justify-between gap-3 shadow-2xs backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="flex items-start sm:items-center gap-2.5 min-w-0">
-                  <Info size={16} className="shrink-0 text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-0 stroke-[2.2]" />
-                  <div className="min-w-0">
-                    <p className="font-semibold text-neutral-900 dark:text-neutral-100 leading-tight">
-                      {t('documents.replaceNotice', {
-                        type: t(`documents.types.${docType}`),
-                        existing: existingSingleDoc.filename || t(`documents.types.${docType}`),
-                      })}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400 leading-normal">
-                      {t('documents.singleInstanceHint')}
-                    </p>
+        <div className="space-y-6">
+          {/* Dual Action Gateway Cards */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Choice 1: DigiLocker Verification (Recommended) */}
+            <div className="relative flex flex-col justify-between rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-50/70 via-white to-blue-50/20 dark:from-blue-950/30 dark:via-neutral-900/60 dark:to-blue-950/10 p-5 shadow-xs transition-all">
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Badge tone="accent" className="text-[10px] font-bold tracking-wide uppercase">
+                      {isHindi ? 'अनुशंसित' : 'Recommended'}
+                    </Badge>
+                    <Badge tone="neutral" className="text-[10px] font-semibold">
+                      {isHindi ? 'सैंडबॉक्स डेमो' : 'Sandbox Demo'}
+                    </Badge>
                   </div>
                 </div>
-                <span className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase border border-neutral-200/90 dark:border-white/10 bg-white/90 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 select-none shadow-2xs">
-                  {t('documents.willReplace')}
+
+                <h3 className="mt-3 text-sm font-bold text-neutral-900 dark:text-white">
+                  {isHindi ? 'डिजीलॉकर से आयात करें' : 'Fetch from DigiLocker'}
+                </h3>
+                <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                  {isHindi
+                    ? 'यूआईडीएआई और राज्य बोर्डों से सीधे सत्यापित डिजिटल क्रेडेंशियल प्राप्त करें। शून्य पासवर्ड रुकावट और शून्य ओसीआर त्रुटि।'
+                    : 'Instant digital credential import directly from UIDAI & State Boards. Zero password hurdles and zero OCR errors.'}
+                </p>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-blue-500/15 flex items-center justify-between gap-2">
+                <span className="text-[11px] font-medium text-blue-700 dark:text-blue-300">
+                  {isHindi ? 'यूआईडीएआई • सीबीएसई • राजस्व' : 'UIDAI • CBSE • Revenue'}
+                </span>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    playClick()
+                    setIsDigiLockerOpen(true)
+                  }}
+                  className="shrink-0"
+                >
+                  <ShieldCheck size={14} />
+                  {isHindi ? 'डिजीलॉकर कनेक्ट करें' : 'Connect DigiLocker'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Choice 2: Manual File Upload */}
+            <div className="relative flex flex-col justify-between rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-900/60 p-5 shadow-xs">
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    <Upload size={18} />
+                  </div>
+                  <Badge tone="neutral" className="text-[10px] font-semibold">
+                    {isHindi ? 'वैकल्पिक विधि' : 'Alternative Method'}
+                  </Badge>
+                </div>
+
+                <h3 className="mt-3 text-sm font-bold text-neutral-900 dark:text-white">
+                  {isHindi ? 'मैन्युअल फ़ाइल अपलोड' : 'Upload Document Manually'}
+                </h3>
+                <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                  {isHindi
+                    ? 'पीडीएफ, जेपीजी या पीएनजी फ़ाइल अपलोड करें। पासवर्ड से सुरक्षित ई-आधार फ़ाइलों के लिए स्वतः अनलॉक का समर्थन करता है।'
+                    : 'Upload PDF, JPG, or PNG files. Includes built-in password decryption support for locked e-Aadhaar files.'}
+                </p>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-neutral-200 dark:border-white/10 flex items-center justify-between gap-2">
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {isHindi ? 'पीडीएफ / चित्र (अधिकतम 10MB)' : 'PDF / Image (Max 10MB)'}
+                </span>
+                <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                  {isHindi ? 'नीचे फॉर्म भरें' : 'Use form below'}
                 </span>
               </div>
-            )}
+            </div>
+          </div>
 
-            {/* Document type — changing this updates placeholder + visible fields */}
-            <Field label={t('documents.type')} htmlFor="docType" required>
-              <Select id="docType" value={docType} onChange={(e) => handleDocTypeChange(e.target.value)}>
-                {DOC_TYPES.map((v) => {
-                  const isSingle = SINGLE_INSTANCE_DOC_TYPES.has(v)
-                  const hasExisting = isSingle && docs?.some((d) => d.documentType === v)
-                  return (
-                    <option key={v} value={v}>
-                      {t(`documents.types.${v}`)}
-                      {hasExisting ? ` — (${t('documents.willReplace') || 'Replaces existing'})` : ''}
-                    </option>
-                  )
-                })}
-              </Select>
-            </Field>
+          {/* Form Card */}
+          <Card className="p-6">
+            <h2 className="text-base font-semibold tracking-tight">{t('documents.addTitle')}</h2>
+            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400 mb-6">{t('documents.addIntro')}</p>
 
-            {/* File — infers type+name from filename on selection */}
-            <Field label={t('documents.file')} htmlFor="docFile" hint={t('documents.fileHint')} required>
-              <input
-                id="docFile"
-                ref={fileRef}
-                type="file"
-                required
-                accept="application/pdf,image/jpeg,image/png,image/webp"
-                onChange={handleFileChange}
-                className="w-full text-xs text-neutral-600 dark:text-neutral-300 file:mr-3 file:rounded-full file:border-0 file:bg-neutral-100 dark:file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-800 dark:file:text-neutral-100 cursor-pointer"
-              />
-            </Field>
+            <form onSubmit={register} className="grid gap-4 sm:grid-cols-2">
+              {/* Single-Instance Document Replacement Warning */}
+              {isSingleInstance && existingSingleDoc && (
+                <div className="sm:col-span-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 flex items-start justify-between gap-3 text-xs text-amber-900 dark:text-amber-200">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <Info size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold leading-tight">
+                        {t('documents.replaceNotice', {
+                          type: t(`documents.types.${docType}`),
+                          existing: existingSingleDoc.filename || t(`documents.types.${docType}`),
+                        })}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-amber-700/90 dark:text-amber-300/80 leading-normal">
+                        {t('documents.singleInstanceHint')}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge tone="amber" className="shrink-0 text-[10px] uppercase font-bold tracking-wide">
+                    {t('documents.willReplace')}
+                  </Badge>
+                </div>
+              )}
 
-            {/* Display name — placeholder reflects the selected document type */}
-            <Field label={t('documents.displayName')} htmlFor="filename" hint={t('common.optional')}>
-              <Input
-                id="filename"
-                value={filename}
-                onChange={(e) => setFilename(e.target.value)}
-                placeholder={t(`documents.types.${docType}`)}
-              />
-            </Field>
+              {/* Document type */}
+              <Field label={t('documents.type')} htmlFor="docType" required>
+                <Select id="docType" value={docType} onChange={(e) => handleDocTypeChange(e.target.value)}>
+                  {DOC_TYPES.map((v) => {
+                    const isSingle = SINGLE_INSTANCE_DOC_TYPES.has(v)
+                    const hasExisting = isSingle && docs?.some((d) => d.documentType === v)
+                    return (
+                      <option key={v} value={v}>
+                        {t(`documents.types.${v}`)}
+                        {hasExisting ? ` — (${t('documents.willReplace') || 'Replaces existing'})` : ''}
+                      </option>
+                    )
+                  })}
+                </Select>
+              </Field>
 
-            {/* Issuing authority */}
-            {fieldCfg.showAuthority && (
-              <Field label={t('documents.authority')} htmlFor="authority" hint={t('common.optional')}>
-                <Input
-                  id="authority"
-                  value={authority}
-                  onChange={(e) => setAuthority(e.target.value)}
-                  placeholder={
-                    docType === 'AADHAAR' ? 'UIDAI'
-                    : docType === 'INCOME_CERTIFICATE' || docType === 'CASTE_CERTIFICATE' ? 'District Magistrate'
-                    : docType === 'EDUCATION_CERTIFICATE' ? 'Board / University'
-                    : 'Issuing authority'
-                  }
+              {/* File selection */}
+              <Field label={t('documents.file')} htmlFor="docFile" hint={t('documents.fileHint')} required>
+                <input
+                  id="docFile"
+                  ref={fileRef}
+                  type="file"
+                  required
+                  accept="application/pdf,image/jpeg,image/png,image/webp"
+                  onChange={handleFileChange}
+                  className="w-full text-xs text-neutral-600 dark:text-neutral-300 file:mr-3 file:rounded-full file:border-0 file:bg-neutral-100 dark:file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-800 dark:file:text-neutral-100 cursor-pointer"
                 />
               </Field>
-            )}
 
-            {/* Issue date — hidden for Bank Account (no formal issue date) */}
-            {fieldCfg.showIssue && (
-              <Field label={t('documents.issueDate')} htmlFor="issueDate" hint={t('common.optional')}>
-                <Input id="issueDate" type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+              {/* Display name */}
+              <Field label={t('documents.displayName')} htmlFor="filename" hint={t('common.optional')}>
+                <Input
+                  id="filename"
+                  value={filename}
+                  onChange={(e) => setFilename(e.target.value)}
+                  placeholder={t(`documents.types.${docType}`)}
+                />
               </Field>
-            )}
 
-            {/* Expiry date — hidden for Aadhaar, Ration Card, Bank Account, Electricity, Education */}
-            {fieldCfg.showExpiry && (
-              <Field label={t('documents.expiryDate')} htmlFor="expiryDate" hint={t('documents.expiryHint')}>
-                <Input id="expiryDate" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
-              </Field>
-            )}
-
-            <div className="sm:col-span-2 flex items-center gap-3 pt-2">
-              <Button type="submit" variant="accent" loading={uploading} disabled={uploading || !selectedFile} className="group">
-                <Upload size={15} className="group-hover:-translate-y-0.5 transition-transform duration-200 shrink-0" />
-                {t('documents.save')}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => { playClick(); setActiveTab('locker'); }}
+              {/* Document Password field for e-Aadhaar or encrypted PDFs */}
+              <Field
+                label={isHindi ? 'दस्तावेज़ पासवर्ड (यदि संरक्षित है)' : 'Document Password (if locked)'}
+                htmlFor="docPassword"
+                hint={isHindi ? 'ई-आधार या बैंक विवरण के लिए' : 'For e-Aadhaar or locked PDFs'}
               >
-                {t('common.cancel') || 'Cancel'}
-              </Button>
-            </div>
-          </form>
-        </Card>
+                <div className="space-y-1.5">
+                  <Input
+                    id="docPassword"
+                    type="password"
+                    value={docPassword}
+                    onChange={(e) => setDocPassword(e.target.value)}
+                    placeholder={
+                      docType === 'AADHAAR'
+                        ? isHindi
+                          ? 'उदा. SUNE2002'
+                          : 'e.g. SUNE2002'
+                        : isHindi
+                        ? 'दस्तावेज़ पासवर्ड दर्ज करें'
+                        : 'Enter file password'
+                    }
+                  />
+
+                  {docType === 'AADHAAR' && (
+                    <div className="flex items-center justify-between gap-2 pt-0.5">
+                      <p className="text-[10px] text-neutral-500 dark:text-neutral-400">
+                        {isHindi
+                          ? 'ई-आधार प्रारूप: नाम के पहले 4 अक्षर (कैपिटल) + जन्म वर्ष (उदा. SUNE2002)'
+                          : 'Format: First 4 letters of Name (CAPITAL) + Birth Year (e.g. SUNE2002)'}
+                      </p>
+                      {candidatePwd && !docPassword && (
+                        <button
+                          type="button"
+                          onClick={handleAutoFillPassword}
+                          className="shrink-0 text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                        >
+                          {isHindi ? 'प्रोफ़ाइल से भरें' : 'Auto-fill'} ({candidatePwd})
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </Field>
+
+              {/* Issuing authority */}
+              {fieldCfg.showAuthority && (
+                <Field label={t('documents.authority')} htmlFor="authority" hint={t('common.optional')}>
+                  <Input
+                    id="authority"
+                    value={authority}
+                    onChange={(e) => setAuthority(e.target.value)}
+                    placeholder={
+                      docType === 'AADHAAR'
+                        ? 'UIDAI'
+                        : docType === 'INCOME_CERTIFICATE' || docType === 'CASTE_CERTIFICATE'
+                        ? 'District Magistrate'
+                        : docType === 'EDUCATION_CERTIFICATE'
+                        ? 'Board / University'
+                        : 'Issuing authority'
+                    }
+                  />
+                </Field>
+              )}
+
+              {/* Issue date */}
+              {fieldCfg.showIssue && (
+                <Field label={t('documents.issueDate')} htmlFor="issueDate" hint={t('common.optional')}>
+                  <Input id="issueDate" type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+                </Field>
+              )}
+
+              {/* Expiry date */}
+              {fieldCfg.showExpiry && (
+                <Field label={t('documents.expiryDate')} htmlFor="expiryDate" hint={t('documents.expiryHint')}>
+                  <Input id="expiryDate" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
+                </Field>
+              )}
+
+              <div className="sm:col-span-2 flex items-center gap-3 pt-2">
+                <Button type="submit" variant="accent" loading={uploading} disabled={uploading || !selectedFile}>
+                  <Upload size={15} />
+                  {t('documents.save')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    playClick()
+                    setActiveTab('locker')
+                  }}
+                >
+                  {t('common.cancel') || 'Cancel'}
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
       )}
 
-      {/* Sleek Trust & Security Compliance Strip (Industry Minimalist Standard) */}
-      <div className="mt-8 pt-4 border-t border-neutral-200/80 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-neutral-500 dark:text-neutral-400">
-        <div className="flex items-center gap-2 text-[11px] font-mono">
-          <ShieldCheck size={14} className="text-neutral-800 dark:text-neutral-200 shrink-0 stroke-[2.2]" />
-          <span>{t('documents.securityNotice.inTransit', 'TLS 1.3 · AES-256 Encrypted')} · {t('documents.securityNotice.tenantIsolation', 'Tenant Isolated')}</span>
+      {/* Security & Privacy Architecture Transparency Card */}
+      <div className="rounded-2xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/60 dark:bg-white/[0.02] p-4 sm:p-5 mt-6">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-6 w-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <Lock size={13} />
+          </div>
+          <h3 className="text-xs font-bold tracking-tight text-neutral-900 dark:text-white uppercase tracking-wider">
+            {t('documents.securityNotice.title', 'Security, Privacy & Automated Verification Architecture')}
+          </h3>
         </div>
-        <div className="flex items-center gap-2">
-          <Lock size={12} className="text-neutral-400 dark:text-neutral-500 shrink-0" />
-          <span className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400">
-            {t('documents.securityNotice.ocrPurposeDescShort', 'Processed strictly for statutory eligibility · Never shared or sold')}
+
+        <div className="grid gap-3 sm:grid-cols-2 text-xs">
+          <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-neutral-900/60 p-3 border border-neutral-200/50 dark:border-white/5">
+            <ShieldCheck size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-neutral-900 dark:text-white">
+                {t('documents.securityNotice.inTransit', 'Encrypted In-Transit & At-Rest')}
+              </p>
+              <p className="mt-0.5 text-neutral-600 dark:text-neutral-400 leading-relaxed text-[11px]">
+                {t(
+                  'documents.securityNotice.inTransitDesc',
+                  'All document uploads are transmitted over TLS 1.3 encryption and stored in tenant-isolated, AES-256 encrypted cloud object storage.'
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-neutral-900/60 p-3 border border-neutral-200/50 dark:border-white/5">
+            <Cpu size={16} className="text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-neutral-900 dark:text-white">
+                {t('documents.securityNotice.ocrPurpose', 'Automated In-Memory AI Extraction')}
+              </p>
+              <p className="mt-0.5 text-neutral-600 dark:text-neutral-400 leading-relaxed text-[11px]">
+                {t(
+                  'documents.securityNotice.ocrPurposeDesc',
+                  'Our server-side OCR extracts document numbers, validity dates, and issuing authority seals solely to evaluate statutory scheme criteria. Your raw documents are never shared or sold to third parties.'
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-center gap-1.5 text-[11px] text-neutral-500 dark:text-neutral-400">
+          <Info size={13} className="shrink-0 text-neutral-400" />
+          <span>
+            {t(
+              'documents.securityNotice.transparencyNote',
+              'Server-assisted OCR verification enables instant eligibility calculation across 20+ government schemes while maintaining strict tenant isolation.'
+            )}
           </span>
         </div>
       </div>
+
+      {/* DigiLocker Sandbox Modal */}
+      <DigiLockerModal
+        isOpen={isDigiLockerOpen}
+        onClose={() => setIsDigiLockerOpen(false)}
+        onDocumentImported={() => {
+          load()
+          setActiveTab('locker')
+        }}
+      />
 
       {/* Verification Review Modal */}
       <DocumentReviewModal

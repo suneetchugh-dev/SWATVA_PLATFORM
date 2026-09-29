@@ -53,7 +53,8 @@ public class DocumentController {
             @RequestParam(value = "expiryDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiryDate,
             @RequestParam(value = "issuingAuthority", required = false) String issuingAuthority,
             @RequestParam(value = "extractedMetadata", required = false) String extractedMetadata,
-            @RequestParam(value = "status", required = false) DocumentStatus status
+            @RequestParam(value = "status", required = false) DocumentStatus status,
+            @RequestParam(value = "password", required = false) String password
     ) {
         UserDocumentDto dto = documentLockerService.uploadDocument(
                 authentication.getName(),
@@ -64,7 +65,8 @@ public class DocumentController {
                 expiryDate,
                 issuingAuthority,
                 extractedMetadata,
-                status
+                status,
+                password
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(dto));
     }

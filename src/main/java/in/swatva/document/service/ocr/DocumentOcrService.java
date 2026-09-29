@@ -15,6 +15,11 @@ public class DocumentOcrService implements OcrService {
 
     @Override
     public String extractText(byte[] documentBytes, String contentType, String filename) {
+        return extractText(documentBytes, contentType, filename, null);
+    }
+
+    @Override
+    public String extractText(byte[] documentBytes, String contentType, String filename, String password) {
         if (documentBytes == null || documentBytes.length == 0) {
             log.debug("Empty document bytes provided for text extraction");
             return "";
@@ -23,9 +28,9 @@ public class DocumentOcrService implements OcrService {
         String type = (contentType != null) ? contentType.toLowerCase() : "";
         String name = (filename != null) ? filename.toLowerCase() : "";
 
-        // 1. PDF Document Extraction via Apache PDFBox
+        // 1. PDF Document Extraction via Apache PDFBox (supports encrypted PDFs)
         if (type.contains("pdf") || name.endsWith(".pdf")) {
-            return extractTextFromPdf(documentBytes);
+            return extractTextFromPdf(documentBytes, password);
         }
 
         // 2. Plain Text / CSV / JSON Extraction
@@ -34,8 +39,7 @@ public class DocumentOcrService implements OcrService {
             return new String(documentBytes, StandardCharsets.UTF_8).trim();
         }
 
-        // 3. Fallback for image / other formats:
-        // Try UTF-8 string conversion if it looks like textual payload, or return empty string
+        // 3. Fallback for image / other formats
         log.info("Processing non-PDF/non-text media (type={}, filename={}) for OCR text extraction", type, name);
         String asText = new String(documentBytes, StandardCharsets.UTF_8);
         if (isPrintableAscii(asText)) {
@@ -45,11 +49,29 @@ public class DocumentOcrService implements OcrService {
         return "";
     }
 
-    private String extractTextFromPdf(byte[] pdfBytes) {
+    private String extractTextFromPdf(byte[] pdfBytes, String password) {
+        // If an explicit password was supplied, try decrypting with it first
+        if (password != null && !password.isBlank()) {
+            try (PDDocument document = Loader.loadPDF(pdfBytes, password.trim())) {
+                PDFTextStripper stripper = new PDFTextStripper();
+                String text = stripper.getText(document);
+                if (text != null && !text.isBlank()) {
+                    log.info("Successfully decrypted and extracted text from password-protected PDF");
+                    return text.trim();
+                }
+            } catch (Exception e) {
+                log.warn("Failed to decrypt PDF with provided password: {}", e.getMessage());
+            }
+        }
+
+        // Standard load without password
         try (PDDocument document = Loader.loadPDF(pdfBytes)) {
             PDFTextStripper stripper = new PDFTextStripper();
             String text = stripper.getText(document);
             return (text != null) ? text.trim() : "";
+        } catch (org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException e) {
+            log.warn("PDF is encrypted/password protected and requires valid password for decryption: {}", e.getMessage());
+            return "";
         } catch (Exception e) {
             log.warn("Failed to extract text from PDF: {}", e.getMessage());
             return "";
