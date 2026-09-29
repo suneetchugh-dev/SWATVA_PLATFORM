@@ -181,7 +181,9 @@
       "q3": "Which languages are supported?",
       "a3": "The interface and assistant work in English and Hindi.",
       "q4": "What happens to my documents?",
-      "a4": "They are stored against your own account, used only to check scheme requirements, and you can delete any of them at any time."
+      "a4": "They are stored against your own account, used only to check scheme requirements, and you can delete any of them at any time.",
+      "q5": "Is my personal data or document shared with AI models?",
+      "a5": "No. Documents and personal credentials remain client-encrypted (AES-256) inside your private vault. AI models only process anonymized statutory rules and question inquiries—never your raw files or identity numbers."
     },
     "cta": {
       "badge": "Free, no sign-up wall",

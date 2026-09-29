@@ -82,7 +82,7 @@ const COVERAGE_SAMPLES = [
 ]
 const FAQ_ITEMS = [
   { q: 'q0', a: 'a0' }, { q: 'q1', a: 'a1' }, { q: 'q2', a: 'a2' },
-  { q: 'q3', a: 'a3' }, { q: 'q4', a: 'a4' },
+  { q: 'q3', a: 'a3' }, { q: 'q4', a: 'a4' }, { q: 'q5', a: 'a5' },
 ]
 
 /* ------------------------------------------------------------------ *
@@ -281,10 +281,22 @@ export default function Landing() {
     }, 200)
   }
 
+  const handlePromptAction = (promptText) => {
+    const trimmed = promptText?.trim()
+    if (!trimmed) return
+    playClick()
+    if (isAuthed) {
+      navigate(`/app/assistant?q=${encodeURIComponent(trimmed)}`)
+    } else {
+      const redirectTarget = `/app/assistant?q=${encodeURIComponent(trimmed)}`
+      navigate(`/login?redirect=${encodeURIComponent(redirectTarget)}`)
+    }
+  }
+
   const onSearch = (e) => {
     e.preventDefault()
     if (!query.trim()) return
-    navigate('/app')
+    handlePromptAction(query)
   }
 
   return (
@@ -639,7 +651,7 @@ export default function Landing() {
             <button
               key={k}
               type="button"
-              onClick={() => { setQuery(t(`landing.hero.${k}`)); navigate('/app') }}
+              onClick={() => handlePromptAction(t(`landing.hero.${k}`))}
               className="px-3.5 py-1.5 rounded-full text-[11px] font-medium border border-neutral-300 dark:border-white/20 bg-neutral-100/90 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 hover:border-neutral-500 dark:hover:border-white/40 hover:bg-neutral-200/80 dark:hover:bg-white/10 transition-all shadow-2xs cursor-pointer"
             >
               {t(`landing.hero.${k}`)}
