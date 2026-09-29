@@ -88,10 +88,10 @@ function isValidDocumentFile(file) {
 }
 
 const STATUS_STYLES = {
-  ACTIVE: 'text-amber-700 dark:text-amber-400 border-amber-500/30 bg-amber-500/10',
-  EXPIRED: 'text-neutral-600 dark:text-neutral-300 border-neutral-300 dark:border-white/20 bg-neutral-500/10',
-  NEEDS_REVIEW: 'text-amber-700 dark:text-amber-400 border-dashed border-amber-500/40 bg-transparent',
-  ARCHIVED: 'text-neutral-500 dark:text-neutral-400 border-neutral-300 dark:border-white/15 bg-transparent',
+  ACTIVE: 'text-neutral-900 dark:text-white border-neutral-200 dark:border-white/15 bg-neutral-100 dark:bg-white/5',
+  EXPIRED: 'text-neutral-500 dark:text-neutral-400 border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.02]',
+  NEEDS_REVIEW: 'text-neutral-900 dark:text-white border-neutral-300 dark:border-white/20 bg-neutral-100/80 dark:bg-white/5',
+  ARCHIVED: 'text-neutral-400 dark:text-neutral-500 border-neutral-200 dark:border-white/10 bg-transparent',
 }
 
 const fmtDate = (d) => {
@@ -417,15 +417,15 @@ export default function Documents() {
                               playClick()
                               setSelectedReviewDoc(d)
                             }}
-                            className="mono-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-dashed border-amber-500/70 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 hover:border-amber-500 transition-all cursor-pointer group text-left"
+                            className="mono-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-neutral-200/90 dark:border-white/15 bg-neutral-100/90 dark:bg-white/[0.05] text-neutral-900 dark:text-neutral-100 hover:bg-neutral-200/70 dark:hover:bg-white/10 hover:border-neutral-300 dark:hover:border-white/25 transition-all cursor-pointer group text-left shadow-2xs"
                             title={t('documents.clickToReview')}
                             aria-label={`${t('status.NEEDS_REVIEW')} - ${t('documents.clickToReview')}`}
                           >
-                            <AlertTriangle size={11} className="shrink-0 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
-                            <span className="font-semibold underline decoration-dotted decoration-amber-500/60 underline-offset-2">
+                            <AlertTriangle size={11} className="shrink-0 text-amber-500 group-hover:scale-110 transition-transform" />
+                            <span className="font-semibold underline decoration-dotted decoration-neutral-400 dark:decoration-white/30 underline-offset-2">
                               {t(`status.${d.status}`)}
                             </span>
-                            <span className="text-[10px] opacity-80 font-normal">
+                            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-normal group-hover:text-neutral-700 dark:group-hover:text-neutral-200">
                               • {t('documents.clickToReview')}
                             </span>
                           </button>
