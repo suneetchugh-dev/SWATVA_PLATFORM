@@ -1,8 +1,8 @@
 # SWATVA UI & Design System Guidelines
 
-## 🛡️ Critical Design Rules & Invariants
+## Critical Design Rules & Invariants
 
-### 1. ⛔ Absolute Rule: Zero Emojis Across Entire Codebase & UI
+### 1. Absolute Rule: Zero Emojis Across Entire Codebase & UI
 **NEVER USE EMOJIS (`⚡`, `👤`, `🤖`, `🟢`, `🔴`, `🟡`, `🔵`, `✨`, `🚀`, etc.) ANYWHERE IN CODE, UI, NOTICES, LABELS, METADATA, OR DOCUMENTATION.**
 
 - **Strict Ban on Emojis:** Do not use Unicode emojis anywhere in UI markup, button labels, toast/banner messages, tags, metadata, or markdown documentation.
@@ -13,7 +13,7 @@
 
 ---
 
-## 🎨 Aesthetic & Palette
+## Aesthetic & Palette
 
 SWATVA employs a clean, high-contrast **Obsidian & Porcelain** aesthetic with a refined **Amber** accent:
 
@@ -26,7 +26,7 @@ SWATVA employs a clean, high-contrast **Obsidian & Porcelain** aesthetic with a 
 
 ---
 
-## 🧩 Component Standards
+## Component Standards
 
 - **StatusPills:** Monospace, bordered badges (`mono-badge`) displaying deterministic eligibility verdicts (`ELIGIBLE`, `NEEDS_INFORMATION`, `NOT_ELIGIBLE`).
 - **Badges:** Minimalist, rounded-full chips without floating colored dots.

@@ -4,7 +4,7 @@
 
 ---
 
-## 🌐 Rule #1 — Translation is MANDATORY for every string
+## Rule #1 — Translation is MANDATORY for every string
 
 **Every user-visible string must exist in ALL supported languages.**
 
@@ -29,17 +29,17 @@ Current supported languages: `en` (English) · `hi` (हिन्दी)
 ### How to implement translation
 
 ```jsx
-// ✅ Correct — use t() for every visible string
+// Correct — use t() for every visible string
 const { t, i18n } = useTranslation();
 const isHindi = i18n.language === 'hi';
 
 <h1>{t('page.heading')}</h1>
 <button>{t('common.save')}</button>
 
-// ✅ For inline data (not in JSON), use ternary
+// For inline data (not in JSON), use ternary
 <span>{isHindi ? 'हिंदी पाठ' : 'English text'}</span>
 
-// ❌ Never hardcode English-only strings
+// Never hardcode English-only strings
 <h1>Welcome to SWATVA</h1>
 <button>Save</button>
 ```
@@ -58,7 +58,7 @@ const isHindi = i18n.language === 'hi';
 
 ---
 
-## 🎨 Rule #2 — Minimalism & Effort Minimization
+## Rule #2 — Minimalism & Effort Minimization
 
 - **One primary action per view.** Secondary actions must be visually subordinate.
 - **No decorative elements** that don't carry meaning. Remove borders, shadows, icons, and motion that add noise without value.
@@ -69,7 +69,7 @@ const isHindi = i18n.language === 'hi';
 
 ---
 
-## 📱 Rule #3 — Mobile-First Responsive Design
+## Rule #3 — Mobile-First Responsive Design
 
 - Design and test at **375px** (mobile) first, then scale up.
 - Use Tailwind breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1280px)
@@ -80,7 +80,7 @@ const isHindi = i18n.language === 'hi';
 
 ---
 
-## ♿ Rule #4 — Accessibility (a11y)
+## Rule #4 — Accessibility (a11y)
 
 - Every interactive element needs an `aria-label` (especially icon-only buttons)
 - `aria-label` must also be translated — use `t()` or the `isHindi` ternary
@@ -92,7 +92,7 @@ const isHindi = i18n.language === 'hi';
 
 ---
 
-## 🔔 Rule #5 — Feedback on Every Action
+## Rule #5 — Feedback on Every Action
 
 - Every user action must have a visual response within **100ms**
 - Use `active:scale-95` on buttons for tactile press feedback
@@ -102,7 +102,7 @@ const isHindi = i18n.language === 'hi';
 
 ---
 
-## 🏷️ Rule #6 — Component Naming & Organization
+## Rule #6 — Component Naming & Organization
 
 ```
 frontend/src/
@@ -122,12 +122,12 @@ frontend/src/
 
 ---
 
-## 📦 Rule #7 — Data with Translatable Content
+## Rule #7 — Data with Translatable Content
 
 When a data file (e.g. `team.js`, `schemes.js`) contains user-visible strings, add Hindi variants:
 
 ```js
-// ✅ Correct pattern for data files
+// Correct pattern for data files
 export const CORE_PILLARS = [
   {
     title: 'Deterministic Rules Engine',
@@ -144,20 +144,20 @@ export const CORE_PILLARS = [
 
 ---
 
-## 🚫 Rule #8 — What NOT to Do
+## Rule #8 — What NOT to Do
 
-- ❌ Never hardcode English-only user-visible strings in JSX
-- ❌ Never add a feature without its Hindi translation
-- ❌ Never use `lg:` breakpoints for things that should work on tablet (use `md:`)
-- ❌ Never use `margin-left` on small screens for centering — use flexbox/grid
-- ❌ Never commit `.env` files or secrets
-- ❌ Never push directly to `main` without testing
-- ❌ Never use `overflow: hidden` on a container that clips Devanagari ascenders — add `py-1` padding
-- ❌ Never use emojis (`⚡`, `👤`, `🤖`, `🟢`, `🔴`, `✨`, etc.) in UI code, labels, or docs — always use semantic vector SVG icons from `lucide-react`
+- Never hardcode English-only user-visible strings in JSX
+- Never add a feature without its Hindi translation
+- Never use `lg:` breakpoints for things that should work on tablet (use `md:`)
+- Never use `margin-left` on small screens for centering — use flexbox/grid
+- Never commit `.env` files or secrets
+- Never push directly to `main` without testing
+- Never use `overflow: hidden` on a container that clips Devanagari ascenders — add `py-1` padding
+- Never use emojis (`⚡`, `👤`, `🤖`, `🟢`, `🔴`, `✨`, etc.) in UI code, labels, or docs — always use semantic vector SVG icons from `lucide-react`
 
 ---
 
-## 🚫 Rule #9 — Zero Emojis Across Entire Codebase & UI
+## Rule #9 — Zero Emojis Across Entire Codebase & UI
 
 **Absolute rule — no exception:**
 - **Never use Unicode emojis** (`⚡`, `👤`, `🤖`, `🟢`, `🔴`, `🟡`, `🔵`, `✨`, `🚀`, etc.) anywhere in the codebase (JSX, components, styles, data formatters, toast messages, logs, or markdown documentation).
@@ -166,7 +166,7 @@ export const CORE_PILLARS = [
 
 ---
 
-## ✅ Pre-commit Checklist for UI Work
+## Pre-commit Checklist for UI Work
 
 Before committing any UI change:
 
@@ -178,3 +178,4 @@ Before committing any UI change:
 6. [ ] No mojibake in locale files (`grep -P "[\x80-\x9f]" frontend/src/locales/*.json`)
 7. [ ] Active/hover/disabled states look correct in both light and dark mode
 8. [ ] `[skip ci]` added to commit message if no `apps/client-pwa/` changes
+
