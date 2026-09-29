@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Navigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, ArrowRight, LogIn, UserPlus, KeyRound, RefreshCw, AlertTriangle } from 'lucide-react';
 import MinimalBrandHeader from '../components/MinimalBrandHeader';
@@ -8,13 +8,12 @@ import { useTheme } from '../lib/theme';
 import { api, getToken, setToken, setStoredUser } from '../api/client';
 import { playClick } from '../utils/soundFx';
 import { signInWithGoogle, signInWithFirebaseEmail, registerWithFirebaseEmail } from '../lib/firebase';
+import { getFriendlyAuthErrorMessage } from '../utils/authErrors';
 
 export default function Auth({ mode: initialMode = 'login' }) {
   const { t, i18n } = useTranslation();
   const isHindi = i18n.language === 'hi' || i18n.language?.startsWith('hi');
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const redirectTarget = searchParams.get('redirect') || '/app';
   const { dark } = useTheme();
 
   const [lastAuthMethod] = useState(() => {
@@ -79,7 +78,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
   };
 
   if (getToken()) {
-    return <Navigate to={redirectTarget} replace />;
+    return <Navigate to="/app" replace />;
   }
 
   const handleGoogleSignIn = async (loginHint = null) => {
@@ -90,7 +89,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
     try {
       const result = await signInWithGoogle(loginHint);
       if (result.error) {
-        setError(result.error);
+        setError(getFriendlyAuthErrorMessage(result.error, isHindi));
         setGoogleLoading(false);
         return;
       }
@@ -124,11 +123,11 @@ export default function Auth({ mode: initialMode = 'login' }) {
           );
         } catch {}
 
-        navigate(redirectTarget, { replace: true });
+        navigate('/app', { replace: true });
       }
     } catch (err) {
       console.error('Google Sign-In error:', err);
-      setError(err?.message || 'Google sign-in failed. Please try again.');
+      setError(getFriendlyAuthErrorMessage(err, isHindi));
     } finally {
       setGoogleLoading(false);
     }
@@ -143,12 +142,12 @@ export default function Auth({ mode: initialMode = 'login' }) {
 
     const emailTrimmed = email.trim();
     if (!emailTrimmed) {
-      setError('Please enter a valid email address.');
+      setError(isHindi ? 'कृपया एक मान्य ईमेल पता दर्ज करें।' : 'Please enter a valid email address.');
       setLoading(false);
       return;
     }
     if (!password || password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError(isHindi ? 'पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।' : 'Password must be at least 6 characters.');
       setLoading(false);
       return;
     }
@@ -158,9 +157,9 @@ export default function Auth({ mode: initialMode = 'login' }) {
       playClick();
       setOtpStep('otp_verify');
       setResendTimer(res.coolDownSeconds || 30);
-      setOtpMessage(res.message || `A 6-digit OTP code has been sent to ${emailTrimmed} to verify email ownership.`);
+      setOtpMessage(res.message || (isHindi ? `ईमेल सत्यापन के लिए ${emailTrimmed} पर 6-अंकीय ओटीपी भेजा गया है।` : `A 6-digit OTP code has been sent to ${emailTrimmed} to verify email ownership.`));
     } catch (err) {
-      setError(err?.message || 'Failed to send verification OTP code. Please try again.');
+      setError(getFriendlyAuthErrorMessage(err, isHindi));
     } finally {
       setLoading(false);
     }
@@ -178,9 +177,9 @@ export default function Auth({ mode: initialMode = 'login' }) {
     try {
       const res = await api.auth.resendOtp(emailTrimmed);
       setResendTimer(res.coolDownSeconds || 30);
-      setOtpMessage(res.message || `A new 6-digit OTP code has been sent to ${emailTrimmed}`);
+      setOtpMessage(res.message || (isHindi ? `नया 6-अंकीय ओटीपी कोड ${emailTrimmed} पर भेजा गया है।` : `A new 6-digit OTP code has been sent to ${emailTrimmed}`));
     } catch (err) {
-      setError(err?.message || 'Failed to resend OTP. Please try again.');
+      setError(getFriendlyAuthErrorMessage(err, isHindi));
     } finally {
       setResendLoading(false);
     }
@@ -198,7 +197,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
     const otpTrimmed = otpCode.trim();
 
     if (!otpTrimmed || otpTrimmed.length !== 6) {
-      setError('Please enter the complete 6-digit OTP code.');
+      setError(isHindi ? 'कृपया पूरा 6-अंकीय ओटीपी कोड दर्ज करें।' : 'Please enter the complete 6-digit OTP code.');
       setLoading(false);
       return;
     }
@@ -210,9 +209,9 @@ export default function Auth({ mode: initialMode = 'login' }) {
         localStorage.setItem('swatva_last_auth_method', 'email');
         localStorage.setItem('swatva_last_auth_email', emailTrimmed);
       } catch {}
-      navigate(redirectTarget, { replace: true });
+      navigate('/app', { replace: true });
     } catch (err) {
-      setError(err?.message || 'Invalid or expired OTP code. Please check your email and try again.');
+      setError(getFriendlyAuthErrorMessage(err, isHindi));
     } finally {
       setLoading(false);
     }
@@ -235,7 +234,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
 
     const emailTrimmed = email.trim();
     if (!emailTrimmed) {
-      setError('Please enter a valid email address.');
+      setError(isHindi ? 'कृपया एक मान्य ईमेल पता दर्ज करें।' : 'Please enter a valid email address.');
       setLoading(false);
       return;
     }
@@ -248,9 +247,9 @@ export default function Auth({ mode: initialMode = 'login' }) {
         localStorage.setItem('swatva_last_auth_email', emailTrimmed);
       } catch {}
       playClick();
-      navigate(redirectTarget, { replace: true });
+      navigate('/app', { replace: true });
     } catch (err) {
-      setError(err?.message || 'Could not sign you in. Please check your credentials.');
+      setError(getFriendlyAuthErrorMessage(err, isHindi));
     } finally {
       setLoading(false);
     }
@@ -279,68 +278,72 @@ export default function Auth({ mode: initialMode = 'login' }) {
 
       <main className="flex-1 flex items-center justify-center p-2 sm:p-6 pt-16 sm:pt-20 pb-16 sm:pb-24 w-full z-10 my-auto">
         <div
-          className="w-full max-w-[720px] p-4 sm:p-8 sm:pb-10 login-form-card min-h-[570px] sm:min-h-[590px] flex flex-col justify-between transition-all duration-300 ease-out"
+          className="w-full max-w-[720px] p-4 sm:p-8 sm:pb-10 login-form-card"
         >
           <h1 className="h-7 sm:h-8 flex items-center justify-center gap-2 text-base sm:text-lg font-bold text-neutral-950 dark:text-white text-center mb-5 sm:mb-6 whitespace-nowrap">
-              {mode === 'login' && <><LogIn size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>{t('auth.loginTitle') || 'Sign in to SWATVA'}</span></>}
-              {mode === 'register' && <><UserPlus size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>{t('auth.registerTitle') || 'Create your SWATVA account'}</span></>}
-            </h1>
+            {mode === 'login' && <><LogIn size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>{t('auth.loginTitle') || 'Sign in to SWATVA'}</span></>}
+            {mode === 'register' && <><UserPlus size={16} className="stroke-[2] flex-shrink-0" aria-hidden="true" /><span>{t('auth.registerTitle') || 'Create your SWATVA account'}</span></>}
+          </h1>
 
-            {/* Clean 2-Tab Segmented Control */}
-            <div className="mb-5 p-1 rounded-full neo-glass-card">
-              <div className="relative grid grid-cols-2 gap-1">
-                <span
-                  aria-hidden="true"
-                  className={`absolute inset-y-0 left-0 w-[calc(50%-2px)] rounded-full bg-neutral-950 dark:bg-white transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                    mode === 'register'
-                      ? 'translate-x-[calc(100%+4px)]'
-                      : 'translate-x-0'
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => switchMode('login')}
-                  aria-pressed={mode === 'login'}
-                  className={`relative z-10 inline-flex items-center justify-center gap-1.5 h-8 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
-                    mode === 'login'
-                      ? 'text-white dark:text-neutral-950'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
-                  }`}
-                >
-                  <LogIn size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                  <span>{t('auth.registerSwitchLabel') || 'Sign In'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => switchMode('register')}
-                  aria-pressed={mode === 'register'}
-                  className={`relative z-10 inline-flex items-center justify-center gap-1.5 h-8 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
-                    mode === 'register'
-                      ? 'text-white dark:text-neutral-950'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
-                  }`}
-                >
-                  <UserPlus size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
-                  <span>{t('auth.loginSwitchLabel') || 'Create Account'}</span>
-                </button>
-              </div>
+          {/* Clean 2-Tab Segmented Control */}
+          <div className="mb-5 p-1 rounded-full neo-glass-card">
+            <div className="relative grid grid-cols-2 gap-1">
+              <span
+                aria-hidden="true"
+                className={`absolute inset-y-0 left-0 w-[calc(50%-2px)] rounded-full bg-neutral-950 dark:bg-white transition-transform duration-[340ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                  mode === 'register'
+                    ? 'translate-x-[calc(100%+4px)]'
+                    : 'translate-x-0'
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => switchMode('login')}
+                aria-pressed={mode === 'login'}
+                className={`relative z-10 inline-flex items-center justify-center gap-1.5 h-8 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                  mode === 'login'
+                    ? 'text-white dark:text-neutral-950'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+                }`}
+              >
+                <LogIn size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
+                <span>{t('auth.registerSwitchLabel') || 'Sign In'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => switchMode('register')}
+                aria-pressed={mode === 'register'}
+                className={`relative z-10 inline-flex items-center justify-center gap-1.5 h-8 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                  mode === 'register'
+                    ? 'text-white dark:text-neutral-950'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+                }`}
+              >
+                <UserPlus size={13} className="stroke-[2] flex-shrink-0" aria-hidden="true" />
+                <span>{t('auth.loginSwitchLabel') || 'Create Account'}</span>
+              </button>
             </div>
+          </div>
 
           {/* Error Notification */}
-          {error && error.includes('unauthorized-domain') ? (
-            <div className="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs text-left leading-relaxed">
+          {error && (error.includes('unauthorized-domain') || error.includes('Domain Authorization Notice') || error.includes('डोमेन प्रमाणीकरण सूचना')) ? (
+            <div className="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs text-left leading-relaxed">
               <div className="font-bold flex items-center gap-1.5 mb-1 text-amber-900 dark:text-amber-100">
                 <AlertTriangle size={15} className="text-amber-500 shrink-0" />
-                <span>Firebase Domain Authorization Notice</span>
+                <span>{isHindi ? 'डोमेन प्रमाणीकरण सूचना' : 'Domain Authorization Notice'}</span>
               </div>
               <p>{error}</p>
               <div className="mt-2 text-[11px] font-mono opacity-90">
-                You can sign in or register directly using <strong>Email & Password</strong> below.
+                {isHindi ? 'आप नीचे दिए गए ईमेल और पासवर्ड से सीधे साइन इन या पंजीकरण कर सकते हैं।' : 'You can sign in or register directly using Email & Password below.'}
               </div>
             </div>
           ) : error ? (
-            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center">
-              {error}
+            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-left flex items-start gap-2.5">
+              <AlertTriangle size={15} className="shrink-0 mt-0.5 text-red-500" />
+              <div className="flex-1">
+                <span className="font-semibold block">{isHindi ? 'प्रमाणीकरण त्रुटि' : 'Authentication Notice'}</span>
+                <span className="mt-0.5 block leading-relaxed">{error}</span>
+              </div>
             </div>
           ) : null}
 
@@ -470,113 +473,111 @@ export default function Auth({ mode: initialMode = 'login' }) {
             <div className="border-t border-neutral-200/80 dark:border-white/10 w-full" />
           </div>
 
-          <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between space-y-4 pt-1">
-            <div className={`space-y-4 ${mode === 'register' ? 'sm:space-y-4.5' : ''}`}>
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
-                  {t('auth.email') || 'Email address'}
-                </label>
-                <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
-                  <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
-                    <Mail size={16} />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    disabled={mode === 'register' && otpStep === 'otp_verify'}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    inputMode="email"
-                    autoComplete="email"
-                    className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 disabled:opacity-70"
-                  />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
+                {t('auth.email') || 'Email address'}
+              </label>
+              <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
+                <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
+                  <Mail size={16} />
                 </div>
+                <input
+                  type="email"
+                  required
+                  disabled={mode === 'register' && otpStep === 'otp_verify'}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  inputMode="email"
+                  autoComplete="email"
+                  className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 disabled:opacity-70"
+                />
               </div>
-
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
-                  {t('auth.password') || 'Password'}
-                </label>
-                <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
-                  <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
-                    <Lock size={16} />
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    disabled={mode === 'register' && otpStep === 'otp_verify'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                    className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 disabled:opacity-70"
-                  />
-                </div>
-              </div>
-
-              {/* Email OTP Verification Step in Registration */}
-              {mode === 'register' && otpStep === 'otp_verify' && (
-                <div className="pt-2">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 font-semibold">
-                      {t('auth.enterOtp') || '6-Digit Email Validation OTP'}
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setOtpStep('input')}
-                      className="text-[10px] font-mono text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
-                    >
-                      {t('common.back') || 'Edit Details'}
-                    </button>
-                  </div>
-                  <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
-                    <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
-                      <KeyRound size={16} />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      maxLength={6}
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                      placeholder="123456"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-base font-mono tracking-widest text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
-                    />
-                  </div>
-
-                  {/* Resend OTP Service Bar */}
-                  <div className="mt-3 flex items-center justify-between px-1 text-xs">
-                    <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
-                      {t('auth.otpNotReceived') || "Didn't receive verification code?"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleResendOtp}
-                      disabled={resendTimer > 0 || resendLoading}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium border transition-all cursor-pointer ${
-                        resendTimer > 0 || resendLoading
-                          ? 'bg-neutral-100 dark:bg-white/5 border-neutral-200 dark:border-white/10 text-neutral-400 cursor-not-allowed'
-                          : 'bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 border-transparent shadow-xs'
-                      }`}
-                    >
-                      <RefreshCw size={12} className={resendLoading ? 'animate-spin' : ''} />
-                      <span>
-                        {resendLoading
-                          ? t('auth.resendingOtp') || 'Resending...'
-                          : resendTimer > 0
-                          ? t('auth.resendOtpIn', { seconds: resendTimer }) || `Resend in ${resendTimer}s`
-                          : t('auth.resendOtp') || 'Resend OTP Code'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
-            <div className="pt-3 sm:pt-4">
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 mb-1.5 font-semibold">
+                {t('auth.password') || 'Password'}
+              </label>
+              <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
+                <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
+                  <Lock size={16} />
+                </div>
+                <input
+                  type="password"
+                  required
+                  disabled={mode === 'register' && otpStep === 'otp_verify'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-sm text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 disabled:opacity-70"
+                />
+              </div>
+            </div>
+
+            {/* Email OTP Verification Step in Registration */}
+            {mode === 'register' && otpStep === 'otp_verify' && (
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-[10px] uppercase tracking-widest font-mono text-neutral-500 dark:text-neutral-400 font-semibold">
+                    {t('auth.enterOtp') || '6-Digit Email Validation OTP'}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setOtpStep('input')}
+                    className="text-[10px] font-mono text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
+                  >
+                    {t('common.back') || 'Edit Details'}
+                  </button>
+                </div>
+                <div className="relative flex items-center h-11 w-full rounded-xl border border-neutral-200/80 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] focus-within:border-neutral-900 dark:focus-within:border-neutral-400 transition-colors">
+                  <div className="w-11 shrink-0 border-r border-neutral-200/80 dark:border-white/10 h-full flex items-center justify-center text-neutral-400 dark:text-neutral-500">
+                    <KeyRound size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="123456"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    className="h-full flex-1 block w-full min-w-0 bg-transparent border-none focus:ring-0 outline-none px-3.5 text-base font-mono tracking-widest text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
+                  />
+                </div>
+
+                {/* Resend OTP Service Bar */}
+                <div className="mt-3 flex items-center justify-between px-1 text-xs">
+                  <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
+                    {t('auth.otpNotReceived') || "Didn't receive verification code?"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={resendTimer > 0 || resendLoading}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium border transition-all cursor-pointer ${
+                      resendTimer > 0 || resendLoading
+                        ? 'bg-neutral-100 dark:bg-white/5 border-neutral-200 dark:border-white/10 text-neutral-400 cursor-not-allowed'
+                        : 'bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90 border-transparent shadow-xs'
+                    }`}
+                  >
+                    <RefreshCw size={12} className={resendLoading ? 'animate-spin' : ''} />
+                    <span>
+                      {resendLoading
+                        ? t('auth.resendingOtp') || 'Resending...'
+                        : resendTimer > 0
+                        ? t('auth.resendOtpIn', { seconds: resendTimer }) || `Resend in ${resendTimer}s`
+                        : t('auth.resendOtp') || 'Resend OTP Code'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
@@ -605,8 +606,8 @@ export default function Auth({ mode: initialMode = 'login' }) {
           <span className="text-xs font-bold tracking-tight text-neutral-950 dark:text-white">
             {isHindi ? 'स्वतवा' : 'SWATVA'}
           </span>
-          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20 hidden [@media(pointer:fine)]:inline-block" aria-hidden="true" />
-          <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0 hidden [@media(pointer:fine)]:inline">
+          <span className="h-3 w-px bg-neutral-300 dark:bg-white/20" aria-hidden="true" />
+          <span className="text-[10px] uppercase tracking-[0.16em] font-mono text-neutral-500 dark:text-neutral-400 font-medium truncate min-w-0">
             {t('auth.citizenEmpowermentArchitecture') || 'CITIZEN EMPOWERMENT ARCHITECTURE'}
           </span>
         </div>
