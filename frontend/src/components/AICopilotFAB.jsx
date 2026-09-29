@@ -945,14 +945,9 @@ export default function AICopilotFAB() {
                   <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
                     {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'}
                   </span>
-                  <button
-                    type="button"
-                    onClick={handleClearAllHistory}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
-                  >
-                    <Trash2 size={11} />
-                    <span>{t('assistant.clearHistory') || 'Clear all'}</span>
-                  </button>
+                  <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
+                    {t('assistant.historySubtitle') || 'Saved locally'}
+                  </span>
                 </div>
               )}
             </div>

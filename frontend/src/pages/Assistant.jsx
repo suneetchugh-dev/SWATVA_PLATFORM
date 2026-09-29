@@ -1063,18 +1063,13 @@ export default function Assistant() {
 
             {/* Footer */}
             {sessions.length > 0 && (
-              <div className="p-3.5 sm:p-4 border-t border-neutral-200 dark:border-white/10 bg-neutral-50/70 dark:bg-white/[0.02] flex items-center justify-between gap-3 shrink-0">
+              <div className="px-4 py-3 border-t border-neutral-200 dark:border-white/10 bg-neutral-50/70 dark:bg-white/[0.02] flex items-center justify-between gap-3 shrink-0">
                 <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
                   {sessions.length} {sessions.length === 1 ? 'consultation' : 'consultations'}
                 </span>
-                <button
-                  type="button"
-                  onClick={handleClearAllHistory}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 border border-red-500/25 transition-all cursor-pointer select-none active:scale-95 shadow-2xs"
-                >
-                  <Trash2 size={12} className="stroke-[2.2]" />
-                  <span>{t('assistant.clearHistory') || 'Clear all history'}</span>
-                </button>
+                <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
+                  {t('assistant.historySubtitle') || 'Saved locally'}
+                </span>
               </div>
             )}
           </div>
