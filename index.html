@@ -13,29 +13,36 @@
       name="keywords"
       content="SWATVA, Indian government schemes, welfare scheme discovery, citizen eligibility engine, document locker, deterministic rules, TheQuirkies"
     />
+    <link rel="canonical" href="https://swatva.sahnirmaan.live/" />
     <meta
       name="description"
-      content="SWATVA is a citizen empowerment platform that deterministically matches citizens with eligible welfare schemes, provides an encrypted document locker, and guides applications end-to-end."
+      content="SWATVA deterministically matches Indian citizens with eligible government welfare schemes, providing an encrypted document locker and end-to-end guidance."
     />
 
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Social Sharing -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="SWATVA" />
-    <meta property="og:title" content="SWATVA — Citizen Welfare Scheme Discovery & Eligibility Engine" />
+    <meta property="og:url" content="https://swatva.sahnirmaan.live/" />
+    <meta property="og:title" content="SWATVA — Citizen Welfare Scheme Discovery & Eligibility" />
     <meta
       property="og:description"
       content="Discover every welfare benefit you qualify for using deterministic statutory criteria and an encrypted document locker."
     />
-    <meta property="og:image" content="/pwa-512x512.png" />
+    <meta property="og:image" content="https://swatva.sahnirmaan.live/pwa-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:locale" content="en_IN" />
+    <meta property="og:locale:alternate" content="hi_IN" />
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="SWATVA — Citizen Welfare Scheme Discovery & Eligibility Engine" />
+    <meta name="twitter:url" content="https://swatva.sahnirmaan.live/" />
+    <meta name="twitter:title" content="SWATVA — Citizen Welfare Scheme Discovery & Eligibility" />
     <meta
       name="twitter:description"
       content="Discover every welfare benefit you qualify for using deterministic statutory criteria and an encrypted document locker."
     />
-    <meta name="twitter:image" content="/pwa-512x512.png" />
+    <meta name="twitter:image" content="https://swatva.sahnirmaan.live/pwa-512x512.png" />
 
     <!-- Icons & App Manifest -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -46,6 +53,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Structured Data (JSON-LD) for Search Engine Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SWATVA",
+      "url": "https://swatva.sahnirmaan.live/",
+      "description": "Citizen welfare scheme discovery and deterministic eligibility engine with an encrypted document locker.",
+      "applicationCategory": "GovernmentApplication",
+      "operatingSystem": "All",
+      "inLanguage": ["en", "hi"],
+      "author": {
+        "@type": "Organization",
+        "name": "Team TheQuirkies"
+      }
+    }
+    </script>
     <script>
       // Applied before first paint so the canvas never flashes the wrong theme.
       try {
@@ -63,6 +88,17 @@
     </script>
   </head>
   <body>
+    <noscript>
+      <div style="font-family:system-ui,-apple-system,sans-serif;max-width:600px;margin:40px auto;padding:24px;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;color:#111827;line-height:1.6;">
+        <h1 style="font-size:20px;margin:0 0 12px 0;">SWATVA — Citizen Welfare Scheme Discovery</h1>
+        <p style="font-size:14px;color:#4b5563;margin-bottom:16px;">
+          SWATVA is a citizen empowerment platform that deterministically matches citizens with eligible government welfare schemes, provides an encrypted document locker, and guides applications end-to-end.
+        </p>
+        <p style="font-size:12px;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:12px;margin:0;">
+          Please enable JavaScript in your browser to access the interactive discovery engine and document locker.
+        </p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

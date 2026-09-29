@@ -1,14 +1,18 @@
 import React from 'react';
-import { RefreshCw, X, Sparkles } from 'lucide-react';
+import { RefreshCw, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePWA } from '../hooks/usePWA';
 import { playClick } from '../utils/soundFx';
+import LoadingLogo from './LoadingLogo';
 
 export default function PWAUpdateToast() {
   const { t } = useTranslation();
-  const { needRefresh, setNeedRefresh, updateServiceWorker } = usePWA();
+  const { isStandalone, needRefresh, setNeedRefresh, updateServiceWorker } = usePWA();
 
-  if (!needRefresh) return null;
+  const isLanding = typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname === '' || window.location.pathname === '/index.html');
+
+  // Only show update prompts to users running the installed standalone PWA app outside the landing page
+  if (!isStandalone || isLanding || !needRefresh) return null;
 
   const handleUpdate = () => {
     playClick();
@@ -24,8 +28,8 @@ export default function PWAUpdateToast() {
     <div className="fixed top-20 right-4 sm:right-6 z-50 animate-in fade-in slide-in-from-top-4 duration-300 max-w-sm">
       <div className="neo-glass-card p-3.5 rounded-2xl border border-amber-500/40 shadow-xl backdrop-blur-xl bg-white/95 dark:bg-neutral-900/95 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center flex-shrink-0">
-            <Sparkles size={16} />
+          <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+            <LoadingLogo size="h-5 w-5" animate={false} hoverable={false} />
           </div>
           <div className="min-w-0">
             <h4 className="text-xs font-semibold text-neutral-950 dark:text-white truncate">

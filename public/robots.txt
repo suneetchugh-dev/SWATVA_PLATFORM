@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://swatva.sahnirmaan.live/sitemap.xml
