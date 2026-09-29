@@ -278,7 +278,7 @@ export default function PreferencesModal({ isOpen, onClose }) {
       }}
     >
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-lg max-h-[92dvh] sm:max-h-[90dvh] overflow-y-auto custom-scrollbar bg-white/95 dark:bg-[#0c0c0e] border border-neutral-200/90 dark:border-white/15 rounded-2xl sm:rounded-3xl shadow-[0_24px_64px_rgba(0,0,0,0.6)] backdrop-blur-2xl animate-in zoom-in-95 duration-250 p-4 sm:p-7">
+      <div className="relative w-full max-w-lg max-h-[85dvh] sm:max-h-[88dvh] overflow-y-auto overscroll-contain custom-scrollbar bg-white/95 dark:bg-[#0c0c0e] border border-neutral-200/90 dark:border-white/15 rounded-2xl sm:rounded-3xl shadow-[0_24px_64px_rgba(0,0,0,0.6)] backdrop-blur-2xl animate-in zoom-in-95 duration-250 p-4 sm:p-7">
         
         {/* Close Button */}
         <button
@@ -307,13 +307,68 @@ export default function PreferencesModal({ isOpen, onClose }) {
           <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 ml-7 leading-snug">
             {currentLang === 'hi' 
               ? 'भाषा, थीम, स्पर्श प्रतिक्रिया और इंटरैक्टिव भौतिकी को अनुकूलित करें।' 
-              : 'Customize language, audio, motion, and display settings.'}
+              : 'Customize language, appearance, audio, and motion settings.'}
           </p>
         </div>
 
         {/* Settings Grid Structure */}
         <div className="space-y-3 font-sans">
           
+          {/* ========================================================
+              0. APPEARANCE / THEME MODE: Light / Dark Mode Toggle
+             ======================================================== */}
+          <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-neutral-50/90 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/15 transition-all">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center space-x-2.5 sm:space-x-3 flex-1 min-w-0">
+                {dark ? (
+                  <Moon size={15} className="text-amber-400 flex-shrink-0" />
+                ) : (
+                  <Sun size={15} className="text-amber-600 flex-shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <div className="text-[11px] sm:text-xs font-semibold text-neutral-950 dark:text-white leading-snug break-words">
+                    {currentLang === 'hi' ? 'इंटरफ़ेस थीम (लाइट / डार्क)' : 'Appearance & Theme'}
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5 break-words">
+                    {currentLang === 'hi'
+                      ? 'स्पष्ट दृश्यता के लिए लाइट थीम या आरामदायक डार्क थीम चुनें।'
+                      : 'Toggle between clean porcelain light mode and obsidian dark mode.'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-1.5 p-1 rounded-xl bg-neutral-200/70 dark:bg-white/10 border border-neutral-300/50 dark:border-white/10 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => { playClick(); spinGear(); setDark(false); }}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                    !dark
+                      ? 'bg-white text-neutral-950 shadow-xs'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
+                  }`}
+                  aria-label="Light mode"
+                >
+                  <Sun size={11} className={!dark ? 'text-amber-600' : ''} />
+                  <span>{currentLang === 'hi' ? 'लाइट' : 'Light'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { playClick(); spinGear(); setDark(true); }}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                    dark
+                      ? 'bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 shadow-xs'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
+                  }`}
+                  aria-label="Dark mode"
+                >
+                  <Moon size={11} className={dark ? 'text-amber-400' : ''} />
+                  <span>{currentLang === 'hi' ? 'डार्क' : 'Dark'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* ========================================================
               1. MAIN SETTING: Platform Language & Dialect Pipeline
              ======================================================== */}

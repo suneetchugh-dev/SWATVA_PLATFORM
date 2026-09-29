@@ -111,30 +111,10 @@ export default function AICopilotFAB() {
   const [historySearch, setHistorySearch] = useState('')
 
   const [sessions, setSessions] = useState(loadStoredSessions)
-  const [activeSessionId, setActiveSessionId] = useState(loadStoredActiveSessionId)
-
-  const [messages, setMessages] = useState(() => {
-    const savedSessions = loadStoredSessions()
-    const savedActiveId = loadStoredActiveSessionId()
-    if (savedActiveId) {
-      const active = savedSessions.find((s) => s.id === savedActiveId)
-      if (active && Array.isArray(active.messages)) {
-        return active.messages
-      }
-    }
-    return []
-  })
-
+  const [activeSessionId, setActiveSessionId] = useState(null)
+  const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
-  const [sessionId, setSessionId] = useState(() => {
-    const savedSessions = loadStoredSessions()
-    const savedActiveId = loadStoredActiveSessionId()
-    if (savedActiveId) {
-      const active = savedSessions.find((s) => s.id === savedActiveId)
-      return active?.backendSessionId || active?.id || null
-    }
-    return null
-  })
+  const [sessionId, setSessionId] = useState(null)
 
   const [sending, setSending] = useState(false)
   const [error, setError] = useState(null)

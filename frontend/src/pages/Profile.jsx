@@ -769,9 +769,9 @@ export default function Profile() {
           ) : null}
         </div>
 
-        <div data-tour="profile-actions" className="mt-8 pt-4 border-t border-neutral-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
+        <div data-tour="profile-actions" className="mt-8 pt-4 border-t border-neutral-200 dark:border-white/10 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3.5">
           {/* Left Button Group: Back & Next together */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
               variant="secondary"
               onClick={() => {
@@ -779,6 +779,7 @@ export default function Profile() {
                 setStep((s) => Math.max(0, s - 1))
               }}
               disabled={step === 0}
+              className="flex-1 sm:flex-initial justify-center"
               title={isHindi ? 'पिछला चरण (बायाँ तीर कुंजी)' : 'Previous step (Left Arrow key)'}
             >
               <ChevronLeft size={15} />
@@ -793,7 +794,7 @@ export default function Profile() {
                   setStep((s) => Math.min(STEPS.length - 1, s + 1))
                 }}
                 title={isHindi ? 'अगला चरण (दायाँ तीर कुंजी)' : 'Next step (Right Arrow key)'}
-                className="group"
+                className="group flex-1 sm:flex-initial justify-center"
               >
                 <span>{t('common.next')}</span>
                 <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
@@ -802,13 +803,13 @@ export default function Profile() {
           </div>
 
           {/* Right Button: Save Profile */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
             <button
               type="button"
               onClick={save}
               disabled={saving}
               className={cx(
-                'inline-flex items-center justify-center gap-2 h-10 px-5 min-w-[105px] rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer select-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm',
+                'inline-flex items-center justify-center gap-2 h-10 px-5 w-full sm:w-auto sm:min-w-[120px] rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer select-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm',
                 saved
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 border border-emerald-500/50 ring-2 ring-emerald-500/30'
                   : 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-100 border border-neutral-800/80 dark:border-white/20 ring-1 ring-amber-400/50 hover:ring-amber-400/90 shadow-amber-500/10'

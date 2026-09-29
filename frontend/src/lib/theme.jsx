@@ -3,12 +3,26 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 const STORAGE_KEY = 'swatva_theme'
 const ThemeContext = createContext(null)
 
+function isTouchDevice() {
+  if (typeof window === 'undefined') return false
+  return (
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0 ||
+    window.matchMedia?.('(pointer: coarse)').matches ||
+    false
+  )
+}
+
 function readInitialTheme() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === 'dark' || stored === 'light') return stored === 'dark'
   } catch {
-    // Private mode or blocked storage — fall through to the system preference.
+    // Private mode or blocked storage — fall through to default.
+  }
+  // For touch screen devices only: default to light theme
+  if (isTouchDevice()) {
+    return false
   }
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
 }
