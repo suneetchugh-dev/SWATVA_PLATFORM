@@ -1,6 +1,6 @@
 package in.swatva.ai.api;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 public record ChatMessageResponse(
@@ -10,5 +10,5 @@ public record ChatMessageResponse(
         String language,
         UUID activeSchemeId,
         boolean grounded,
-        LocalDateTime createdAt
+        Instant createdAt
 ) {}

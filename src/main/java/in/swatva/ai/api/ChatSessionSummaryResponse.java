@@ -1,6 +1,6 @@
 package in.swatva.ai.api;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 public record ChatSessionSummaryResponse(
@@ -10,6 +10,6 @@ public record ChatSessionSummaryResponse(
         UUID activeSchemeId,
         String activeSchemeName,
         int messageCount,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {}
