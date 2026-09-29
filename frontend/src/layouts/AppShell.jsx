@@ -27,6 +27,7 @@ import ThemeToggle from '../components/ThemeToggle'
 import { cx } from '../components/ui'
 import LoadingLogo from '../components/LoadingLogo'
 import AIOrbIcon from '../components/AIOrbIcon'
+import AICopilotFAB from '../components/AICopilotFAB'
 import { getLocalizedUserName } from '../utils/userDisplay'
 import { playClick } from '../utils/soundFx'
 
@@ -384,6 +385,9 @@ export default function AppShell() {
       <main key={pathname} className="mx-auto max-w-7xl px-3 sm:px-5 py-6 sm:py-8 pb-28 lg:pb-10 page-transition-enter">
         <Outlet />
       </main>
+
+      {/* Draggable Floating AI Orb Assistant across Dashboard */}
+      <AICopilotFAB />
 
       {/* Bottom bar on phones only */}
       <nav className="app-bottom-bar lg:hidden fixed bottom-0 inset-x-0 z-40 px-3 pb-3 pt-2 pb-safe" aria-label={t('nav.main')}>
