@@ -56,18 +56,33 @@ public class DocumentController {
             @RequestParam(value = "status", required = false) DocumentStatus status,
             @RequestParam(value = "password", required = false) String password
     ) {
-        UserDocumentDto dto = documentLockerService.uploadDocument(
-                authentication.getName(),
-                documentType,
-                file,
-                filename,
-                issueDate,
-                expiryDate,
-                issuingAuthority,
-                extractedMetadata,
-                status,
-                password
-        );
+        UserDocumentDto dto;
+        if (password != null && !password.isBlank()) {
+            dto = documentLockerService.uploadDocument(
+                    authentication.getName(),
+                    documentType,
+                    file,
+                    filename,
+                    issueDate,
+                    expiryDate,
+                    issuingAuthority,
+                    extractedMetadata,
+                    status,
+                    password
+            );
+        } else {
+            dto = documentLockerService.uploadDocument(
+                    authentication.getName(),
+                    documentType,
+                    file,
+                    filename,
+                    issueDate,
+                    expiryDate,
+                    issuingAuthority,
+                    extractedMetadata,
+                    status
+            );
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(dto));
     }
 
