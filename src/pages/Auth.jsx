@@ -8,6 +8,7 @@ import { useTheme } from '../lib/theme';
 import { api, getToken, setToken, setStoredUser } from '../api/client';
 import { playClick } from '../utils/soundFx';
 import { signInWithGoogle, signInWithFirebaseEmail, registerWithFirebaseEmail } from '../lib/firebase';
+import { getFriendlyAuthErrorMessage } from '../utils/authErrors';
 
 export default function Auth({ mode: initialMode = 'login' }) {
   const { t, i18n } = useTranslation();
@@ -88,7 +89,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
     try {
       const result = await signInWithGoogle(loginHint);
       if (result.error) {
-        setError(result.error);
+        setError(getFriendlyAuthErrorMessage(result.error, isHindi));
         setGoogleLoading(false);
         return;
       }
@@ -126,7 +127,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
       }
     } catch (err) {
       console.error('Google Sign-In error:', err);
-      setError(err?.message || 'Google sign-in failed. Please try again.');
+      setError(getFriendlyAuthErrorMessage(err, isHindi));
     } finally {
       setGoogleLoading(false);
     }
@@ -141,12 +142,12 @@ export default function Auth({ mode: initialMode = 'login' }) {
 
     const emailTrimmed = email.trim();
     if (!emailTrimmed) {
-      setError('Please enter a valid email address.');
+      setError(isHindi ? 'कृपया एक मान्य ईमेल पता दर्ज करें।' : 'Please enter a valid email address.');
       setLoading(false);
       return;
     }
     if (!password || password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError(isHindi ? 'पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।' : 'Password must be at least 6 characters.');
       setLoading(false);
       return;
     }
@@ -156,9 +157,9 @@ export default function Auth({ mode: initialMode = 'login' }) {
       playClick();
       setOtpStep('otp_verify');
       setResendTimer(res.coolDownSeconds || 30);
-      setOtpMessage(res.message || `A 6-digit OTP code has been sent to ${emailTrimmed} to verify email ownership.`);
+      setOtpMessage(res.message || (isHindi ? `ईमेल सत्यापन के लिए ${emailTrimmed} पर 6-अंकीय ओटीपी भेजा गया है।` : `A 6-digit OTP code has been sent to ${emailTrimmed} to verify email ownership.`));
     } catch (err) {
-      setError(err?.message || 'Failed to send verification OTP code. Please try again.');
+      setError(getFriendlyAuthErrorMessage(err, isHindi));
     } finally {
       setLoading(false);
     }
@@ -176,9 +177,9 @@ export default function Auth({ mode: initialMode = 'login' }) {
     try {
       const res = await api.auth.resendOtp(emailTrimmed);
       setResendTimer(res.coolDownSeconds || 30);
-      setOtpMessage(res.message || `A new 6-digit OTP code has been sent to ${emailTrimmed}`);
+      setOtpMessage(res.message || (isHindi ? `नया 6-अंकीय ओटीपी कोड ${emailTrimmed} पर भेजा गया है।` : `A new 6-digit OTP code has been sent to ${emailTrimmed}`));
     } catch (err) {
-      setError(err?.message || 'Failed to resend OTP. Please try again.');
+      setError(getFriendlyAuthErrorMessage(err, isHindi));
     } finally {
       setResendLoading(false);
     }
@@ -196,7 +197,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
     const otpTrimmed = otpCode.trim();
 
     if (!otpTrimmed || otpTrimmed.length !== 6) {
-      setError('Please enter the complete 6-digit OTP code.');
+      setError(isHindi ? 'कृपया पूरा 6-अंकीय ओटीपी कोड दर्ज करें।' : 'Please enter the complete 6-digit OTP code.');
       setLoading(false);
       return;
     }
@@ -210,7 +211,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
       } catch {}
       navigate('/app', { replace: true });
     } catch (err) {
-      setError(err?.message || 'Invalid or expired OTP code. Please check your email and try again.');
+      setError(getFriendlyAuthErrorMessage(err, isHindi));
     } finally {
       setLoading(false);
     }
@@ -233,7 +234,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
 
     const emailTrimmed = email.trim();
     if (!emailTrimmed) {
-      setError('Please enter a valid email address.');
+      setError(isHindi ? 'कृपया एक मान्य ईमेल पता दर्ज करें।' : 'Please enter a valid email address.');
       setLoading(false);
       return;
     }
@@ -248,7 +249,7 @@ export default function Auth({ mode: initialMode = 'login' }) {
       playClick();
       navigate('/app', { replace: true });
     } catch (err) {
-      setError(err?.message || 'Could not sign you in. Please check your credentials.');
+      setError(getFriendlyAuthErrorMessage(err, isHindi));
     } finally {
       setLoading(false);
     }
@@ -325,20 +326,24 @@ export default function Auth({ mode: initialMode = 'login' }) {
           </div>
 
           {/* Error Notification */}
-          {error && error.includes('unauthorized-domain') ? (
-            <div className="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs text-left leading-relaxed">
+          {error && (error.includes('unauthorized-domain') || error.includes('Domain Authorization Notice') || error.includes('डोमेन प्रमाणीकरण सूचना')) ? (
+            <div className="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs text-left leading-relaxed">
               <div className="font-bold flex items-center gap-1.5 mb-1 text-amber-900 dark:text-amber-100">
                 <AlertTriangle size={15} className="text-amber-500 shrink-0" />
-                <span>Firebase Domain Authorization Notice</span>
+                <span>{isHindi ? 'डोमेन प्रमाणीकरण सूचना' : 'Domain Authorization Notice'}</span>
               </div>
               <p>{error}</p>
               <div className="mt-2 text-[11px] font-mono opacity-90">
-                You can sign in or register directly using <strong>Email & Password</strong> below.
+                {isHindi ? 'आप नीचे दिए गए ईमेल और पासवर्ड से सीधे साइन इन या पंजीकरण कर सकते हैं।' : 'You can sign in or register directly using Email & Password below.'}
               </div>
             </div>
           ) : error ? (
-            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center">
-              {error}
+            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-left flex items-start gap-2.5">
+              <AlertTriangle size={15} className="shrink-0 mt-0.5 text-red-500" />
+              <div className="flex-1">
+                <span className="font-semibold block">{isHindi ? 'प्रमाणीकरण त्रुटि' : 'Authentication Notice'}</span>
+                <span className="mt-0.5 block leading-relaxed">{error}</span>
+              </div>
             </div>
           ) : null}
 

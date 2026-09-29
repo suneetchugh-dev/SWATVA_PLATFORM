@@ -57,7 +57,8 @@ export async function request(path, options = {}) {
   } catch (networkErr) {
     throw {
       code: 'NETWORK_ERROR',
-      message: `Failed to connect to backend at ${API_BASE_URL}. Is the Spring Boot server running on port 8080?`,
+      message: 'Unable to connect to the server. Please check your internet connection or try again later.',
+      technicalDetails: `Failed to connect to backend at ${API_BASE_URL}`,
       status: 0,
       fieldErrors: null,
     };

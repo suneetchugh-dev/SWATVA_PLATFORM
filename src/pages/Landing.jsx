@@ -53,12 +53,12 @@ const STEP_ITEMS = [
   { n: '03', titleKey: 'item2Title', bodyKey: 'item2Body' },
 ]
 const CAPABILITY_ITEMS = [
-  { Icon: Scale, titleKey: 'item0Title', bodyKey: 'item0Body' },
-  { Icon: Wallet, titleKey: 'item1Title', bodyKey: 'item1Body' },
-  { Icon: FileStack, titleKey: 'item2Title', bodyKey: 'item2Body' },
-  { Icon: ClipboardCheck, titleKey: 'item3Title', bodyKey: 'item3Body' },
-  { Icon: Sparkles, titleKey: 'item4Title', bodyKey: 'item4Body' },
-  { Icon: ShieldCheck, titleKey: 'item5Title', bodyKey: 'item5Body' },
+  { Icon: Scale, titleKey: 'item0Title', bodyKey: 'item0Body', tagKey: 'item0Tag' },
+  { Icon: Wallet, titleKey: 'item1Title', bodyKey: 'item1Body', tagKey: 'item1Tag' },
+  { Icon: FileStack, titleKey: 'item2Title', bodyKey: 'item2Body', tagKey: 'item2Tag' },
+  { Icon: ClipboardCheck, titleKey: 'item3Title', bodyKey: 'item3Body', tagKey: 'item3Tag' },
+  { Icon: Sparkles, titleKey: 'item4Title', bodyKey: 'item4Body', tagKey: 'item4Tag' },
+  { Icon: ShieldCheck, titleKey: 'item5Title', bodyKey: 'item5Body', tagKey: 'item5Tag' },
 ]
 const TRUST_POINTS = [
   { titleKey: 'point0Title', bodyKey: 'point0Body' },
@@ -691,13 +691,29 @@ export default function Landing() {
             }
           />
           <div className="mt-10 grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {CAPABILITY_ITEMS.map(({ Icon, titleKey, bodyKey }) => (
-              <div key={titleKey} className="neo-glass-card p-6 sm:p-7">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-neutral-950 dark:bg-white text-white dark:text-neutral-950">
-                  <Icon size={16} strokeWidth={2} />
-                </span>
-                <h3 className="mt-4 text-base font-bold tracking-tight">{t(`landing.capabilities.${titleKey}`)}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">{t(`landing.capabilities.${bodyKey}`)}</p>
+            {CAPABILITY_ITEMS.map(({ Icon, titleKey, bodyKey, tagKey }) => (
+              <div
+                key={titleKey}
+                className="neo-glass-card p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:shadow-lg dark:hover:shadow-black/40 group hover:-translate-y-0.5"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 shadow-2xs transition-transform duration-300 group-hover:scale-105">
+                      <Icon size={16} strokeWidth={2} />
+                    </span>
+                    {tagKey && t(`landing.capabilities.${tagKey}`, { defaultValue: '' }) ? (
+                      <span className="text-[10px] font-mono font-semibold tracking-wider uppercase px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 border border-neutral-200/80 dark:border-white/10">
+                        {t(`landing.capabilities.${tagKey}`)}
+                      </span>
+                    ) : null}
+                  </div>
+                  <h3 className="mt-4 text-base font-bold tracking-tight text-neutral-950 dark:text-white">
+                    {t(`landing.capabilities.${titleKey}`)}
+                  </h3>
+                  <p className="mt-2 text-xs sm:text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 font-normal">
+                    {t(`landing.capabilities.${bodyKey}`)}
+                  </p>
+                </div>
               </div>
             ))}
           </div>

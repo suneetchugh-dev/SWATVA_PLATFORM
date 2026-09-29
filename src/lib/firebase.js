@@ -15,6 +15,8 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
+import { getFriendlyAuthErrorMessage } from '../utils/authErrors';
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -47,7 +49,7 @@ export async function signInWithGoogle(loginHint = null) {
     return {
       user: null,
       token: null,
-      error: 'Firebase Auth is not configured. Please set VITE_FIREBASE_API_KEY environment variable.',
+      error: 'Firebase Auth is not configured. Please check environment configuration.',
     };
   }
   try {
@@ -66,11 +68,7 @@ export async function signInWithGoogle(loginHint = null) {
     };
   } catch (error) {
     console.error('Firebase Google Sign-In Error:', error);
-    let errorMessage = error.message || 'Google sign-in failed';
-    if (error.code === 'auth/unauthorized-domain' || errorMessage.includes('unauthorized-domain')) {
-      const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'swatva.sahnirmaan.live';
-      errorMessage = `Firebase Auth Domain Error: '${currentDomain}' is not listed in Authorized Domains. Please add '${currentDomain}' under Firebase Console > Authentication > Settings > Authorized Domains, or sign in using Email / OTP below.`;
-    }
+    const errorMessage = getFriendlyAuthErrorMessage(error);
     return {
       user: null,
       token: null,
@@ -98,7 +96,7 @@ export async function signInWithFirebaseEmail(email, password) {
     return {
       user: null,
       token: null,
-      error: error.message || 'Email sign-in failed',
+      error: getFriendlyAuthErrorMessage(error),
     };
   }
 }
@@ -124,7 +122,7 @@ export async function registerWithFirebaseEmail(name, email, password) {
     return {
       user: null,
       token: null,
-      error: error.message || 'Registration failed',
+      error: getFriendlyAuthErrorMessage(error),
     };
   }
 }
@@ -137,7 +135,7 @@ export async function firebaseSignOut() {
     return { success: true, error: null };
   } catch (error) {
     console.error('Firebase Sign-Out Error:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: getFriendlyAuthErrorMessage(error) };
   }
 }
 

@@ -129,21 +129,27 @@
     },
     "capabilities": {
       "watermark": "CAPABILITIES",
-      "badge": "What it does",
+      "badge": "Core Capabilities",
       "title": "Built around the whole application, not just the search",
-      "desc": "Finding a scheme is the easy half. SWATVA covers the documents, the readiness and the paperwork that decide whether you actually receive the benefit.",
-      "item0Title": "Deterministic eligibility",
-      "item0Body": "Eligibility is decided by stored eligibility rules, never by a language model. Every verdict is reproducible and cites the condition that produced it.",
-      "item1Title": "Value on the table",
-      "item1Body": "Aggregates the annual value of everything you qualify for but have not claimed, so the cost of not applying is a number rather than a suspicion.",
-      "item2Title": "Document locker",
-      "item2Body": "Upload a document once, validate it against the scheme requirement, correct extracted fields, and reuse it across every scheme that needs it.",
-      "item3Title": "Application readiness",
-      "item3Body": "Per-scheme readiness scoring across the documents and steps still outstanding, so you know which applications are genuinely submittable.",
-      "item4Title": "Ask in your own words",
-      "item4Body": "Describe a life event in Hindi or English and get the schemes it unlocked, with citations back to the official scheme text.",
-      "item5Title": "Transparency reports",
-      "item5Body": "Read how much each department disbursed, how long applications take, and report problems back through the same surface."
+      "desc": "Finding a scheme is only the beginning. SWATVA streamlines document verification, eligibility scoring, and submission readiness.",
+      "item0Title": "Deterministic Eligibility",
+      "item0Body": "Rules-driven decisions with zero hallucinations. Every match clearly cites the statutory condition that qualified you.",
+      "item0Tag": "Rule Engine",
+      "item1Title": "Unclaimed Value Calculation",
+      "item1Body": "Calculates the total annual monetary benefit across all eligible schemes you have yet to claim.",
+      "item1Tag": "Benefits",
+      "item2Title": "Smart Document Locker",
+      "item2Body": "Upload documents once, verify them automatically against scheme requirements, and reuse securely across applications.",
+      "item2Tag": "Document Vault",
+      "item3Title": "Application Readiness",
+      "item3Body": "Get a real-time readiness breakdown of pending documents and steps before submitting any application.",
+      "item3Tag": "Readiness Score",
+      "item4Title": "Natural Language Query",
+      "item4Body": "Describe your situation in everyday Hindi or English to discover matching welfare benefits with official citations.",
+      "item4Tag": "AI Assistant",
+      "item5Title": "Public Transparency",
+      "item5Body": "Track department disbursement records, standard processing times, and report service anomalies in one place.",
+      "item5Tag": "Public Audit"
     },
     "trust": {
       "watermark": "TRUST",
@@ -694,6 +700,7 @@
     "updateAvailable": "New Version Available",
     "updatePrompt": "Reload to update SWATVA with the latest rules.",
     "reload": "Reload",
-    "offlineNotice": "You are currently offline. SWATVA is serving cached benefit rules and offline records."
+    "offlineTitle": "Offline Mode Active",
+    "offlineNotice": "You are currently offline. SWATVA is serving cached benefit rules and saved records."
   }
 }

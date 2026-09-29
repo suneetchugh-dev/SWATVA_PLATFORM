@@ -96,7 +96,7 @@ export default function Matches() {
           <Banner tone="error" title={t('common.loadingError')}>
             {error}{' '}
             <button type="button" onClick={load} className="font-semibold underline cursor-pointer">
-              Try again
+              {t('common.tryAgain', 'Try again')}
             </button>
           </Banner>
         </div>
