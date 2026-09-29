@@ -83,10 +83,10 @@ export default function Matches() {
         desc={t('matches.desc')}
         actions={
           <div className="flex items-center gap-2">
-            <PageTourButton pageKey="matches" />
             <Button variant="secondary" onClick={() => { playClick(); load(); }}>
               {t('matches.recheck')}
             </Button>
+            <PageTourButton pageKey="matches" />
           </div>
         }
       />

@@ -593,7 +593,6 @@ export default function Assistant() {
         className="mb-4 shrink-0"
         actions={
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <PageTourButton pageKey="assistant" />
             <div data-tour="assistant-actions" className="flex items-center gap-1.5 sm:gap-2">
               <button
                 type="button"
@@ -648,6 +647,7 @@ export default function Assistant() {
                 </button>
               )}
             </div>
+            <PageTourButton pageKey="assistant" />
           </div>
         }
       />
