@@ -224,7 +224,9 @@ export default function AppShell() {
             </div>
 
             {/* Theme toggle */}
-            <ThemeToggle darkMode={dark} toggleTheme={toggle} />
+            <div data-tour="theme-toggle" className="flex items-center">
+              <ThemeToggle darkMode={dark} toggleTheme={toggle} />
+            </div>
 
             {/* Hairline Divider */}
             <div aria-hidden="true" className="h-6 w-px bg-neutral-300/80 dark:bg-white/20 flex-shrink-0" />

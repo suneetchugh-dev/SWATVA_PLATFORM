@@ -317,7 +317,7 @@ export default function PreferencesModal({ isOpen, onClose }) {
           {/* ========================================================
               0. APPEARANCE / THEME MODE: Light / Dark Mode Toggle
              ======================================================== */}
-          <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-neutral-50/90 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/15 transition-all">
+          <div data-tour="theme-preference" className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-neutral-50/90 dark:bg-white/[0.04] border border-neutral-200/80 dark:border-white/15 transition-all">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center space-x-2.5 sm:space-x-3 flex-1 min-w-0">
                 {dark ? (

@@ -487,6 +487,7 @@
     },
     "historyTitle": "Conversation History",
     "historyDesc": "Access and resume your past scheme consultations.",
+    "historySubtitle": "Saved locally in browser",
     "historyButton": "History",
     "newChat": "New Chat",
     "searchHistory": "Search conversations…",

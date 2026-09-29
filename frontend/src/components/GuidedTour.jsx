@@ -17,7 +17,8 @@ import {
   Sparkles,
   LayoutDashboard,
   CheckCircle2,
-  ArrowRight
+  ArrowRight,
+  SunMoon
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { playClick } from '../utils/soundFx';
@@ -83,13 +84,22 @@ export const GLOBAL_TOUR_STEPS = [
     descHi: 'दस्तावेज़ की समाप्ति तिथि, नई योजनाओं और प्रत्यक्ष लाभ हस्तांतरण (DBT) के अलर्ट प्राप्त करें।'
   },
   {
+    id: 'theme-toggle',
+    target: '[data-tour="theme-toggle"], [data-tour="theme-preference"], [data-tour="profile"]',
+    icon: SunMoon,
+    titleEn: 'Theme & Visual Mode',
+    titleHi: 'थीम एवं दृश्य मोड',
+    descEn: 'Seamlessly toggle between High-Contrast Dark Mode and Clean Light Mode for optimal reading comfort in any lighting.',
+    descHi: 'किसी भी रोशनी में आरामदायक अनुभव के लिए डार्क मोड और लाइट मोड के बीच तुरंत स्विच करें।'
+  },
+  {
     id: 'profile',
     target: '[data-tour="profile"]',
     icon: User,
-    titleEn: 'Citizen Profile & Preferences',
+    titleEn: 'Citizen Profile & Account',
     titleHi: 'नागरिक प्रोफ़ाइल एवं सेटिंग्स',
-    descEn: 'Manage personal details, switch theme, toggle sensory audio feedback, or view Team TheQuirkies.',
-    descHi: 'अपनी प्रोफ़ाइल जानकारी प्रबंधित करें, थीम बदलें, और भाषा व प्राथमिकताओं को अनुकूलित करें।'
+    descEn: 'Manage personal details, language & audio settings, or view Team TheQuirkies.',
+    descHi: 'अपनी प्रोफ़ाइल जानकारी प्रबंधित करें, भाषा व ऑडियो प्राथमिकताओं को अनुकूलित करें।'
   }
 ];
 
