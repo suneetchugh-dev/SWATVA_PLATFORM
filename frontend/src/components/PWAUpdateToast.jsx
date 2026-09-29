@@ -25,7 +25,7 @@ export default function PWAUpdateToast() {
   };
 
   return (
-    <div className="fixed top-20 right-4 sm:right-6 z-50 animate-in fade-in slide-in-from-top-4 duration-300 max-w-sm">
+    <div className="fixed top-20 inset-x-3 sm:inset-x-auto sm:right-6 z-50 animate-in fade-in slide-in-from-top-4 duration-300 sm:max-w-sm ml-auto">
       <div className="neo-glass-card p-3.5 rounded-2xl border border-amber-500/40 shadow-xl backdrop-blur-xl bg-white/95 dark:bg-neutral-900/95 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
